@@ -1,13 +1,13 @@
 # ROADMAP — SGL-DQR (construcción desde cero, modo individual)
 
-**Punto de reanudación:** P5 — API: persistencia (adaptador PostgreSQL), errores y Swagger. Subpaso: Entidades JPA y mapeadores dominio-persistencia. Archivo que sigue: `Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/api/persistencia/entidad/EncomiendaJpaEntity.java`.
-Último commit: `feat(P4): motor criptografico doble qr, validacion cruzada y adaptador zxing` en rama `feature/P4-motor-doble-qr`.
+**Punto de reanudación:** P6 — API: autenticación y RBAC por rol (RF-01). Subpaso: Servicio de autenticación JWT y filtros de seguridad Spring Security. Archivo que sigue: `Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/seguridad/ServicioAutenticacion.java`.
+Último commit: `feat(P5): capa de persistencia jpa, adaptadores postgresql, beans y manejo de errores rfc 7807` en rama `feature/P4-motor-doble-qr`.
 
 - [x] P1  Esqueleto del repo (Maven multimódulo, estructura de carpetas, .gitignore)
 - [x] P2  BD PostgreSQL: migraciones Flyway desde el Diccionario de Datos (V1 a V7 según dependencias FK, 18 tablas exactas, BCrypt real verificado, README.md, docker-compose.yml y tests de integración con H2)
 - [x] P3  Core: dominio, puertos y servicios base — entidades Encomienda, ParDobleQR, Cliente, Empleado, Sucursal y enums del Diccionario; puertos RepositorioPort por agregado, ImpresionPort, RelojPort, TarifarioPort; servicios RegistrarEncomiendaService, CambiarEstadoService, TarifarioPorPeso; regla de bloqueo de entrega por pago pendiente; 23 pruebas unitarias y de arquitectura con ArchUnit en verde
 - [x] P4  Core: Motor Criptográfico Doble QR con ZXing (RF-07, RNF-01, RNF-03) — MotorQR (generarDobleQR con SecureRandom y SHA-256, validarCruzado en tiempo constante con MessageDigest.isEqual, bloqueo FALLIDO_PAGO_PENDIENTE sin invalidar, invalidación irreversible con fecha en éxito, latencia ms), puerto ImagenQRPort y adaptador ZXingAdapter en infraestructura.qr; 34 pruebas en verde con ArchUnit
-- [ ] P5  API: persistencia (adaptador PostgreSQL), errores y Swagger
+- [x] P5  API: persistencia (adaptador PostgreSQL), errores y Swagger
 - [ ] P6  API: autenticación y RBAC por rol (RF-01)
 - [ ] P7  API: registrar encomienda + Doble QR + auditoría (RF-04, RF-07)
 - [ ] P8  API: validación cruzada, bloqueo Contra Entrega y entrega (RF-04, RF-07)

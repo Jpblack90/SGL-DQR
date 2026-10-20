@@ -1,4 +1,4 @@
-package pe.marvisur.api;
+package pe.marvisur.sgldqr.api;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

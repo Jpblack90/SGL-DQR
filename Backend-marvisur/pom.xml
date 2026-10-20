@@ -33,11 +33,28 @@
         <junit.version>5.10.3</junit.version>
         <mockito.version>5.11.0</mockito.version>
         <archunit.version>1.3.0</archunit.version>
+        <springdoc.version>2.6.0</springdoc.version>
+        <testcontainers.version>1.20.1</testcontainers.version>
     </properties>
 
     <!-- Gestión de dependencias (sin declararlas como activas) -->
     <dependencyManagement>
         <dependencies>
+            <!-- Testcontainers BOM para pruebas de persistencia PostgreSQL -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- SpringDoc OpenAPI (Swagger UI) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
             <!-- JUnit BOM para alinear junit-jupiter y junit-platform -->
             <dependency>
                 <groupId>org.junit</groupId>
