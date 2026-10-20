@@ -86,3 +86,15 @@ Total de tablas en Diccionario: **18**. Total creadas en BD: **18** (+ historial
 | 16 | `historial_tracking` | Módulo 6 | `id_tracking` | `id_encomienda`, `id_sucursal_actual` | `estado_evento`, `fecha_hora_evento` TIMESTAMPTZ | Coincide 100% |
 | 17 | `comprobantes_pago` | Módulo 6 | `id_comprobante` | `id_encomienda` (UNIQUE) | CHECK(`tipo_comprobante` IN ('BOLETA','FACTURA')), `serie_correlativo` | Coincide 100% |
 | 18 | `archivos_pdf_comprobante` | Módulo 6 | `id_pdf` | `id_comprobante` (UNIQUE) | `hash_sha256_archivo`, `ruta_almacenamiento_vps` | Coincide 100% |
+
+---
+
+## 5. Seguridad y Mejoras Futuras
+
+### 5.1. Cambio Obligatorio de Credenciales Temporales
+> **IMPORTANTE**: La contraseña temporal del usuario administrador inicial (`EMP-ADMIN-01` / `admin@marvisur.pe`) es de uso exclusivo para aprovisionamiento inicial y pruebas. **Debe cambiarse de forma obligatoria antes de cualquier despliegue** en entornos de preproducción o producción.
+
+### 5.2. Mejoras Futuras de Seguridad (Fuera del Alcance del Diccionario Actual)
+En estricto apego a las reglas de trabajo del proyecto SGL-DQR (cero invención de tablas y campos no contemplados en `docs/Diccionario_Datos_SGL_DQR.md`), las siguientes capacidades se documentan como mejoras futuras recomendadas:
+1. **Bloqueo de cuentas por intentos fallidos**: Requeriría incorporar a la tabla `empleados` las columnas `intentos_fallidos INT` y `fecha_bloqueo TIMESTAMP`.
+2. **Recuperación y restablecimiento de contraseña autogestionado**: Requeriría incorporar a la tabla `empleados` las columnas `token_recuperacion VARCHAR(64)` y `expiracion_token TIMESTAMP`.

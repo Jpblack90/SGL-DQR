@@ -1,6 +1,7 @@
 package pe.marvisur.sgldqr.api.persistencia.postgres;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pe.marvisur.sgldqr.api.persistencia.entidad.AuditoriaLogJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.mapeador.AuditoriaMapper;
@@ -24,11 +25,18 @@ public class AuditoriaPostgresAdapter implements AuditoriaPort {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void registrar(AuditoriaLog log) {
         Objects.requireNonNull(log, "El log no puede ser nulo");
         AuditoriaLogJpaEntity entidad = AuditoriaMapper.aEntidad(log);
         repository.save(entidad);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrar(String idEmpleado, String accion, String tablaAfectada, String idRegistroAfectado, String ipOrigen) {
+        AuditoriaLog log = AuditoriaLog.crear(idEmpleado, accion, tablaAfectada, idRegistroAfectado, ipOrigen, java.time.LocalDateTime.now());
+        registrar(log);
     }
 
     @Override

@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -99,6 +101,29 @@ public class ManejadorGlobalExcepciones {
         problem.setProperty("codigo", "VALIDACION_FALLIDA");
         problem.setProperty("campos", campos);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> manejarCredencialesInvalidas(BadCredentialsException ex) {
+        log.warn("Fallo de autenticación: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Credenciales Inválidas");
+        problem.setType(URI.create("https://marvisur.pe/errores/credenciales-invalidas"));
+        problem.setProperty("codigo", "CREDENCIALES_INVALIDAS");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> manejarAccesoDenegado(AccessDeniedException ex) {
+        log.warn("Acceso denegado: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "Acceso denegado. No posee los permisos requeridos para acceder a este recurso."
+        );
+        problem.setTitle("Acceso Denegado");
+        problem.setType(URI.create("https://marvisur.pe/errores/acceso-denegado"));
+        problem.setProperty("codigo", "ACCESO_DENEGADO");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
     @ExceptionHandler(Exception.class)
