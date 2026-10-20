@@ -36,9 +36,10 @@ public class ArquitecturaHexagonalTest {
                     .that().resideInAPackage("pe.marvisur.sgldqr.dominio..")
                     .should().dependOnClassesThat().resideInAnyPackage(
                             "pe.marvisur.sgldqr.aplicacion..",
-                            "pe.marvisur.sgldqr.puertos.."
+                            "pe.marvisur.sgldqr.puertos..",
+                            "pe.marvisur.sgldqr.infraestructura.."
                     )
-                    .because("El dominio es el núcleo central y no debe conocer puertos ni casos de uso de aplicación");
+                    .because("El dominio es el núcleo central y no debe conocer puertos, aplicación ni adaptadores de infraestructura");
 
     @ArchTest
     public static final ArchRule puertosNoDebenDependerDeAplicacion =
