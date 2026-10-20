@@ -1,13 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ====================================================
-         POM raíz multimódulo — SGL-DQR · Expreso Marvisur
-         Arquitectura hexagonal pura (sin Spring en este POM)
-         ==================================================== -->
+    <!-- POM raíz multimódulo — SGL-DQR · Expreso Marvisur
+         Arquitectura hexagonal pura (sin Spring en este POM) -->
     <groupId>pe.marvisur</groupId>
     <artifactId>marvisur-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
@@ -16,13 +14,13 @@
     <name>Marvisur Parent</name>
     <description>Sistema de Gestión Logística con Doble QR (SGL-DQR) — POM raíz multimódulo</description>
 
-    <!-- ---- Módulos hijos ---- -->
+    <!-- Módulos hijos -->
     <modules>
         <module>marvisur-core</module>
         <module>marvisur-api</module>
     </modules>
 
-    <!-- ---- Propiedades globales ---- -->
+    <!-- Propiedades globales -->
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
@@ -37,7 +35,7 @@
         <archunit.version>1.3.0</archunit.version>
     </properties>
 
-    <!-- ---- Gestión de dependencias (sin declararlas como activas) ---- -->
+    <!-- Gestión de dependencias (sin declararlas como activas) -->
     <dependencyManagement>
         <dependencies>
 
@@ -98,7 +96,7 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- ---- Plugins globales de construcción ---- -->
+    <!-- Plugins globales de construcción -->
     <build>
         <pluginManagement>
             <plugins>
@@ -125,3 +123,4 @@
     </build>
 
 </project>
+

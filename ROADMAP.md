@@ -1,55 +1,25 @@
-# ROADMAP — SGL-DQR · Expreso Marvisur
+# ROADMAP — SGL-DQR (construcción desde cero, modo individual)
 
-> Leyenda: [ ] pendiente · [x] completado · [~] en progreso · [!] bloqueado
+**Punto de reanudación:** P2 — BD PostgreSQL: migraciones Flyway.
+Último commit: `feat(CORE-01)` en rama `feature/CORE-01-dominio-hexagonal`.
 
----
-
-## I1 — Núcleo de Dominio (marvisur-core)
-
-- [x] **CORE-01** Estructura Maven multimódulo + entidades de dominio (Encomienda, CodigoQR, Agencia, Ruta, Usuario, Vehiculo) + puertos (RepositorioEncomiendaPort, RepositorioCodigoQRPort, ImpresionPort)
-- [ ] **CORE-02** MotorQR: generarDobleQR (ZXing + SHA-256), validarCruzado, invalidarQR2 + pruebas unitarias MotorQRTest
-- [ ] **CORE-03** Casos de uso: RegistrarEncomiendaUseCase, ValidarEntregaUseCase, ConsultarEncomiendaUseCase + pruebas unitarias con Mockito
-- [ ] **CORE-04** ArchUnit: reglas de arquitectura hexagonal (core sin dependencias de Spring/JPA/JavaFX)
-
----
-
-## I2 — Backend API (marvisur-api · Spring Boot)
-
-- [ ] **API-01** Configuración Spring Boot 3 + Flyway + PostgreSQL: DataSource, migraciones V1__esquema_inicial.sql, V2__datos_semilla.sql
-- [ ] **API-02** Adaptador PostgreSQLAdapter (implementa RepositorioEncomiendaPort + RepositorioCodigoQRPort con JPA/Hibernate)
-- [ ] **API-03** REST endpoints CRUD Encomienda: POST /api/encomiendas, GET /api/encomiendas/{id}, PUT /api/encomiendas/{id}/estado
-- [ ] **API-04** REST endpoint validación entrega: POST /api/encomiendas/{id}/validar-entrega
-- [ ] **API-05** REST endpoint token cliente (acceso sin usuario/contraseña): GET /api/encomiendas/token/{token}
-- [ ] **API-06** Sincronización offline: POST /api/sync/encomiendas (recibe lote de UUIDs desde SQLite)
-- [ ] **API-07** Pruebas de integración con H2 (@SpringBootTest, @Sql)
-
----
-
-## I3 — Escritorio JavaFX (offline-first)
-
-- [ ] **FX-01** Proyecto JavaFX 21 + Maven: módulo-info.java, App.java, estructura FXML
-- [ ] **FX-02** SQLiteAdapter (implementa RepositorioEncomiendaPort + RepositorioCodigoQRPort con JDBC puro)
-- [ ] **FX-03** Pantalla Registro de Encomienda (TN1): formulario, calcular tarifa, generar Doble QR
-- [ ] **FX-04** Pantalla Validación Entrega (TN2): escanear QR1+QR2, validar cruce, bloquear/autorizar
-- [ ] **FX-05** ESCPOSAdapter: imprimir ticket QR1 en ticketera térmica 58mm por USB/ESC·POS
-- [ ] **FX-06** Sincronización con backend (conmutación <= 2 s · RNF-02)
-- [ ] **FX-07** jpackage: empaquetar como .EXE autocontenido (RNF-04)
-
----
-
-## I4 — Portal Web + Billetera Digital (React + Vite + TS + Tailwind)
-
-- [ ] **WEB-01** Scaffolding: Vite + React 18 + TypeScript + Tailwind CSS + React Router
-- [ ] **WEB-02** Página Pre-registro Web (An1): formulario cotización de tarifa (sin login)
-- [ ] **WEB-03** Página Trazabilidad de Envío (An1): consulta por token temporal, timeline de estados
-- [ ] **WEB-04** Billetera Digital (An1): visualizar QR2 digital, estado de pago, descargar comprobante
-- [ ] **WEB-05** Integración con marvisur-api: cliente HTTP (axios/fetch), manejo offline/error
-- [ ] **WEB-06** Pruebas con Vitest + React Testing Library
-
----
-
-## Tareas Compartidas / DevOps
-
-- [ ] **DEV-01** GitHub Actions CI: build + test en push a main y PRs
-- [ ] **DEV-02** Docker Compose: postgres + marvisur-api para desarrollo local
-- [ ] **DEV-03** Documentación API (OpenAPI 3 / Swagger UI)
+- [x] P1  Esqueleto del repo (Maven multimódulo, estructura de carpetas, .gitignore)
+- [ ] P2  BD PostgreSQL: migraciones Flyway desde el Diccionario de Datos
+- [x] P3  Core: dominio, puertos y servicios base — entidades Encomienda, CodigoQR, Agencia, Ruta, Usuario, Vehiculo; puertos RepositorioEncomiendaPort, RepositorioCodigoQRPort, ImpresionPort; casos de uso Registrar/ValidarEntrega/Consultar (31 tests, BUILD SUCCESS)
+- [x] P4  Core: Motor Doble QR con ZXing (SHA-256 de imagen PNG, validarCruzado, invalidarQR2)
+- [ ] P5  API: persistencia (adaptador PostgreSQL), errores y Swagger
+- [ ] P6  API: autenticación y RBAC por rol (RF-01)
+- [ ] P7  API: registrar encomienda + Doble QR + auditoría (RF-04, RF-07)
+- [ ] P8  API: validación cruzada, bloqueo Contra Entrega y entrega (RF-04, RF-07)
+- [ ] P9  API: dashboard y empleados (RF-02, RF-03)
+- [ ] P10 API: flota, rutas, despacho por lote y búsqueda DNI/RUC (RF-05, RF-06)
+- [ ] P11 API pública: tracking, pre-registro Código Express y Billetera (RF-08, RF-09, RF-10)
+- [ ] P12 API: comprobante PDF (RF-11)
+- [ ] P13 Escritorio: shell, tema de marca, login y navegación por rol (RF-01)
+- [ ] P14 Escritorio: ventanilla + impresión ESC/POS del QR1 (RF-04, RF-07)
+- [ ] P15 Escritorio: almacén, escáner, Batch Scanning y validación cruzada (RF-06, RF-07)
+- [ ] P16 Escritorio: dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
+- [ ] P17 Offline: esquema SQLite, SQLiteAdapter y conmutación <= 2 s (RNF-02)
+- [ ] P18 Offline: sincronización SQLite <-> PostgreSQL por UUID
+- [ ] P19 Portal web: scaffold, tema, rastreo, pre-registro y Billetera (RF-08 a RF-11)
+- [ ] P20 Cierre: HTTPS, instalador .EXE (jpackage) y pruebas de rendimiento (RNF-01, 03, 04)
