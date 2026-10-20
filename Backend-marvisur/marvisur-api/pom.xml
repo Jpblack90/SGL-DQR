@@ -95,6 +95,17 @@
     </dependencies>
 
     <build>
+        <!-- Una sola fuente de verdad para migraciones Flyway: database/postgres/migrations -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/../../database/postgres/migrations</directory>
+                <targetPath>db/migration</targetPath>
+            </resource>
+        </resources>
+
         <plugins>
             <!-- Plugin Spring Boot: genera JAR ejecutable (fat-JAR) -->
             <plugin>

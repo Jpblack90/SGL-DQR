@@ -10,3 +10,4 @@ REGLAS DE TRABAJO (modo individual)
 4. Código, comentarios y nombres en español, coherentes con los diagramas UML
    de /docs. Pruebas unitarias en todo código de negocio. Cero secretos en Git.
 5. Si algo no está en /docs, pregunta; no inventes tablas, campos ni reglas.
+6. No crees ramas nuevas. Trabaja siempre en la rama actual.
