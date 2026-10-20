@@ -4,7 +4,7 @@
 Último commit: `feat(P2)` en rama `feature/API-01-flyway-postgresql`.
 
 - [x] P1  Esqueleto del repo (Maven multimódulo, estructura de carpetas, .gitignore)
-- [x] P2  BD PostgreSQL: migraciones Flyway desde el Diccionario de Datos (V1 esquema, V2 datos semilla, schema_sqlite.sql, 6 tests de integración con H2)
+- [x] P2  BD PostgreSQL: migraciones Flyway desde el Diccionario de Datos (V1 a V7 según dependencias FK, 18 tablas exactas, BCrypt real verificado, README.md, docker-compose.yml y tests de integración con H2)
 - [x] P3  Core: dominio, puertos y servicios base — entidades Encomienda, CodigoQR, Agencia, Ruta, Usuario, Vehiculo; puertos RepositorioEncomiendaPort, RepositorioCodigoQRPort, ImpresionPort; casos de uso Registrar/ValidarEntrega/Consultar (31 tests, BUILD SUCCESS)
 - [x] P4  Core: Motor Doble QR con ZXing (SHA-256 de imagen PNG, validarCruzado, invalidarQR2)
 - [ ] P5  API: persistencia (adaptador PostgreSQL), errores y Swagger
