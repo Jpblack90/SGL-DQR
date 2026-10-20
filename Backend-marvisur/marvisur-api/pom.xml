@@ -1,15 +1,12 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ====================================================
-         POM marvisur-api — API REST Spring Boot (ESQUELETO)
-         Spring Boot 3 · JPA · Flyway · PostgreSQL
-         CORE-01: Solo esqueleto vacío, sin código fuente aún.
-         Implementación completa en API-01 a API-07.
-         ==================================================== -->
+    <!-- POM marvisur-api — API REST Spring Boot 3 + Flyway + PostgreSQL
+         Adaptador de infraestructura (hexagonal) para SGL-DQR.
+         El dominio de negocio vive en marvisur-core (sin Spring).        -->
     <parent>
         <groupId>pe.marvisur</groupId>
         <artifactId>marvisur-parent</artifactId>
@@ -20,11 +17,24 @@
     <packaging>jar</packaging>
 
     <name>Marvisur API</name>
-    <description>Adaptador REST Spring Boot 3 para el sistema SGL-DQR (pendiente implementación API-01 a API-07)</description>
+    <description>Adaptador REST Spring Boot 3 para el sistema SGL-DQR (Expreso Marvisur)</description>
+
+    <!-- Spring Boot BOM para alinear versiones transitivas -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.3.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
 
-        <!-- Núcleo de dominio (arquitectura hexagonal) -->
+        <!-- Nucleo de dominio (arquitectura hexagonal) -->
         <dependency>
             <groupId>pe.marvisur</groupId>
             <artifactId>marvisur-core</artifactId>
@@ -35,40 +45,89 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>3.3.5</version>
         </dependency>
 
         <!-- Spring Data JPA (ORM adaptador PostgreSQL) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>3.3.5</version>
         </dependency>
 
-        <!-- PostgreSQL JDBC Driver -->
+        <!-- Validacion de beans (Jakarta) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL JDBC Driver (runtime — solo produccion) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.4</version>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway — Migraciones de base de datos -->
+        <!-- Flyway: migraciones de base de datos -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>10.20.1</version>
         </dependency>
 
-        <!-- Spring Boot Test -->
+        <!-- Soporte Flyway para PostgreSQL (Flyway 10+) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Test (JUnit 5 + AssertJ + Mockito) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>3.3.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- H2: base de datos embebida SOLO para tests de integracion -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 
     </dependencies>
 
-</project>
+    <build>
+        <plugins>
+            <!-- Plugin Spring Boot: genera JAR ejecutable (fat-JAR) -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Conservar el JAR original sin reempaquetar para que
+                                 Surefire pueda resolver el classpath correctamente -->
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
+            <!-- Surefire: configuracion para tests con Spring Boot -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                    <!-- Pasar propiedades del perfil de test via argLine -->
+                    <argLine>-Dspring.profiles.active=test
+                        -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
