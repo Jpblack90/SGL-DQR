@@ -1,0 +1,75 @@
+# ==========================================
+# .gitignore — SGL-DQR · Expreso Marvisur
+# ==========================================
+
+# ---- Java / Maven ----
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+.mvn/wrapper/maven-wrapper.jar
+
+# ---- IDE ----
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+*.launch
+*.sublime-project
+*.sublime-workspace
+.vscode/settings.json
+.vscode/.history/
+nbproject/
+
+# ---- Logs ----
+*.log
+logs/
+log/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Secretos y credenciales ----
+*.env
+.env.*
+application-local.properties
+application-secret.properties
+secrets/
+
+# ---- Base de datos local ----
+*.db
+*.sqlite
+*.sqlite3
+database/sqlite/*.db
+
+# ---- Node / Frontend ----
+node_modules/
+dist/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# ---- Cobertura de pruebas ----
+.jacoco/
+coverage/
+*.exec
+
+# ---- Docker ----
+.docker/
+
+# ---- Temporales ----
+*.tmp
+*.bak
+*.swp
+*~
