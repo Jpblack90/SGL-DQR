@@ -1,0 +1,145 @@
+Diseño Lógico y Físico de Base de Datos - SGL-DQR
+Nota Arquitectónica: Todas las Llaves Primarias (PK) y Foráneas (FK) han sido definidas como VARCHAR(36) / UUID para soportar la generación de identificadores únicos descentralizados. Esto garantiza la sincronización offline entre la base de datos local (SQLite/H2) y la nube (PostgreSQL) sin colisiones de datos, cumpliendo con el RNF-02.
+
+MÓDULO 1: Seguridad, Personal y Auditoría (RF-01, RF-03)
+Garantiza el control de accesos RBAC y el registro de auditoría por transacción en ventanilla y almacén.
+Tabla: roles
+id_rol (PK, VARCHAR(36) / UUID)
+nombre_rol (VARCHAR) (Ej: Administrador, Almacenero, Recepcionista, Chofer)
+descripcion (TEXT)
+Tabla: empleados
+id_empleado (PK, VARCHAR(36) / UUID)
+id_rol (FK -> roles.id_rol, VARCHAR(36))
+id_sucursal (FK -> sucursales.id_sucursal, VARCHAR(36))
+dni (VARCHAR(8), UNIQUE)
+nombres (VARCHAR)
+apellidos (VARCHAR)
+correo (VARCHAR, UNIQUE)
+password_hash (VARCHAR) (para login en App JavaFX)
+estado (BOOLEAN) (Baja lógica)
+Tabla: auditoria_logs
+id_log (PK, VARCHAR(36) / UUID)
+id_empleado (FK -> empleados.id_empleado, VARCHAR(36))
+accion (VARCHAR) (Ej: REGISTRO_ENCOMIENDA, VALIDACION_ENTREGA)
+tabla_afectada (VARCHAR)
+id_registro_afectado (VARCHAR(36))
+fecha_hora (TIMESTAMP WITH TIME ZONE)
+ip_origen (VARCHAR)
+MÓDULO 2: Sucursales, Flotas y Rutas (RF-02, RF-05)
+Administra las agencias de Marvisur, los vehículos, chóferes y la programación de viajes interprovinciales.
+Tabla: sucursales
+id_sucursal (PK, VARCHAR(36) / UUID)
+nombre_agencia (VARCHAR) (Ej: Agencia Arequipa, Agencia Lima)
+direccion (TEXT)
+ciudad (VARCHAR)
+Tabla: vehiculos
+id_vehiculo (PK, VARCHAR(36) / UUID)
+placa (VARCHAR(10), UNIQUE)
+modelo (VARCHAR)
+capacidad_carga_kg (NUMERIC)
+Tabla: rutas
+id_ruta (PK, VARCHAR(36) / UUID)
+id_sucursal_origen (FK -> sucursales.id_sucursal, VARCHAR(36))
+id_sucursal_destino (FK -> sucursales.id_sucursal, VARCHAR(36))
+distancia_km (NUMERIC)
+Tabla: programacion_viajes
+id_viaje (PK, VARCHAR(36) / UUID)
+id_ruta (FK -> rutas.id_ruta, VARCHAR(36))
+id_vehiculo (FK -> vehiculos.id_vehiculo, VARCHAR(36))
+id_chofer (FK -> empleados.id_empleado, VARCHAR(36))
+fecha_salida (TIMESTAMP)
+fecha_llegada_estimada (TIMESTAMP)
+estado_viaje (VARCHAR) (PROGRAMADO, EN_RUTA, FINALIZADO)
+MÓDULO 3: Clientes y Pre-Registros (RF-08, RF-10)
+Maneja la información de remitentes/destinatarios y la persistencia temporal del Pre-Registro Web ('Código Express').
+Tabla: clientes
+id_cliente (PK, VARCHAR(36) / UUID)
+tipo_documento (VARCHAR) (DNI / RUC)
+numero_documento (VARCHAR(12), UNIQUE)
+nombres_razon_social (VARCHAR)
+telefono (VARCHAR)
+correo (VARCHAR)
+Tabla: pre_registros_express
+id_preregistro (PK, VARCHAR(36) / UUID)
+codigo_express (VARCHAR, UNIQUE) (Código temporal leído en ventanilla)
+id_cliente_remitente (FK -> clientes.id_cliente, VARCHAR(36))
+id_cliente_destinatario (FK -> clientes.id_cliente, VARCHAR(36))
+id_sucursal_destino (FK -> sucursales.id_sucursal, VARCHAR(36))
+peso_estimado (NUMERIC)
+monto_cotizado (NUMERIC)
+fecha_creacion (TIMESTAMP)
+estado (VARCHAR) (PENDIENTE_VENTANILLA, PROCESADO, EXPIRADO)
+MÓDULO 4: Encomiendas, Pagos y Almacén (RF-04, RF-06)
+Lógica central de encomiendas, tarifas y el bloqueo físico de entregas con estado 'PENDIENTE' (Contra Entrega).
+Tabla: encomiendas
+id_encomienda (PK, VARCHAR(36) / UUID)
+codigo_comprobante (VARCHAR, UNIQUE) (Boleta/Factura)
+id_remitente (FK -> clientes.id_cliente, VARCHAR(36))
+id_destinatario (FK -> clientes.id_cliente, VARCHAR(36))
+id_sucursal_origen (FK -> sucursales.id_sucursal, VARCHAR(36))
+id_sucursal_destino (FK -> sucursales.id_sucursal, VARCHAR(36))
+peso_kg (NUMERIC)
+volumen_m3 (NUMERIC)
+descripcion_contenido (TEXT)
+monto_total (NUMERIC)
+estado_pago (VARCHAR) (PAGADO / PENDIENTE) <- CRÍTICO para Contra Entrega
+estado_logistico (VARCHAR) (REGISTRADO, EN_ALMACEN_ORIGEN, EN_RUTA, EN_ALMACEN_DESTINO, ENTREGADO)
+fecha_registro (TIMESTAMP)
+Tabla: despachos_lote_detalles
+id_despacho_detalle (PK, VARCHAR(36) / UUID)
+id_viaje (FK -> programacion_viajes.id_viaje, VARCHAR(36))
+id_encomienda (FK -> encomiendas.id_encomienda, VARCHAR(36))
+fecha_asociacion (TIMESTAMP)
+Tabla: incidencias_emergencia
+id_incidencia (PK, VARCHAR(36) / UUID)
+id_encomienda (FK -> encomiendas.id_encomienda, VARCHAR(36))
+id_empleado_reporta (FK -> empleados.id_empleado, VARCHAR(36))
+tipo_incidencia (VARCHAR) (ETIQUETA_DANADA, ETIQUETA_PERDIDA)
+motivo_reimpresion (TEXT)
+fecha_incidencia (TIMESTAMP)
+MÓDULO 5: Motor Criptográfico del Doble QR y Tokens (RF-07, RF-09, RNF-01)
+Estructura del par de códigos enlazados (QR1 Operativo / QR2 Llave Digital) y el ciclo de vida del hash.
+Tabla: parejas_doble_qr
+id_pareja_qr (PK, VARCHAR(36) / UUID)
+id_encomienda (FK -> encomiendas.id_encomienda, UNIQUE, VARCHAR(36))
+uuid_qr1_operativo (VARCHAR) (Identificador visible del paquete)
+hash_qr2_llave_digital (VARCHAR) (Hash criptográfico guardado con BCrypt/SHA-256)
+fecha_generacion (TIMESTAMP)
+Tabla: tokens_qr2_estatus
+id_token_status (PK, VARCHAR(36) / UUID)
+id_pareja_qr (FK -> parejas_doble_qr.id_pareja_qr, VARCHAR(36))
+estado_token (VARCHAR) (ACTIVO, INVALIDADO, EXPIRADO)
+fecha_invalidacion (TIMESTAMP WITH TIME ZONE) (Actualización en ≤500ms)
+motivo_inactivacion (VARCHAR) (ENTREGA_EXITOSA, INTENTO_FRAUDE)
+Tabla: validaciones_cruzadas_logs
+id_validacion (PK, VARCHAR(36) / UUID)
+id_pareja_qr (FK -> parejas_doble_qr.id_pareja_qr, VARCHAR(36))
+id_empleado_valida (FK -> empleados.id_empleado, VARCHAR(36))
+resultado (VARCHAR) (EXITOSO, FALLIDO_PAGO_PENDIENTE, FALLIDO_TOKEN_INVALIDO)
+latencia_procesamiento_ms (INT) (Métrica para auditar los ≤1000ms del RNF-03)
+fecha_validacion (TIMESTAMP)
+MÓDULO 6: Trazabilidad, Tracking y Comprobantes PDF (RF-08, RF-11)
+Soporta la línea de tiempo pública que ve el cliente en la web y la descarga de comprobantes.
+Tabla: historial_tracking
+id_tracking (PK, VARCHAR(36) / UUID)
+id_encomienda (FK -> encomiendas.id_encomienda, VARCHAR(36))
+id_sucursal_actual (FK -> sucursales.id_sucursal, VARCHAR(36))
+estado_evento (VARCHAR) (Ej: RECEPCIONADO, EN_TRANSITO, LISTO_PARA_RETIRO)
+observacion (TEXT)
+fecha_hora_evento (TIMESTAMP)
+Tabla: comprobantes_pago
+id_comprobante (PK, VARCHAR(36) / UUID)
+id_encomienda (FK -> encomiendas.id_encomienda, UNIQUE, VARCHAR(36))
+tipo_comprobante (VARCHAR) (BOLETA / FACTURA)
+serie_correlativo (VARCHAR) (Ej: B001-0001234)
+monto_subtotal (NUMERIC)
+monto_igv (NUMERIC)
+monto_total (NUMERIC)
+fecha_emision (TIMESTAMP)
+Tabla: archivos_pdf_comprobante
+id_pdf (PK, VARCHAR(36) / UUID)
+id_comprobante (FK -> comprobantes_pago.id_comprobante, UNIQUE, VARCHAR(36))
+nombre_archivo (VARCHAR)
+ruta_almacenamiento_vps (TEXT)
+hash_sha256_archivo (VARCHAR)
+fecha_generacion (TIMESTAMP)
