@@ -72,6 +72,17 @@ public class ParDobleQRPostgresAdapter implements RepositorioParDobleQRPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<ParDobleQR> buscarPorHashQr2(String hashQr2LlaveDigital) {
+        Objects.requireNonNull(hashQr2LlaveDigital, "El hashQr2LlaveDigital no puede ser nulo");
+        return parRepository.findByHashQr2LlaveDigital(hashQr2LlaveDigital)
+                .map(parEntidad -> {
+                    TokenQr2EstatusJpaEntity tokenEntidad = tokenRepository.findByIdParejaQr(parEntidad.getIdParejaQr()).orElse(null);
+                    return ParDobleQrMapper.aDominio(parEntidad, tokenEntidad);
+                });
+    }
+
+    @Override
     @Transactional
     public void guardarTokenEstatus(TokenQR2Estatus tokenEstatus) {
         Objects.requireNonNull(tokenEstatus, "El tokenEstatus no puede ser nulo");

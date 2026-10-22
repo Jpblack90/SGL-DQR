@@ -11,4 +11,6 @@ public interface ParDobleQrSpringDataRepository extends JpaRepository<ParDobleQr
     Optional<ParDobleQrJpaEntity> findByIdEncomienda(String idEncomienda);
 
     Optional<ParDobleQrJpaEntity> findByUuidQr1Operativo(String uuidQr1Operativo);
+
+    Optional<ParDobleQrJpaEntity> findByHashQr2LlaveDigital(String hashQr2LlaveDigital);
 }
