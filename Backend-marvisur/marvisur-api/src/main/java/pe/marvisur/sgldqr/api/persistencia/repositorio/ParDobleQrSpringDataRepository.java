@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ParDobleQrSpringDataRepository extends JpaRepository<ParDobleQrJpaEntity, String> {
     Optional<ParDobleQrJpaEntity> findByIdEncomienda(String idEncomienda);
+
+    Optional<ParDobleQrJpaEntity> findByUuidQr1Operativo(String uuidQr1Operativo);
 }

@@ -27,11 +27,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import pe.marvisur.sgldqr.api.dto.DetalleEncomiendaDto;
 import pe.marvisur.sgldqr.api.dto.RegistrarEncomiendaRequest;
 import pe.marvisur.sgldqr.api.dto.RegistrarEncomiendaResponse;
+import pe.marvisur.sgldqr.api.dto.RespuestaCobroDto;
 import pe.marvisur.sgldqr.api.seguridad.UsuarioAutenticado;
 import pe.marvisur.sgldqr.api.servicio.EncomiendaApiServicio;
+import pe.marvisur.sgldqr.api.servicio.EntregaApiServicio;
+import pe.marvisur.sgldqr.api.servicio.ResultadoCobro;
 import pe.marvisur.sgldqr.dominio.modelo.EstadoLogistico;
 import pe.marvisur.sgldqr.dominio.modelo.EstadoPago;
 
@@ -40,7 +44,7 @@ import java.util.Objects;
 
 /**
  * Controlador REST para el ciclo de vida de encomiendas: registro con Doble QR,
- * consulta detallada, listado filtrado por sucursal y regeneración de imagen QR1.
+ * cobro en ventanilla, consulta detallada, listado filtrado por sucursal y regeneración de imagen QR1.
  */
 @RestController
 @RequestMapping("/api/v1/encomiendas")
@@ -49,9 +53,11 @@ import java.util.Objects;
 public class EncomiendaController {
 
     private final EncomiendaApiServicio servicio;
+    private final EntregaApiServicio entregaServicio;
 
-    public EncomiendaController(EncomiendaApiServicio servicio) {
+    public EncomiendaController(EncomiendaApiServicio servicio, EntregaApiServicio entregaServicio) {
         this.servicio = Objects.requireNonNull(servicio, "El servicio no puede ser nulo");
+        this.entregaServicio = Objects.requireNonNull(entregaServicio, "El entregaServicio no puede ser nulo");
     }
 
     @PostMapping
@@ -134,6 +140,80 @@ public class EncomiendaController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(png);
+    }
+
+    @PostMapping("/{id}/cobro")
+    @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ALMACENERO', 'ADMINISTRADOR')")
+    @Operation(
+            summary = "Registrar cobro de encomienda Contra Entrega",
+            description = "Pasa el estado_pago de PENDIENTE a PAGADO mediante el núcleo de dominio, "
+                    + "registra auditoría COBRO_CONTRA_ENTREGA y evento en historial_tracking con observación 'Cobro registrado'. "
+                    + "Si la encomienda ya se encuentra pagada, devuelve 409 (Conflict). No entrega el paquete físicamente. "
+                    + "Permitido para Recepcionista (TN1), Almacenero (TN2) y Administrador (TN3)."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Cobro registrado exitosamente y encomienda desbloqueada",
+                    content = @Content(
+                            schema = @Schema(implementation = RespuestaCobroDto.class),
+                            examples = @ExampleObject(
+                                    name = "Cobro Exitoso",
+                                    value = "{\"idEncomienda\":\"7b92f4e8-469b-43d7-a5c9-123456789abc\",\"codigoComprobante\":\"MV-20261021-3A7MLMKY\",\"montoTotal\":25.50,\"estadoPago\":\"PAGADO\",\"estadoLogistico\":\"EN_ALMACEN_DESTINO\",\"mensaje\":\"Cobro registrado exitosamente. La encomienda ha sido desbloqueada para su validación cruzada y entrega.\",\"fechaCobro\":\"2026-10-21T19:30:00\"}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Encomienda no encontrada",
+                    content = @Content(
+                            schema = @Schema(implementation = ProblemDetail.class),
+                            examples = @ExampleObject(
+                                    name = "Encomienda No Encontrada",
+                                    value = "{\"type\":\"https://marvisur.pe/errores/no-encontrado\",\"title\":\"Recurso No Encontrado\",\"status\":404,\"detail\":\"No se encontró la encomienda con ID: enc-999\",\"codigo\":\"RECURSO_NO_ENCONTRADO\"}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "La encomienda ya se encuentra pagada",
+                    content = @Content(
+                            schema = @Schema(implementation = ProblemDetail.class),
+                            examples = @ExampleObject(
+                                    name = "Ya Pagada",
+                                    value = "{\"type\":\"https://marvisur.pe/errores/encomienda-ya-pagada\",\"title\":\"Encomienda Ya Pagada\",\"status\":409,\"detail\":\"La encomienda con código MV-20261021-3A7MLMKY ya se encuentra pagada.\",\"codigo\":\"YA_PAGADA\"}"
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado: rol no autorizado (ej. TN4 Chofer)")
+    })
+    public ResponseEntity<?> registrarCobro(
+            @PathVariable("id") String idEncomienda,
+            @AuthenticationPrincipal UsuarioAutenticado usuario,
+            HttpServletRequest httpRequest) {
+
+        String ipOrigen = obtenerIpCliente(httpRequest);
+        ResultadoCobro resultado = entregaServicio.registrarCobro(idEncomienda, usuario, ipOrigen);
+
+        return switch (resultado.getTipo()) {
+            case EXITOSO -> ResponseEntity.ok(resultado.getRespuestaDto());
+
+            case YA_PAGADA -> {
+                ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, resultado.getMensaje());
+                problem.setTitle("Encomienda Ya Pagada");
+                problem.setType(URI.create("https://marvisur.pe/errores/encomienda-ya-pagada"));
+                problem.setProperty("codigo", "YA_PAGADA");
+                yield ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+            }
+
+            case NO_ENCONTRADO -> {
+                ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, resultado.getMensaje());
+                problem.setTitle("Recurso No Encontrado");
+                problem.setType(URI.create("https://marvisur.pe/errores/no-encontrado"));
+                problem.setProperty("codigo", "RECURSO_NO_ENCONTRADO");
+                yield ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+            }
+        };
     }
 
     private String obtenerIpCliente(HttpServletRequest request) {

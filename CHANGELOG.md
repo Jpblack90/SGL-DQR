@@ -24,6 +24,12 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   login (RF-01).
 - [P7] API: registro de encomiendas con Doble QR (RF-04, RF-07). El QR2 se entrega
   una sola vez en claro y en /billetera#<token>. Filtros por sucursal en los GET.
+- [P8] Validación cruzada del Doble QR, cobro Contra Entrega y entrega física en `marvisur-api` (RF-04, RF-07, RNF-01, RNF-03):
+  - Endpoint `POST /api/v1/entregas/validar` protegido para roles Almacenero (TN2) y Administrador (TN3) con cuerpo `{qr1, qr2}`, enmascarando el token en claro en `toString()`. Orquesta búsqueda por QR1 (404 si inexistente), precondición de estado `EN_ALMACEN_DESTINO` (409 `TRANSICION_INVALIDA` con auditoría `VALIDACION_ENTREGA_RECHAZADA` sin tocar el token), bloqueo pesimista `@Lock(LockModeType.PESSIMISTIC_WRITE)` sobre `tokens_qr2_estatus` con timeout configurable (`app.entrega.lock-timeout-ms=3000`), validación criptográfica en `MotorQR` con registro obligatorio en `validaciones_cruzadas_logs`, e invalidación irreversible del token con motivo `ENTREGA_EXITOSA`, transición a `ENTREGADO`, evento de tracking y auditoría `VALIDACION_ENTREGA` atómicos en la misma transacción (200 OK con latencia y resumen). Manejo de 409 `ENTREGA_BLOQUEADA_PAGO_PENDIENTE` y `TOKEN_QR2_INVALIDO` genérico.
+  - Endpoint `POST /api/v1/encomiendas/{id}/cobro` para roles Recepcionista (TN1), Almacenero (TN2) y Administrador (TN3): transición de `PENDIENTE` a `PAGADO` vía `CambiarEstadoService`, auditoría `COBRO_CONTRA_ENTREGA`, evento de tracking con observación "Cobro registrado" y rechazo 409 `YA_PAGADA` sin duplicar auditoría si ya estaba pagada.
+  - Corrección de deuda P7: `AuditoriaPostgresAdapter` ahora utiliza `REQUIRES_NEW` exclusivamente para `LOGIN_EXITOSO` y `LOGIN_FALLIDO`, garantizando que eventos de negocio participen en la transacción de la operación y reviertan ante fallos; prueba unitaria de atomicidad completa en `RegistroEncomiendaAtomicidadTest`.
+  - Documentación OpenAPI 3 (`@Operation`, `@ApiResponses`) con ejemplos detallados para códigos 200, 404 y 409.
+  - Pruebas de integración y concurrencia en `EntregaControllerTest`: 10 hilos simultáneos sobre el mismo QR2 (1 éxito y 9 rechazos `TOKEN_QR2_INVALIDO`), falla de segundo intento inmediato (RNF-01), 50 validaciones secuenciales con latencia < 1000 ms (RNF-03), ciclo completo Contra Entrega (bloqueo, cobro y entrega), y control RBAC (403 para TN1 y TN4 en entrega y TN4 en cobro).
 
 ### Changed
 - [P5] Limpieza de residuos del primer intento (esquema de 9 tablas y SQLite antiguo).

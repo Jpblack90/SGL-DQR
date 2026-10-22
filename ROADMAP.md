@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P8 (Paso 1: Validación cruzada y entrega). Subpaso: Implementación de EntregaApiServicio y endpoints /api/v1/entregas/validar y /api/v1/encomiendas/{id}/cobro. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/servicio/EntregaApiServicio.java.
+Punto de reanudación: P9 (API: almacén — lotes, búsqueda DNI/RUC, incidencias). Subpaso: Implementación de servicios y controladores para gestión de almacén, lotes de despacho e incidencias. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/controlador/AlmacenController.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
@@ -31,7 +31,7 @@ Punto de reanudación: P8 (Paso 1: Validación cruzada y entrega). Subpaso: Impl
 - [x] P5  API: persistencia JPA, adaptadores PostgreSQL, errores RFC 7807, Swagger
 - [x] P6  API: autenticación JWT y RBAC (RF-01)
 - [x] P7  API: registro de encomiendas con Doble QR (RF-04, RF-07)
-- [ ] P8  API: validación cruzada, cobro Contra Entrega y entrega (RF-04, RF-07)
+- [x] P8  API: validación cruzada, cobro Contra Entrega y entrega (RF-04, RF-07)
 - [ ] P9  API: almacén — lotes, búsqueda DNI/RUC, incidencias (RF-06)
 - [ ] P10 API pública: tracking, pre-registro Código Express y Billetera (RF-08, 09, 10)
 - [ ] P11 Entrega al equipo: datos de demo (perfil dev), CI con Testcontainers,
