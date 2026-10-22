@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P11 (Entrega al equipo). Subpaso: Configuración de perfiles prod, .env.example y verificación de seguridad. Archivo que sigue: backend-marvisur/marvisur-api/src/main/resources/application-prod.properties.
+Punto de reanudación: P11 (Entrega al equipo). Subpaso: Documentación de equipo (README, openapi specs, reglas de trabajo y plantillas GitHub). Archivo que sigue: README.md.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
