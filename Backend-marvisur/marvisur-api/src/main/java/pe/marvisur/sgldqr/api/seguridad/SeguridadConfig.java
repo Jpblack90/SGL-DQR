@@ -29,15 +29,18 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SeguridadConfig {
 
     private final FiltroAutenticacionJwt filtroJwt;
+    private final FiltroRateLimitingPublico filtroRateLimitingPublico;
     private final PuntoEntradaAutenticacionJwt puntoEntrada;
     private final ManejadorAccesoDenegadoJwt manejadorAccesoDenegado;
     private final CorsConfigurationSource corsConfigurationSource;
 
     public SeguridadConfig(FiltroAutenticacionJwt filtroJwt,
+                           FiltroRateLimitingPublico filtroRateLimitingPublico,
                            PuntoEntradaAutenticacionJwt puntoEntrada,
                            ManejadorAccesoDenegadoJwt manejadorAccesoDenegado,
                            @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) {
         this.filtroJwt = filtroJwt;
+        this.filtroRateLimitingPublico = filtroRateLimitingPublico;
         this.puntoEntrada = puntoEntrada;
         this.manejadorAccesoDenegado = manejadorAccesoDenegado;
         this.corsConfigurationSource = corsConfigurationSource;
@@ -81,7 +84,9 @@ public class SeguridadConfig {
                         .anyRequest().authenticated()
                 )
                 // Inserción del filtro JWT antes del filtro estándar de usuario/contraseña
-                .addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class)
+                // Inserción del filtro de limitación de tasa antes del filtro JWT
+                .addFilterBefore(filtroRateLimitingPublico, FiltroAutenticacionJwt.class);
 
         return http.build();
     }

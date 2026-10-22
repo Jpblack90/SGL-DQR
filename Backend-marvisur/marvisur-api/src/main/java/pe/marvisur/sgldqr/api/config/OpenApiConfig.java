@@ -7,17 +7,35 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuración de OpenAPI 3 (Swagger UI en /swagger-ui.html y documentación JSON en /v3/api-docs)
- * con soporte para autenticación Bearer JWT.
+ * con soporte para autenticación Bearer JWT y agrupación por audiencia (público e interno).
  */
 @Configuration
 public class OpenApiConfig {
 
     private static final String ESQUEMA_SEGURIDAD = "BearerAuth";
+
+    @Bean
+    public GroupedOpenApi apiPublica() {
+        return GroupedOpenApi.builder()
+                .group("publico")
+                .pathsToMatch("/api/v1/publico/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi apiInterna() {
+        return GroupedOpenApi.builder()
+                .group("interno")
+                .pathsToMatch("/api/v1/**")
+                .pathsToExclude("/api/v1/publico/**")
+                .build();
+    }
 
     @Bean
     public OpenAPI customOpenAPI() {
