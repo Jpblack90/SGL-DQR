@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P11 (Entrega al equipo: datos de demo perfil dev, CI con Testcontainers, normalizar nombre de carpetas, README, tag v0.1.0). Subpaso: Preparación de datos de demo y configuración de perfil dev. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/resources/application-dev.properties.
+Punto de reanudación: P11 (Entrega al equipo). Subpaso: Normalización de nombres de carpetas a minúsculas y refactor de auditoría autónoma. Archivo que sigue: backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/persistencia/postgres/AuditoriaEscrituraAutonoma.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.

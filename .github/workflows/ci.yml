@@ -1,0 +1,29 @@
+name: CI SGL-DQR
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  build-and-verify:
+    name: Build y Verificación Maven + Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Verificar Docker disponible
+        run: docker info
+
+      - name: Compilación y Pruebas con Maven (Core + API con Testcontainers)
+        run: mvn -B clean verify -f Backend-marvisur/pom.xml

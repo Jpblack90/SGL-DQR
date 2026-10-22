@@ -2,6 +2,7 @@ package pe.marvisur.sgldqr.infraestructura.qr;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
@@ -10,6 +11,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.google.zxing.common.GlobalHistogramBinarizer;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
@@ -77,10 +79,21 @@ public class ZXingAdapter implements ImagenQRPort {
                 throw new ExcepcionDominio("No fue posible interpretar el archivo de imagen a partir de los bytes recibidos.");
             }
 
+            Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+            hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+            hints.put(DecodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.name());
+
             BufferedImageLuminanceSource fuente = new BufferedImageLuminanceSource(imagen);
             BinaryBitmap mapaBits = new BinaryBitmap(new HybridBinarizer(fuente));
-            Result resultado = new MultiFormatReader().decode(mapaBits);
-            return resultado.getText();
+            try {
+                Result resultado = new MultiFormatReader().decode(mapaBits, hints);
+                return resultado.getText();
+            } catch (NotFoundException e) {
+                // Intento alternativo con GlobalHistogramBinarizer
+                BinaryBitmap mapaBitsAlt = new BinaryBitmap(new GlobalHistogramBinarizer(fuente));
+                Result resultado = new MultiFormatReader().decode(mapaBitsAlt, hints);
+                return resultado.getText();
+            }
         } catch (NotFoundException e) {
             throw new ExcepcionDominio("No se encontró ningún código QR válido en la imagen proporcionada.", e);
         } catch (IOException e) {
