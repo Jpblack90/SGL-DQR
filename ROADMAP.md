@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P10 (API pública: tracking, pre-registro Código Express y Billetera). Subpaso: Controladores REST públicos y de ventanilla para pre-registro y documentación de API en README. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/controlador/PublicoController.java.
+Punto de reanudación: P10 (API pública: tracking, pre-registro Código Express y Billetera). Subpaso: Pruebas de integración MockMvc para endpoints públicos, ventanilla, limitación de tasa y seguridad. Archivo que sigue: Backend-marvisur/marvisur-api/src/test/java/pe/marvisur/sgldqr/api/controlador/PublicoControllerTest.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
