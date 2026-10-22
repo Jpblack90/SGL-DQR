@@ -14,11 +14,11 @@ import java.util.Objects;
  * Utilizado exclusivamente para eventos de autenticación (LOGIN_EXITOSO y LOGIN_FALLIDO).
  */
 @Component
-public class AuditoriaEscritorAutonomo {
+public class AuditoriaEscrituraAutonoma {
 
     private final AuditoriaLogSpringDataRepository repository;
 
-    public AuditoriaEscritorAutonomo(AuditoriaLogSpringDataRepository repository) {
+    public AuditoriaEscrituraAutonoma(AuditoriaLogSpringDataRepository repository) {
         this.repository = Objects.requireNonNull(repository, "El repository no puede ser nulo");
     }
 

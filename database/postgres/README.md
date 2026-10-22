@@ -46,7 +46,7 @@ docker compose up -d postgres
 
 ### 3.2. Ejecutar la aplicación (aplica migraciones automáticamente vía Flyway)
 ```bash
-cd Backend-marvisur
+cd backend-marvisur
 mvn spring-boot:run -pl marvisur-api
 ```
 

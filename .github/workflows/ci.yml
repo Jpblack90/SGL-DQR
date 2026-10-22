@@ -26,4 +26,4 @@ jobs:
         run: docker info
 
       - name: Compilación y Pruebas con Maven (Core + API con Testcontainers)
-        run: mvn -B clean verify -f Backend-marvisur/pom.xml
+        run: mvn -B clean verify -f backend-marvisur/pom.xml

@@ -29,12 +29,12 @@ public class AuditoriaPostgresAdapter implements AuditoriaPort {
     private static final Set<String> ACCIONES_AUTONOMAS = Set.of("LOGIN_EXITOSO", "LOGIN_FALLIDO");
 
     private final AuditoriaLogSpringDataRepository repository;
-    private final AuditoriaEscritorAutonomo escritorAutonomo;
+    private final AuditoriaEscrituraAutonoma escrituraAutonoma;
 
     public AuditoriaPostgresAdapter(AuditoriaLogSpringDataRepository repository,
-                                    AuditoriaEscritorAutonomo escritorAutonomo) {
+                                    AuditoriaEscrituraAutonoma escrituraAutonoma) {
         this.repository = Objects.requireNonNull(repository, "El repository no puede ser nulo");
-        this.escritorAutonomo = Objects.requireNonNull(escritorAutonomo, "El escritorAutonomo no puede ser nulo");
+        this.escrituraAutonoma = Objects.requireNonNull(escrituraAutonoma, "La escrituraAutonoma no puede ser nula");
     }
 
     @Override
@@ -42,7 +42,7 @@ public class AuditoriaPostgresAdapter implements AuditoriaPort {
     public void registrar(AuditoriaLog log) {
         Objects.requireNonNull(log, "El log no puede ser nulo");
         if (ACCIONES_AUTONOMAS.contains(log.getAccion())) {
-            escritorAutonomo.guardarEnTransaccionAutonoma(log);
+            escrituraAutonoma.guardarEnTransaccionAutonoma(log);
         } else {
             AuditoriaLogJpaEntity entidad = AuditoriaMapper.aEntidad(log);
             repository.save(entidad);
