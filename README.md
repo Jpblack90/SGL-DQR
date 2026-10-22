@@ -37,7 +37,7 @@ cp .env.example .env
 ```bash
 docker compose up -d
 ```
-Esto inicializa un contenedor PostgreSQL 16 expuesto en `localhost:5432` con la base de datos `marvisur_db`.
+Esto inicializa un contenedor PostgreSQL 16 expuesto en `localhost:5433` (mapeado para evitar colisiones locales con servicios nativos) con la base de datos `marvisur_db`.
 
 ### Paso 3: Ejecutar la API con el perfil `dev`
 ```bash
