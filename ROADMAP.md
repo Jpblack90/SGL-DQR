@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: (el agente lo actualiza en cada commit: tarea, subpaso, archivo)
+Punto de reanudación: P8 (Paso 1: Validación cruzada y entrega). Subpaso: Implementación de EntregaApiServicio y endpoints /api/v1/entregas/validar y /api/v1/encomiendas/{id}/cobro. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/servicio/EntregaApiServicio.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
