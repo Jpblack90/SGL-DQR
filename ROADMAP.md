@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P9 (API: almacén — lotes, búsqueda DNI/RUC, incidencias). Subpaso: Implementación de servicios y controladores para gestión de almacén, lotes de despacho e incidencias. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/controlador/AlmacenController.java.
+Punto de reanudación: P9 (API: almacén — lotes, búsqueda DNI/RUC, incidencias). Subpaso: Entidades JPA, repositorios Spring Data y adaptadores PostgreSQL para rutas, vehiculos, programacion_viajes, despachos e incidencias. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/persistencia/entidad/RutaJpaEntity.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
