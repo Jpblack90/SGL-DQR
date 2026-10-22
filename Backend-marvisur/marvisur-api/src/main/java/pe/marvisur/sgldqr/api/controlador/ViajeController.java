@@ -72,9 +72,9 @@ public class ViajeController {
     })
     public ResponseEntity<List<ViajeDto>> listarViajes(
             @Parameter(description = "Filtrar por estado del viaje (PROGRAMADO, EN_RUTA, FINALIZADO)", example = "PROGRAMADO")
-            @RequestParam(required = false) EstadoViaje estado,
+            @RequestParam(name = "estado", required = false) EstadoViaje estado,
             @Parameter(description = "Filtrar por ID de la sucursal de origen de la ruta", example = "suc-lima-01")
-            @RequestParam(required = false) String idSucursalOrigen) {
+            @RequestParam(name = "idSucursalOrigen", required = false) String idSucursalOrigen) {
 
         List<ViajeDto> lista = almacenServicio.listarViajes(estado, idSucursalOrigen);
         return ResponseEntity.ok(lista);

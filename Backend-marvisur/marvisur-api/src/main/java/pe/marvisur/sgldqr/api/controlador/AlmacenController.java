@@ -150,7 +150,7 @@ public class AlmacenController {
     })
     public ResponseEntity<List<EncomiendaBusquedaDto>> buscarEncomiendas(
             @Parameter(description = "Número de DNI (8 dígitos) o RUC (11 dígitos) a buscar", example = "45879632", required = true)
-            @RequestParam String documento,
+            @RequestParam(name = "documento") String documento,
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
 
         List<EncomiendaBusquedaDto> resultados = almacenServicio.buscarEncomiendasPorDocumento(documento, usuario);
@@ -247,7 +247,7 @@ public class AlmacenController {
     })
     public ResponseEntity<List<IncidenciaDetalleDto>> listarIncidencias(
             @Parameter(description = "ID de la encomienda para filtrar incidencias", example = "enc-01")
-            @RequestParam(required = false) String idEncomienda) {
+            @RequestParam(name = "idEncomienda", required = false) String idEncomienda) {
 
         List<IncidenciaDetalleDto> lista = almacenServicio.listarIncidencias(idEncomienda);
         return ResponseEntity.ok(lista);

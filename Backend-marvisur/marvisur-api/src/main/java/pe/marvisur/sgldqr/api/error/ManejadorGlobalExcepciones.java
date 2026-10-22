@@ -126,6 +126,16 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> manejarResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        log.warn("Excepción ResponseStatusException {}: {}", ex.getStatusCode(), ex.getReason());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
+        problem.setTitle("Error de Operación");
+        problem.setType(URI.create("https://marvisur.pe/errores/solicitud"));
+        problem.setProperty("codigo", ex.getStatusCode().toString());
+        return ResponseEntity.status(ex.getStatusCode()).body(problem);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> manejarErrorGenerico(Exception ex) {
         log.error("Error no controlado en el servidor", ex);
