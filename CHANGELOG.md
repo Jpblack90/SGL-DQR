@@ -8,6 +8,32 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- [P1] Esqueleto del repositorio: Maven multimódulo (marvisur-core, marvisur-api,
+  escritorio), docker-compose con PostgreSQL 16 y CI en GitHub Actions.
+- [P2] Migraciones Flyway V1–V7: 18 tablas del Diccionario de Datos (6 módulos),
+  4 roles, una sucursal de ejemplo y un administrador inicial (TN3).
+- [P3] Núcleo de dominio puro: Encomienda con reglas de ciclo de vida, bloqueo de
+  entrega por pago PENDIENTE (Contra Entrega), puertos y servicios de aplicación.
+  Tarifa por peso provisional (TODO).
+- [P4] Motor Doble QR con ZXing: QR1 operativo y QR2 de alta entropía (solo hashes
+  SHA-256, comparación en tiempo constante), validación cruzada con invalidación
+  irreversible y latencia medida (RNF-03). 34 pruebas en el core.
+- [P5] API: 10 entidades JPA, adaptadores PostgreSQL, errores RFC 7807 y
+  Swagger/Actuator.
+- [P6] API: autenticación JWT sin sesión (BCrypt), RBAC para TN1–TN4 y auditoría de
+  login (RF-01).
+- [P7] API: registro de encomiendas con Doble QR (RF-04, RF-07). El QR2 se entrega
+  una sola vez en claro y en /billetera#<token>. Filtros por sucursal en los GET.
+
+### Changed
+- [P5] Limpieza de residuos del primer intento (esquema de 9 tablas y SQLite antiguo).
+
+### Notas
+- Las pruebas automatizadas de P5–P7 corrieron sobre H2 en modo PostgreSQL; la
+  verificación en PostgreSQL 16 real fue manual (Swagger). Desde P8 la concurrencia se
+  prueba con Testcontainers.
+
+### Added
 - [P7] Registro de encomiendas con Doble QR y visibilidad por sucursal en `marvisur-api`:
   - `POST /api/v1/encomiendas`: registro protegido para roles `TN1_RECEPCIONISTA` y `TN3_ADMINISTRADOR`; Bean Validation de remitente/destinatario con validación de documentos (8 dígitos numéricos para DNI, 11 para RUC); búsqueda y reutilización de clientes sin sobreescritura de datos; cálculo de tarifa con `TarifarioPort` (fijando `PAGADO` en modalidad `CONTADO` y `PENDIENTE` en `CONTRA_ENTREGA`); orquestación atómica transaccional (`@Transactional`) de encomienda, pareja Doble QR (solo hashes SHA-256), token QR2 activo en `tokens_qr2_estatus`, evento inicial `RECEPCIONADO` en `historial_tracking` y registro de auditoría `REGISTRO_ENCOMIENDA` con IP de origen; generación de código provisional de comprobante `MV-yyyyMMdd-XXXXXXXX` con reintento por colisión (con TODO para numeración oficial Marvisur); respuesta HTTP 201 con datos de la encomienda, imagen Base64 del QR1, entrega única del `qr2Token` en claro y enlace a Billetera (`/billetera#...`) con `toString()` enmascarado para evitar fugas en logs.
   - `GET /api/v1/encomiendas/{id}` y `GET /api/v1/encomiendas`: consulta con filtros dinámicos (`estadoPago`, `estadoLogistico`, `idSucursalOrigen`, `idSucursalDestino`) y paginación para TN1, TN2 y TN3, aplicando restricción de alcance de sucursal (colaborador sólo ve encomiendas donde su sucursal es origen o destino, excepto TN3 Administrador que tiene visibilidad global).
