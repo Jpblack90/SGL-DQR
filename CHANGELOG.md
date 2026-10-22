@@ -7,7 +7,20 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+<!-- Las entradas de la Fase B se añaden aquí durante el desarrollo por cada integrante: [Ix][ID] Descripción -->
+
+---
+
+## [0.1.0] - 2026-10-22
+
 ### Added
+- [P11] Cierre de Fase A y entrega al equipo (calidad, configuración de entornos, datos demo y documentación):
+  - Verificación real con Docker: `EntregaControllerTest` ejecutado sobre contenedor real PostgreSQL 16 (Testcontainers) comprobando concurrencia de 10 hilos simultáneos y mitigación de race conditions en `tokens_qr2_estatus`.
+  - Integración Continua (CI): pipeline en `.github/workflows/ci.yml` con Java 21 Temurin, caché de dependencias Maven, servicios Docker y ejecución de `mvn clean verify` en PRs y pushes a `develop` y `main`.
+  - Normalización de estructura de carpetas a minúsculas (`backend-marvisur`, `frontend-marvisur`, `database`, `docs`) y refactor seguro de `AuditoriaEscritorAutonomo` a `AuditoriaEscrituraAutonoma`.
+  - Datos de demo para perfil desarrollo: migración Flyway condicional `V100__datos_demo.sql` en `database/postgres/dev-seed/` empaquetada en JAR y activa únicamente bajo el perfil `dev` (`application-dev.properties`), precargando agencias, vehículos, rutas, viajes, 4 empleados (TN1 a TN4), clientes, 3 encomiendas con tokens QR2 precalculados y 1 pre-registro express; guía y diccionario de contraseñas/tokens en `docs/dev-demo.md`; suite de 8 pruebas de integración de flujo demo en `DevSeedFlujoDemoTest` y aislamiento verificado en `MigracionesFlywayTest`.
+  - Seguridad y despliegue: perfil `application-prod.properties` con Swagger desactivado, `JWT_SECRET` obligatorio por variable de entorno, plantillas seguras sin credenciales por defecto, archivo `.env.example` en la raíz y reglas de exclusión en `.gitignore`.
+  - Documentación de equipo: `README.md` integral con arquitectura, requisitos, guía de arranque rápido y pruebas; especificaciones OpenAPI 3 exportadas en `docs/openapi-interno.json` y `docs/openapi-publico.json` con prueba automatizada `OpenApiExportTest`; reglas de trabajo colaborativo en `AGENTS.md`, dueños de código en `.github/CODEOWNERS` y plantilla estándar de PR en `.github/pull_request_template.md`.
 - [P10] API pública para el portal web (RF-08, RF-09, RF-10) en `marvisur-api`:
   - Migración Flyway `V8__indice_hash_qr2.sql`: creación de índice `idx_parejas_hash_qr2` sobre `parejas_doble_qr(hash_qr2_llave_digital)` para optimizar la búsqueda de Billetera Digital sin escaneo secuencial.
   - Modelo de dominio en `marvisur-core`: entidad `PreRegistroExpress`, enum `EstadoPreRegistro` (`PENDIENTE_VENTANILLA`, `PROCESADO`, `EXPIRADO`), puerto `RepositorioPreRegistroExpressPort` y extensión de `RepositorioParDobleQRPort` con `buscarPorHashQr2`; pruebas unitarias y verificación ArchUnit en verde.
@@ -78,13 +91,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - [I1][P1] Estructura Maven multimódulo raíz (`marvisur-parent`), módulos `marvisur-core` y `marvisur-api` (esqueleto), carpetas `frontend-marvisur/escritorio`, `frontend-marvisur/portal-web`, `database/migrations`, `database/sqlite`. Rama: `feature/CORE-01-dominio-hexagonal`.
 - [I1][P3] Dominio hexagonal puro (`marvisur-core`, sin Spring/JPA/JavaFX): entidades `Encomienda` (ciclo de vida + calcularTarifa), `CodigoQR` (invalidarQR2 irreversible), `Agencia`, `Ruta`, `Usuario`, `Vehiculo`; enums `EstadoEnvio`, `EstadoPago`, `EstadoQR2`, `Rol`; excepciones de dominio; puertos `RepositorioEncomiendaPort`, `RepositorioCodigoQRPort`, `ImpresionPort`; casos de uso `RegistrarEncomiendaUseCase`, `ValidarEntregaUseCase`, `ConsultarEncomiendaUseCase`. 31 tests unitarios — BUILD SUCCESS.
 - [I1][P4] `MotorQR`: generación de par QR con ZXing (PNG 300×300), hash SHA-256 de bytes de imagen (nunca del texto en claro), `validarCruzado`, `invalidarQR2`. `ParDobleQR` record, `ResultadoValidacion` enum. Pendiente: ArchUnit (CORE-04).
-
----
-
-## [0.1.0] — TBD
-
-### Added
-- Estructura inicial del repositorio SGL-DQR
+- Estructura inicial del repositorio SGL-DQR.
 
 ---
 

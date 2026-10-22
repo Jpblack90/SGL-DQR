@@ -1,11 +1,17 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P11 (Entrega al equipo). Subpaso: Cierre de Fase A, corte de release v0.1.0 en CHANGELOG y alineación de ramas git. Archivo que sigue: ROADMAP.md.
+Punto de reanudación: Fase A completada (Release v0.1.0). Inicio de Fase B en ramas paralelas desde develop.
 
 ## Estado general
-- FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.
-- FASE B — Equipo en paralelo: empieza al publicarse v0.1.0 (cierre de P11).
+- FASE A — Backend núcleo (trabajo individual): CERRADA (Release v0.1.0 publicado).
+- FASE B — Equipo en paralelo: ABIERTA (listo para iniciar en paralelo con ramas `feature/<ID>-<descripcion>` desde `develop`).
+
+### Primeras tareas sugeridas por integrante para iniciar Fase B:
+- **I1 (Backend)**: `B1` — Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03).
+- **I2 (Escritorio)**: `D1` — Shell, tema de marca, login y navegación por rol (RF-01).
+- **I3 (Web)**: `W1` — Scaffold del portal con tema de marca (React + Vite + TypeScript + Tailwind).
+- **I4 (Hardware/BD)**: `O1` (Esquema SQLite desde el Diccionario y SQLiteAdapter) o `H1` (Adaptador ESC/POS ticketera 58mm).
 
 ## Decisiones vigentes (no reabrir sin avisar al equipo)
 - Arquitectura hexagonal: marvisur-core es Java puro (sin Spring, JavaFX ni JPA);
@@ -23,7 +29,7 @@ Punto de reanudación: P11 (Entrega al equipo). Subpaso: Cierre de Fase A, corte
   No agregar ni quitar columnas sin acuerdo del equipo.
 - Fuera de alcance: integración técnica con SUNAT (XML/CDR) y apps móviles nativas.
 
-## FASE A — Backend núcleo
+## FASE A — Backend núcleo (CERRADA)
 - [x] P1  Esqueleto del repositorio (Maven multimódulo, Spring Boot, JavaFX mínimo, CI)
 - [x] P2  Migraciones Flyway V1–V7: 18 tablas del Diccionario + datos iniciales
 - [x] P3  Core: dominio, puertos y servicios base
@@ -34,7 +40,7 @@ Punto de reanudación: P11 (Entrega al equipo). Subpaso: Cierre de Fase A, corte
 - [x] P8  API: validación cruzada, cobro Contra Entrega y entrega (RF-04, RF-07)
 - [x] P9  API: almacén — lotes, búsqueda DNI/RUC, incidencias (RF-06)
 - [x] P10 API pública: tracking, pre-registro Código Express y Billetera (RF-08, 09, 10)
-- [ ] P11 Entrega al equipo: datos de demo (perfil dev), CI con Testcontainers,
+- [x] P11 Entrega al equipo: datos de demo (perfil dev), CI con Testcontainers,
          normalizar nombre de carpetas, README, tag v0.1.0
 
 ## FASE B — Pistas paralelas (cada integrante edita SOLO su sección)
