@@ -157,4 +157,24 @@ class MigracionesFlywayTest {
                 .as("Deben haberse aplicado exitosamente las 8 migraciones Flyway (V1 a V8)")
                 .isEqualTo(8);
     }
+
+    @Test
+    @DisplayName("Flyway: El perfil de pruebas estándar NO aplica las migraciones de dev-seed (V100+)")
+    void perfilTestNoAplicaMigracionesDevSeedV100() {
+        Integer migracionV100 = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM \"flyway_schema_history\" WHERE \"version\" = '100'",
+                Integer.class
+        );
+        assertThat(migracionV100)
+                .as("La migración V100 de dev-seed no debe aplicarse en el perfil de test")
+                .isZero();
+
+        Integer encomiendasDemo = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM encomiendas WHERE id_encomienda LIKE 'UUID-ENC-DEMO-%'",
+                Integer.class
+        );
+        assertThat(encomiendasDemo)
+                .as("No deben existir encomiendas demo en el perfil de test")
+                .isZero();
+    }
 }

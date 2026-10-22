@@ -157,6 +157,10 @@
                 <directory>${project.basedir}/../../database/postgres/migrations</directory>
                 <targetPath>db/migration</targetPath>
             </resource>
+            <resource>
+                <directory>${project.basedir}/../../database/postgres/dev-seed</directory>
+                <targetPath>db/dev-seed</targetPath>
+            </resource>
         </resources>
 
         <plugins>
