@@ -1,0 +1,27 @@
+# CODEOWNERS — SGL-DQR · Expreso Marvisur
+# Dueños de código por pista de trabajo para revisiones de Pull Request
+
+# Dueños globales por defecto
+* @usuario1 @usuario2 @usuario3 @usuario4
+
+# I1 — Backend API y servicios REST
+/backend-marvisur/marvisur-api/ @usuario1
+
+# I1 & Core compartido — Núcleo de Dominio Hexagonal
+/backend-marvisur/marvisur-core/ @usuario1 @usuario2 @usuario3 @usuario4
+
+# I2 — Cliente de escritorio JavaFX (offline-first)
+/frontend-marvisur/escritorio/ @usuario2
+
+# I3 — Portal web de autoservicio y Billetera Digital
+/frontend-marvisur/portal-web/ @usuario3
+
+# I4 — Base de datos, scripts, infraestructura y CI/CD
+/database/ @usuario4
+/.github/ @usuario4
+/docker-compose.yml @usuario4
+
+# Documentación compartida
+/docs/ @usuario1 @usuario2 @usuario3 @usuario4
+/ROADMAP.md @usuario1 @usuario2 @usuario3 @usuario4
+/CHANGELOG.md @usuario1 @usuario2 @usuario3 @usuario4

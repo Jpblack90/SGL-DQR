@@ -1,219 +1,160 @@
 # SGL-DQR — Sistema de Gestión Logística con Doble QR
 
-**Expreso Marvisur** · Arquitectura Hexagonal · Spring Boot 3 · Java 21 · PostgreSQL · ZXing
+**Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.1.0  
+Arquitectura Hexagonal · Java 21 · Spring Boot 3 · PostgreSQL 16 · Flyway · ZXing · JWT RBAC
 
 ---
 
-## API Pública (RF-08, RF-09, RF-10)
+## 1. Descripción del Sistema y Arquitectura
 
-La API pública está diseñada bajo la premisa de **Fricción Cero**: permite a los clientes finales rastrear envíos, cotizar tarifas, pre-registrar paquetes y acceder a su Billetera Digital sin requerir usuario ni contraseña.
+El **Sistema de Gestión Logística con Doble QR (SGL-DQR)** es una solución integral desarrollada para modernizar y asegurar las operaciones de transporte y despacho de encomiendas de **Expreso Marvisur**. Su núcleo criptográfico implementa una validación cruzada de dos códigos QR independientes: un código físico impreso en la etiqueta de la encomienda (QR1) y un código digital de un solo uso enviado a la Billetera Digital del cliente (QR2). La entrega física únicamente se autoriza tras verificar la correspondencia criptográfica de ambos códigos y confirmar el cobro total, invalidando irreversiblemente el QR2 para evitar fraudes y suplantaciones.
 
-### Políticas de Seguridad y Privacidad
-1. **Sin Autenticación**: Los endpoints bajo `/api/v1/publico/**` no exigen cabecera `Authorization`.
-2. **Protección contra Abuso**: Filtro en memoria con limitación de tasa por ventana deslizante (`app.publico.limite-por-minuto=30` por defecto). Al superar la cuota, retorna `HTTP 429 Too Many Requests`, cabecera `Retry-After: <segundos>` y cuerpo RFC 7807 (`ProblemDetail`).
-3. **Privacidad de Datos**:
-   - Los nombres se anonimizan automáticamente (ej. `J*** P***`).
-   - No se retornan documentos de identidad completos, números telefónicos ni correos electrónicos en endpoints públicos.
-   - La consulta de tracking requiere comprobante y validación de DNI/RUC del remitente o destinatario.
-4. **Billetera Digital Segura**: El token de retiro se envía en el cuerpo de una petición `POST` (nunca en query string ni en URLs). Se busca por su hash SHA-256 en `parejas_doble_qr` y la imagen QR2 se genera al vuelo en Base64. Cero tokens en logs o mensajes de error.
-5. **Auditoría**: Las consultas públicas no se persisten en `auditoria_logs` (esta tabla requiere `id_empleado`); se registran en los logs de aplicación sin datos personales ni tokens.
+El proyecto está estructurado bajo una **Arquitectura Hexagonal (Puertos y Adaptadores)** estricta y desacoplada en módulos Maven:
+- **`marvisur-core`**: Núcleo de dominio puro en Java 21 sin dependencias de frameworks externos (sin Spring, JPA ni JavaFX). Contiene las entidades (`Encomienda`, `ParDobleQR`, `Cliente`, `Empleado`), enums del negocio, excepciones de dominio, puertos de entrada/salida y el `MotorQR` criptográfico. Las reglas arquitecturales son verificadas en cada compilación mediante ArchUnit.
+- **`marvisur-api`**: Capa de aplicación e infraestructura construida sobre Spring Boot 3.3. Expone servicios RESTful con autenticación sin estado (stateless) vía JWT, control de acceso basado en roles (RBAC para roles TN1 a TN4), adaptadores de persistencia Spring Data JPA hacia PostgreSQL 16, migraciones versionadas con Flyway y endpoints públicos de Fricción Cero con limitación de tasa (rate limiting).
 
 ---
 
-### Catálogo de Endpoints Públicos
+## 2. Requisitos Previos
 
-| Método | Ruta | Descripción | Auth |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/v1/publico/sucursales` | Listar agencias activas para selectores web | Pública |
-| `GET` | `/api/v1/publico/rastreo?comprobante=&documento=` | Línea de tiempo y estado con autorización por DNI/RUC | Pública |
-| `POST` | `/api/v1/publico/cotizacion` | Cálculo estimado de tarifa según peso en kilogramos | Pública |
-| `POST` | `/api/v1/publico/pre-registros` | Crear pre-registro web temporal (*Código Express*) | Pública |
-| `POST` | `/api/v1/publico/billetera` | Consultar orden y generar llave digital QR2 al vuelo | Pública |
-| `GET` | `/api/v1/preregistros/{codigoExpress}` | Precarga de pre-registro en ventanilla | `ROLE_RECEPCIONISTA`, `ROLE_ADMINISTRADOR` |
+- **Java Development Kit (JDK)**: Versión 21 (LTS) de 64 bits (Microsoft Build of OpenJDK, Eclipse Temurin u Oracle JDK).
+- **Apache Maven**: Versión 3.9 o superior.
+- **Docker y Docker Compose**: Motor Docker v24+ y Docker Compose v2+ para base de datos local y ejecución de pruebas de integración con Testcontainers.
+- **Git**: Versión 2.40 o superior.
 
 ---
 
-### Ejemplos de Petición y Respuesta
+## 3. Arranque Rápido en Desarrollo (Perfil `dev`)
 
-#### 1. Listar Sucursales
+### Paso 1: Clonar y configurar variables de entorno
 ```bash
-curl -X GET "http://localhost:8080/api/v1/publico/sucursales" \
-     -H "Accept: application/json"
+git clone <URL_DEL_REPOSITORIO>
+cd Sistema
+cp .env.example .env
 ```
 
-**Respuesta (200 OK):**
-```json
-[
-  {
-    "id": "suc-001",
-    "nombreAgencia": "Agencia Central Lima",
-    "ciudad": "Lima",
-    "direccion": "Av. Materiales 2215, Cercado de Lima"
-  },
-  {
-    "id": "suc-002",
-    "nombreAgencia": "Agencia Arequipa",
-    "ciudad": "Arequipa",
-    "direccion": "Calle Jacinto Ibáñez 315, Parque Industrial"
-  }
-]
-```
-
-#### 2. Rastreo Público de Encomienda
-Requiere número de comprobante y el DNI/RUC del remitente o destinatario.
+### Paso 2: Iniciar contenedor de base de datos PostgreSQL
 ```bash
-curl -X GET "http://localhost:8080/api/v1/publico/rastreo?comprobante=MV-20261022-F47LRX2Q&documento=44556677" \
-     -H "Accept: application/json"
+docker compose up -d
 ```
+Esto inicializa un contenedor PostgreSQL 16 expuesto en `localhost:5432` con la base de datos `marvisur_db`.
 
-**Respuesta (200 OK):**
-```json
-{
-  "codigoComprobante": "MV-20261022-F47LRX2Q",
-  "estadoLogistico": "EN_RUTA",
-  "estadoPago": "PAGADO",
-  "montoTotal": 25.00,
-  "sucursalOrigen": "Agencia Central Lima",
-  "ciudadOrigen": "Lima",
-  "sucursalDestino": "Agencia Arequipa",
-  "ciudadDestino": "Arequipa",
-  "nombreRemitenteEnmascarado": "J*** P***",
-  "nombreDestinatarioEnmascarado": "M*** G***",
-  "lineaDeTiempo": [
-    {
-      "estadoEvento": "REGISTRADO",
-      "sucursal": "Agencia Central Lima",
-      "fechaHora": "2026-10-22T08:30:00"
-    },
-    {
-      "estadoEvento": "EN_RUTA",
-      "sucursal": "Agencia Central Lima",
-      "fechaHora": "2026-10-22T10:15:00"
-    }
-  ]
-}
-```
-
-*Si el comprobante no existe o el documento no coincide:*
-```json
-{
-  "type": "https://marvisur.pe/errores/solicitud",
-  "title": "Error de Operación",
-  "status": 404,
-  "detail": "No se encontró la encomienda con los datos proporcionados"
-}
-```
-
-#### 3. Cotización Estimada
+### Paso 3: Ejecutar la API con el perfil `dev`
 ```bash
-curl -X POST "http://localhost:8080/api/v1/publico/cotizacion" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "idSucursalOrigen": "suc-001",
-       "idSucursalDestino": "suc-002",
-       "pesoKg": 4.5
-     }'
+cd backend-marvisur
+mvn spring-boot:run -pl marvisur-api -Dspring-boot.run.profiles=dev
 ```
 
-**Respuesta (200 OK):**
-```json
-{
-  "montoEstimado": 16.25,
-  "moneda": "PEN"
-}
-```
+En este perfil:
+1. Flyway ejecuta automáticamente las migraciones base `V1__...` a `V8__...` ubicadas en `database/postgres/migrations/`.
+2. Flyway aplica adicionalmente la migración de desarrollo `V100__datos_demo.sql` ubicada en `database/postgres/dev-seed/`, precargando sucursales, vehículos, rutas, viajes, empleados de prueba con roles TN1..TN4, clientes y encomiendas con tokens QR2 precalculados.
+3. Se publican los siguientes servicios:
+   - **API REST**: `http://localhost:8080/api/v1`
+   - **Swagger UI interactivo**: `http://localhost:8080/swagger-ui.html`
+   - **Actuator Health Check**: `http://localhost:8080/actuator/health`
 
-#### 4. Pre-Registro Web (*Código Express*)
+Para consultar las credenciales de los empleados y los tokens de prueba precargados, revisa la guía de datos demo en [docs/dev-demo.md](docs/dev-demo.md).
+
+---
+
+## 4. Ejecución de Pruebas
+
+El proyecto cuenta con una suite integral de pruebas unitarias, de arquitectura y de integración:
+
+### Pruebas Rápidas (Unitarias y H2 en memoria)
+Ejecuta las pruebas de `marvisur-core` (dominio puro, `MotorQRTest`, `ArchUnitTest`) y pruebas de controladores de `marvisur-api` sobre base de datos H2:
 ```bash
-curl -X POST "http://localhost:8080/api/v1/publico/pre-registros" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "remitente": {
-         "tipoDocumento": "DNI",
-         "numeroDocumento": "44556677",
-         "nombresRazonSocial": "Juan Perez",
-         "telefono": "987654321",
-         "correo": "juan.perez@example.com"
-       },
-       "destinatario": {
-         "tipoDocumento": "DNI",
-         "numeroDocumento": "88776655",
-         "nombresRazonSocial": "Maria Gomez",
-         "telefono": "912345678",
-         "correo": "maria.gomez@example.com"
-       },
-       "idSucursalDestino": "suc-002",
-       "pesoEstimado": 5.0
-     }'
+cd backend-marvisur
+mvn clean test
 ```
 
-**Respuesta (201 Created):**
-```json
-{
-  "codigoExpress": "PRE-724915-PE",
-  "fechaExpiracion": "2026-10-24T08:30:00",
-  "montoCotizado": 17.50,
-  "pesoEstimado": 5.0,
-  "sucursalDestino": "Agencia Arequipa",
-  "remitenteEnmascarado": "J*** P***",
-  "destinatarioEnmascarado": "M*** G***"
-}
-```
-
-#### 5. Billetera Digital del Cliente (Retiro con Llave QR2)
-El token viaja en el cuerpo mediante POST.
+### Pruebas Completas de Integración (PostgreSQL real con Docker)
+Ejecuta la verificación completa (`verify`), levantando contenedores reales de PostgreSQL 16 mediante Testcontainers (incluyendo pruebas de concurrencia y carrera de 10 hilos simultáneos sobre el mismo token QR2 y flujo demo `V100`):
 ```bash
-curl -X POST "http://localhost:8080/api/v1/publico/billetera" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "token": "4a8e9b1c7f3d2e5a6c8b9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a"
-     }'
+cd backend-marvisur
+mvn clean verify
+```
+> [!NOTE]
+> Requiere Docker Desktop encendido. Si Docker no está en ejecución, las pruebas anotadas con `@Testcontainers(disabledWithoutDocker = true)` se omitirán automáticamente sin romper la compilación local.
+
+---
+
+## 5. Especificaciones OpenAPI (Swagger)
+
+Las definiciones OpenAPI 3 se encuentran exportadas y versionadas en el directorio `docs/`:
+- [`docs/openapi-publico.json`](docs/openapi-publico.json): Contrato de los endpoints públicos de autoservicio (rastreo, cotización, pre-registro express, billetera digital).
+- [`docs/openapi-interno.json`](docs/openapi-interno.json): Contrato de los endpoints operativos internos (autenticación JWT, encomiendas, entregas, almacén y viajes).
+
+### Regeneración de especificaciones:
+Las especificaciones se pueden regenerar de dos formas:
+1. **Mediante prueba automatizada (recomendado, sin levantar el servidor manualmente):**
+   ```bash
+   cd backend-marvisur
+   mvn test -Dtest=OpenApiExportTest -pl marvisur-api
+   ```
+2. **Mediante `curl` con la aplicación en ejecución:**
+   ```bash
+   curl -s http://localhost:8080/v3/api-docs/publico > docs/openapi-publico.json
+   curl -s http://localhost:8080/v3/api-docs/interno > docs/openapi-interno.json
+   ```
+
+---
+
+## 6. Estructura del Repositorio
+
+```text
+Sistema/
+├── .github/
+│   ├── workflows/ci.yml             # Pipeline de CI (Java 21, Maven cache, Docker verify)
+│   ├── CODEOWNERS                   # Asignación de módulos a integrantes
+│   └── pull_request_template.md     # Plantilla estándar para Pull Requests
+├── backend-marvisur/                # Proyecto multimódulo Maven
+│   ├── pom.xml                      # Reactor POM principal
+│   ├── marvisur-core/               # Núcleo de dominio hexagonal (Java 21 puro)
+│   └── marvisur-api/                # API REST Spring Boot 3 (PostgreSQL, JWT, Flyway)
+├── frontend-marvisur/
+│   ├── escritorio/                  # Cliente de escritorio JavaFX (offline-first)
+│   └── portal-web/                  # Portal web de autoservicio y Billetera Digital (React)
+├── database/
+│   ├── postgres/
+│   │   ├── migrations/              # Migraciones Flyway oficiales (V1__ a V8__)
+│   │   └── dev-seed/                # Datos de prueba para desarrollo (V100__)
+│   └── sqlite/                      # Base de datos local para clientes desconectados
+├── docs/                            # Documentación técnica de arquitectura y contratos
+│   ├── Diccionario_Datos_SGL_DQR.md # Fuente de verdad del esquema de base de datos
+│   ├── requisitos.md                # Requisitos funcionales (RF) y no funcionales (RNF)
+│   ├── dev-demo.md                  # Credenciales, tokens y catálogo de datos demo
+│   ├── openapi-interno.json         # Especificación OpenAPI de endpoints internos
+│   └── openapi-publico.json         # Especificación OpenAPI de endpoints públicos
+├── docker-compose.yml               # Orquestación de contenedores (PostgreSQL 16)
+├── ROADMAP.md                       # Estado de avance y asignación de pistas de trabajo
+├── CHANGELOG.md                     # Registro de cambios por versión (Keep a Changelog)
+├── AGENTS.md                        # Reglas de desarrollo en equipo y convenciones
+├── .env.example                     # Plantilla de variables de entorno para producción/dev
+└── README.md                        # Documentación general del repositorio
 ```
 
-**Respuesta (200 OK):**
-```json
-{
-  "codigoComprobante": "MV-20261022-F47LRX2Q",
-  "estadoLogistico": "EN_ALMACEN_DESTINO",
-  "estadoPago": "PAGADO",
-  "montoTotal": 25.00,
-  "agenciaDestino": "Agencia Arequipa",
-  "ciudadDestino": "Arequipa",
-  "estadoToken": "ACTIVO",
-  "qr2Base64": "iVBORw0KGgoAAAANSUhEUgAA..."
-}
-```
+---
 
-#### 6. Precarga de Pre-Registro en Ventanilla (Interno)
-```bash
-curl -X GET "http://localhost:8080/api/v1/preregistros/PRE-724915-PE" \
-     -H "Authorization: Bearer <TOKEN_JWT_TN1_O_TN3>"
-```
+## 7. Reglas de Trabajo del Equipo (Fase B)
 
-**Respuesta (200 OK):**
-```json
-{
-  "idPreRegistro": "8a3d4f12-...",
-  "codigoExpress": "PRE-724915-PE",
-  "remitente": {
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "44556677",
-    "nombresRazonSocial": "Juan Perez",
-    "telefono": "987654321",
-    "correo": "juan.perez@example.com"
-  },
-  "destinatario": {
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "88776655",
-    "nombresRazonSocial": "Maria Gomez",
-    "telefono": "912345678",
-    "correo": "maria.gomez@example.com"
-  },
-  "idSucursalDestino": "suc-002",
-  "pesoEstimado": 5.0,
-  "montoCotizado": 17.50,
-  "fechaCreacion": "2026-10-22T08:30:00",
-  "fechaExpiracion": "2026-10-24T08:30:00",
-  "estado": "PENDIENTE_VENTANILLA"
-}
-```
+Para el desarrollo colaborativo en paralelo, cada integrante trabaja bajo las siguientes directrices (extraídas de [`AGENTS.md`](AGENTS.md)):
+
+1. **Identificadores y Pistas de Trabajo**:
+   - **I1 — Backend restante**: Dashboard KPIs, flota, viajes, comprobante PDF, sincronización.
+   - **I2 — Escritorio JavaFX**: Ventanilla, validación física/escáner, impresión térmica ESC/POS, modo offline.
+   - **I3 — Portal Web y Pruebas**: Pre-registro Código Express, Billetera Digital, tracking, pruebas E2E.
+   - **I4 — BD, Hardware, Offline e Infraestructura**: Sincronización SQLite/PostgreSQL, tickets, Docker prod, CI/CD.
+2. **Estrategia de Ramas**:
+   - Toda rama parte siempre de `develop`.
+   - Nomenclatura obligatoria: `feature/<ID>-<descripcion>` (ej. `feature/B1-dashboard-kpis`, `feature/W2-billetera-react`).
+   - Flujo estricto: **1 prompt / tarea = 1 rama = 1 Pull Request hacia `develop`**.
+3. **Commits Convencionales**:
+   - Formato: `<tipo>(<ID>): <descripcion>` (ej. `feat(B1): endpoints de metricas para dashboard`).
+4. **Independencia de Documentación**:
+   - Cada integrante edita **únicamente su sección asignada** en `ROADMAP.md` y `CHANGELOG.md`.
+   - Al completar una tarea se marca `[x]` en el ROADMAP y se añade la línea correspondiente en `CHANGELOG.md` bajo `[Unreleased]`.
+5. **Código Compartido e Integridad**:
+   - El módulo `marvisur-core` es compartido: cualquier modificación a entidades o puertos existentes debe ser consensuada previamente con el equipo.
+   - Las reglas de arquitectura ArchUnit (`CoreHexagonalArchitectureTest`) deben mantenerse en verde en todo momento.
+   - **Cero secretos en Git**: ninguna contraseña, llave privada ni JWT secret debe subirse al repositorio.

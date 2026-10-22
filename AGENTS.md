@@ -1,13 +1,30 @@
-REGLAS DE TRABAJO (modo individual)
-1. Trabajo yo solo. Ejecuta únicamente el prompt "P#" que te indique; no adelantes
-   tareas posteriores del ROADMAP.
-2. Haz commit en la rama actual tras cada subpaso funcional (Conventional
-   Commits: feat(RF-04): ...). Mi cupo puede agotarse en cualquier momento; no
-   dejes trabajo sin commit.
-3. En cada commit actualiza el "Punto de reanudación" del ROADMAP (tarea,
-   subpaso, archivo que sigue). Al cerrar la tarea márcala [x] y añade una línea
-   en CHANGELOG.md bajo [Unreleased] con el ID "P#".
-4. Código, comentarios y nombres en español, coherentes con los diagramas UML
-   de /docs. Pruebas unitarias en todo código de negocio. Cero secretos en Git.
-5. Si algo no está en /docs, pregunta; no inventes tablas, campos ni reglas.
-6. No crees ramas nuevas. Trabaja siempre en la rama actual.
+# REGLAS DE TRABAJO (Modo Equipo — Fase B)
+
+1. **Identificadores de pista y responsabilidades**:
+   - **I1 — Backend API**: endpoints operativos, reportes, dashboard, flota y comprobante PDF.
+   - **I2 — Escritorio JavaFX**: cliente ventanilla, validación física, escaneo e impresión térmica ESC/POS.
+   - **I3 — Portal Web y Pruebas**: pre-registro Código Express, Billetera Digital, tracking y pruebas E2E.
+   - **I4 — BD, Hardware, Offline e Infraestructura**: replicación y sincronización SQLite/PostgreSQL, Docker prod, CI/CD.
+
+2. **Estrategia de ramas**:
+   - La rama base de integración continua es `develop`.
+   - Toda tarea se desarrolla en una rama propia nombrada: `feature/<ID>-<descripcion>` (por ejemplo: `feature/B1-dashboard-kpis`, `feature/FX1-pantalla-registro`, `feature/W1-scaffolding-web`).
+   - Flujo de trabajo estricto: **1 prompt = 1 rama = 1 Pull Request hacia `develop`**.
+
+3. **Commits y disciplina de trabajo**:
+   - Haz commit tras cada subpaso funcional usando Conventional Commits con el ID de la tarea: `<tipo>(<ID>): <descripcion>` (ejemplo: `feat(B1): servicio de calculo de kpis de agencia`, `test(W2): pruebas unitarias de formulario de preregistro`).
+   - Mi cupo de interacción o cuota puede agotarse en cualquier momento; nunca dejes trabajo funcional sin commit en tu rama.
+
+4. **Actualización de documentación (ROADMAP y CHANGELOG)**:
+   - En cada commit actualiza el "Punto de reanudación" de TU sección en `ROADMAP.md` (tarea, subpaso, archivo que sigue).
+   - Cada integrante edita **exclusivamente su propia sección** del ROADMAP y CHANGELOG; no toques las secciones de otros integrantes.
+   - Al cerrar la tarea márcala `[x]` en tu pista del ROADMAP y añade una línea en `CHANGELOG.md` bajo `[Unreleased]` con el ID de la tarea y tu identificador `[Ix][ID]`.
+
+5. **Código compartido y arquitectura**:
+   - Código, comentarios y nombres en español, coherentes con los diagramas UML y las especificaciones de `/docs`.
+   - Pruebas unitarias en todo código de negocio. Las reglas de arquitectura hexagonal de `marvisur-core` (ArchUnit) deben mantenerse siempre en verde.
+   - El módulo `marvisur-core` es compartido: si necesitas una nueva entidad, método o puerto, propón el cambio y consénsualo con el equipo antes de modificarlo. No toques el código de otra pista sin previo acuerdo.
+
+6. **Seguridad y fuente de verdad**:
+   - **Cero secretos en Git**: ninguna contraseña, credencial, archivo `.env` ni token privado debe versionarse.
+   - Si algo no está en `/docs` o en el `Diccionario_Datos_SGL_DQR.md`, pregunta; no inventes tablas, columnas ni reglas de negocio.
