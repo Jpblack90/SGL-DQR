@@ -296,7 +296,7 @@ public class PublicoServicio {
     /**
      * Consulta autenticada de un pre-registro express para precargar datos en ventanilla (TN1, TN3).
      */
-    @Transactional
+    @Transactional(noRollbackFor = ResponseStatusException.class)
     public DetallePreRegistroVentanillaDto consultarPreRegistroVentanilla(String codigoExpress) {
         if (codigoExpress == null || codigoExpress.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código express es obligatorio.");

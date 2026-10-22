@@ -71,6 +71,19 @@ public class ManejadorGlobalExcepciones {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<ProblemDetail> manejarParametroFaltante(org.springframework.web.bind.MissingServletRequestParameterException ex) {
+        log.warn("Parámetro requerido ausente: {}", ex.getParameterName());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "El parámetro requerido '" + ex.getParameterName() + "' no fue proporcionado en la solicitud."
+        );
+        problem.setTitle("Parámetro Obligatorio Ausente");
+        problem.setType(URI.create("https://marvisur.pe/errores/parametro-ausente"));
+        problem.setProperty("codigo", "PARAMETRO_AUSENTE");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> manejarValidacion(MethodArgumentNotValidException ex) {
         log.warn("Fallo de validación en petición: {}", ex.getMessage());

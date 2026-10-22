@@ -146,7 +146,7 @@ class MigracionesFlywayTest {
     }
 
     @Test
-    @DisplayName("Flyway: Las 7 versiones de migración SQL se aplicaron con éxito")
+    @DisplayName("Flyway: Las 8 versiones de migración SQL se aplicaron con éxito")
     void todasLasMigracionesFlywayFueronExitosas() {
         Integer migracionesExitosas = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM \"flyway_schema_history\" WHERE \"type\" = 'SQL' AND \"success\" = TRUE",
@@ -154,7 +154,7 @@ class MigracionesFlywayTest {
         );
 
         assertThat(migracionesExitosas)
-                .as("Deben haberse aplicado exitosamente las 7 migraciones Flyway (V1 a V7)")
-                .isEqualTo(7);
+                .as("Deben haberse aplicado exitosamente las 8 migraciones Flyway (V1 a V8)")
+                .isEqualTo(8);
     }
 }

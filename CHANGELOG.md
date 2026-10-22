@@ -8,6 +8,20 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- [P10] API pública para el portal web (RF-08, RF-09, RF-10) en `marvisur-api`:
+  - Migración Flyway `V8__indice_hash_qr2.sql`: creación de índice `idx_parejas_hash_qr2` sobre `parejas_doble_qr(hash_qr2_llave_digital)` para optimizar la búsqueda de Billetera Digital sin escaneo secuencial.
+  - Modelo de dominio en `marvisur-core`: entidad `PreRegistroExpress`, enum `EstadoPreRegistro` (`PENDIENTE_VENTANILLA`, `PROCESADO`, `EXPIRADO`), puerto `RepositorioPreRegistroExpressPort` y extensión de `RepositorioParDobleQRPort` con `buscarPorHashQr2`; pruebas unitarias y verificación ArchUnit en verde.
+  - Persistencia JPA en `marvisur-api`: entidad `PreRegistroExpressJpaEntity`, repositorio Spring Data `PreRegistroExpressSpringDataRepository`, mapeador `PreRegistroExpressMapper` y adaptador `PreRegistroExpressPostgresAdapter`.
+  - Agrupación Swagger OpenAPI: configuración de grupos `publico` (`/api/v1/publico/**`) e `interno` (`/api/v1/**` excluyendo público) mediante `GroupedOpenApi`.
+  - Seguridad y Rate Limiting: filtro en memoria por ventana deslizante `FiltroRateLimitingPublico` por IP (`app.publico.limite-por-minuto=30`), emitiendo HTTP 429 con `Retry-After: 60` y formato RFC 7807 `ProblemDetail`.
+  - Endpoints públicos Fricción Cero (`/api/v1/publico/**` sin header `Authorization`):
+    - `GET /api/v1/publico/sucursales`: catálogo de agencias activas (`id`, `nombreAgencia`, `ciudad`, `direccion`).
+    - `GET /api/v1/publico/rastreo?codigo=...&documento=...`: tracking público anonimizado que valida que el documento corresponda al remitente o destinatario, devolviendo nombres enmascarados (`JUAN P***`) e historial cronológico ordenado sin registrar auditoría en BD.
+    - `POST /api/v1/publico/cotizacion`: cálculo tarifario oficial basado en `TarifarioPort` con desglose (`tarifaBase`, `recargoPeso`, `costoTotal`).
+    - `POST /api/v1/publico/pre-registros`: generación de Pre-registro Web con código alfanumérico único (`PRE-XXXXXX-PE`), vigencia configurable de 48 horas e instrucciones para ventanilla.
+    - `POST /api/v1/publico/billetera`: consulta de Billetera Digital mediante hash SHA-256 del token sin persistir ni registrar tokens en claro en logs ni mensajes de error, devolviendo el código QR2 renderizado al vuelo en PNG Base64 mediante `ImagenQRPort` y estado de pago (`PAGADO` o `PENDIENTE_PAGO_EN_AGENCIA`).
+  - Integración en ventanilla: `RegistrarEncomiendaRequest` y `EncomiendaApiServicio` extendidos para aceptar opcionalmente `codigoExpress`, asociando la encomienda y marcando el pre-registro como `PROCESADO` en la misma transacción atómica; y endpoint `GET /api/v1/preregistros/{codigoExpress}` protegido para roles Recepcionista (TN1) y Administrador (TN3) con auto-expiración (409) si pasaron las 48 horas.
+  - Pruebas de integración MockMvc en `PublicoControllerTest` (17 pruebas): catálogo de agencias, cotización, rastreo autorizado y no autorizado, pre-registro con consumo en ventanilla, rechazo de pre-registros expirados (409) o ya procesados (409), billetera digital con generación al vuelo de PNG Base64 y enmascaramiento, rate limiting (HTTP 429 tras 30 peticiones) y control RBAC en ventanilla (403 para almaceneros y choferes).
 - [P9] Módulo de almacén, escaneo masivo por lotes, búsqueda de emergencia por DNI/RUC y gestión de incidencias de etiquetas en `marvisur-api` (RF-06):
   - Modelos de dominio y puertos en `marvisur-core`: `Ruta`, `Vehiculo`, `EstadoViaje`, `ProgramacionViaje`, `DespachoLoteDetalle`, `TipoIncidencia`, `IncidenciaEmergencia` y sus repositorios (`RepositorioRutaPort`, `RepositorioVehiculoPort`, `RepositorioProgramacionViajePort`, `RepositorioDespachoLoteDetallePort`, `RepositorioIncidenciaEmergenciaPort`); pruebas unitarias y ArchUnit en verde.
   - Persistencia JPA en `marvisur-api`: entidades para las tablas del Diccionario `rutas`, `vehiculos`, `programacion_viajes`, `despachos_lote_detalles` e `incidencias_emergencia`; repositorios Spring Data y adaptadores PostgreSQL.
