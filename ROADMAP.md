@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: P10 (API pública: tracking, pre-registro Código Express y Billetera). Subpaso: Implementación de endpoints públicos para consulta de tracking, pre-registro express y visualización de billetera. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/controlador/PublicoController.java.
+Punto de reanudación: P10 (API pública: tracking, pre-registro Código Express y Billetera). Subpaso: Persistencia JPA, repositorios y adaptadores PostgreSQL para pre-registros express y búsqueda de hash QR2. Archivo que sigue: Backend-marvisur/marvisur-api/src/main/java/pe/marvisur/sgldqr/api/persistencia/entidad/PreRegistroExpressJpaEntity.java.
 
 ## Estado general
 - FASE A — Backend núcleo (trabajo individual): P1–P7 hechos; P8–P11 en curso.

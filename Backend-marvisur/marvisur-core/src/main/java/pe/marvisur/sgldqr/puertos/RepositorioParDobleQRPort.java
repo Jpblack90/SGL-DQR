@@ -18,6 +18,8 @@ public interface RepositorioParDobleQRPort {
 
     Optional<ParDobleQR> buscarPorEncomiendaId(String idEncomienda);
 
+    Optional<ParDobleQR> buscarPorHashQr2(String hashQr2LlaveDigital);
+
     void guardarTokenEstatus(TokenQR2Estatus tokenEstatus);
 
     void actualizarTokenEstatus(TokenQR2Estatus tokenEstatus);
