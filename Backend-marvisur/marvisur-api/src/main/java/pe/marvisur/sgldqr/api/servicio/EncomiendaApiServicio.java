@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pe.marvisur.sgldqr.api.dto.ClienteInputDto;
 import pe.marvisur.sgldqr.api.dto.DetalleEncomiendaDto;
 import pe.marvisur.sgldqr.api.dto.Qr1DataDto;
@@ -26,14 +28,17 @@ import pe.marvisur.sgldqr.aplicacion.RegistrarEncomiendaService;
 import pe.marvisur.sgldqr.dominio.modelo.Encomienda;
 import pe.marvisur.sgldqr.dominio.modelo.EstadoLogistico;
 import pe.marvisur.sgldqr.dominio.modelo.EstadoPago;
+import pe.marvisur.sgldqr.dominio.modelo.EstadoPreRegistro;
 import pe.marvisur.sgldqr.dominio.modelo.HistorialTracking;
 import pe.marvisur.sgldqr.dominio.modelo.MapeadorEventoTracking;
 import pe.marvisur.sgldqr.dominio.modelo.ParDobleQR;
+import pe.marvisur.sgldqr.dominio.modelo.PreRegistroExpress;
 import pe.marvisur.sgldqr.dominio.servicio.MotorQR;
 import pe.marvisur.sgldqr.puertos.AuditoriaPort;
 import pe.marvisur.sgldqr.puertos.HistorialTrackingPort;
 import pe.marvisur.sgldqr.puertos.ImagenQRPort;
 import pe.marvisur.sgldqr.puertos.RepositorioParDobleQRPort;
+import pe.marvisur.sgldqr.puertos.RepositorioPreRegistroExpressPort;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -63,9 +68,13 @@ public class EncomiendaApiServicio {
     private final ClienteSpringDataRepository clienteRepository;
     private final EncomiendaSpringDataRepository encomiendaRepository;
     private final GeneradorCodigoComprobante generadorCodigoComprobante;
+    private final RepositorioPreRegistroExpressPort repositorioPreRegistroPort;
 
     @Value("${app.portal.url-base:http://localhost:5173}")
     private String portalUrlBase;
+
+    @Value("${app.preregistro.vigencia-horas:48}")
+    private int vigenciaHoras;
 
     public EncomiendaApiServicio(RegistrarEncomiendaService registrarEncomiendaService,
                                  MotorQR motorQR,
@@ -75,7 +84,8 @@ public class EncomiendaApiServicio {
                                  AuditoriaPort auditoriaPort,
                                  ClienteSpringDataRepository clienteRepository,
                                  EncomiendaSpringDataRepository encomiendaRepository,
-                                 GeneradorCodigoComprobante generadorCodigoComprobante) {
+                                 GeneradorCodigoComprobante generadorCodigoComprobante,
+                                 RepositorioPreRegistroExpressPort repositorioPreRegistroPort) {
         this.registrarEncomiendaService = Objects.requireNonNull(registrarEncomiendaService, "El registrarEncomiendaService no puede ser nulo");
         this.motorQR = Objects.requireNonNull(motorQR, "El motorQR no puede ser nulo");
         this.imagenQRPort = Objects.requireNonNull(imagenQRPort, "El imagenQRPort no puede ser nulo");
@@ -85,6 +95,7 @@ public class EncomiendaApiServicio {
         this.clienteRepository = Objects.requireNonNull(clienteRepository, "El clienteRepository no puede ser nulo");
         this.encomiendaRepository = Objects.requireNonNull(encomiendaRepository, "El encomiendaRepository no puede ser nulo");
         this.generadorCodigoComprobante = Objects.requireNonNull(generadorCodigoComprobante, "El generadorCodigoComprobante no puede ser nulo");
+        this.repositorioPreRegistroPort = Objects.requireNonNull(repositorioPreRegistroPort, "El repositorioPreRegistroPort no puede ser nulo");
     }
 
     /**
@@ -106,6 +117,33 @@ public class EncomiendaApiServicio {
                                                            String ipOrigen) {
         Objects.requireNonNull(request, "La solicitud no puede ser nula");
         Objects.requireNonNull(usuario, "El usuario autenticado no puede ser nulo");
+
+        // 0. Si viene código express, validar existencia, vigencia, estado y sucursal de destino
+        PreRegistroExpress preRegistro = null;
+        if (request.codigoExpress() != null && !request.codigoExpress().isBlank()) {
+            String codExpress = request.codigoExpress().trim();
+            preRegistro = repositorioPreRegistroPort.buscarPorCodigoExpress(codExpress)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "No se encontró el pre-registro express con código: " + codExpress));
+
+            LocalDateTime ahora = LocalDateTime.now();
+            if (preRegistro.estaExpirado(ahora, vigenciaHoras)) {
+                preRegistro.marcarExpirado();
+                repositorioPreRegistroPort.actualizar(preRegistro);
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "El pre-registro express con código " + codExpress + " ha expirado.");
+            }
+
+            if (preRegistro.getEstado() != EstadoPreRegistro.PENDIENTE_VENTANILLA) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "El pre-registro express con código " + codExpress + " ya fue procesado o no está pendiente.");
+            }
+
+            if (!preRegistro.getIdSucursalDestino().equals(request.idSucursalDestino())) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "La sucursal de destino no coincide con la del pre-registro express.");
+            }
+        }
 
         // 1. Clientes: buscar por numero_documento o crear sin sobrescribir existentes
         ClienteJpaEntity remitente = obtenerOCrearCliente(request.remitente());
@@ -132,6 +170,12 @@ public class EncomiendaApiServicio {
         // 4. Generar Par Doble QR con MotorQR
         ParDobleQR par = motorQR.generarDobleQR(encomienda);
         parDobleQRPort.guardar(par);
+
+        // 4b. Si vino código express, marcarlo como PROCESADO dentro de la misma transacción
+        if (preRegistro != null) {
+            preRegistro.marcarProcesado(LocalDateTime.now(), vigenciaHoras);
+            repositorioPreRegistroPort.actualizar(preRegistro);
+        }
 
         // 5. Registrar evento inicial en historial_tracking
         String eventoTracking = MapeadorEventoTracking.aEventoTracking(encomienda.getEstadoLogistico());

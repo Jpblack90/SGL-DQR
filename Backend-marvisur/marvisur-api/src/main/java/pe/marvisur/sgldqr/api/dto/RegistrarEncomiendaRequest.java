@@ -33,6 +33,14 @@ public record RegistrarEncomiendaRequest(
         String descripcionContenido,
 
         @NotNull(message = "La modalidad de pago es obligatoria (CONTADO o CONTRA_ENTREGA)")
-        ModalidadPago modalidadPago
+        ModalidadPago modalidadPago,
+
+        String codigoExpress
 ) {
+    public RegistrarEncomiendaRequest(ClienteInputDto remitente, ClienteInputDto destinatario,
+                                     String idSucursalDestino, BigDecimal pesoKg,
+                                     BigDecimal volumenM3, String descripcionContenido,
+                                     ModalidadPago modalidadPago) {
+        this(remitente, destinatario, idSucursalDestino, pesoKg, volumenM3, descripcionContenido, modalidadPago, null);
+    }
 }
