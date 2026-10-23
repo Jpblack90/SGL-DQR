@@ -53,6 +53,13 @@
   - Reauditoría honesta de RF y RNF contra código real en `docs/estado-implementacion.md` (RF-02 Pendiente, RF-03 Pendiente, RF-05 Parcial, RF-10 Parcial, RF-11 Pendiente; RNF-01..RNF-04 Parciales, RNF-05 Implementado).
   - Explicitación de limitaciones conocidas (hardware simulado, HTTPS ausente, sin instalador .EXE, tarifario provisional).
   - Ajuste de redacción en README raíz eliminando afirmaciones no verificables.
+- [x] **P13 Coherencia documental y métricas reales**:
+  - Normalización de títulos en `docs/estado-implementacion.md` para correspondencia exacta con `docs/requisitos.md` (RF-04 como CRUD Encomiendas, RF-07 y RF-11).
+  - Reemplazo del término «equipaje» por «encomienda» en especificaciones técnicas y matrices.
+  - Desglose explícito en RNF-05 de las 5 pruebas ArchUnit dentro del total de 50 pruebas en `marvisur-core`.
+  - Precisión de RF-10 (backend y escritorio implementados; portal web W3 pendiente en backlog).
+  - Creación de `scripts/informe-metricas.ps1` y `scripts/informe-metricas.sh` para extracción automatizada de métricas reales.
+  - Generación del informe consolidado `docs/informe-metricas.md` y alineación con `README.md` y `docs/estado-implementacion.md`.
 
 ### Estado por Pista de Trabajo
 

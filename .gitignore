@@ -85,3 +85,7 @@ salida/
 # ---- PID y procesos de scripts ----
 *.pid
 scripts/*.pid
+ 
+# ---- Resultados de pruebas temporales ----
+vitest-results.json
+*/vitest-results.json

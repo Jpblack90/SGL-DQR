@@ -16,6 +16,7 @@ Se incluyen versiones nativas para **Windows PowerShell (`.ps1`)** y para **Linu
 | `demo-escritorio` | Inicia la aplicación de escritorio JavaFX pasando la URL de la API. | `-ApiBaseUrl <URL>` (default: `http://localhost:8080`) |
 | `demo-parar-api` | Detiene **exclusivamente** el proceso de la API (liberando puerto 8080) para simular la **caída de red (escena offline)**. | Ninguno |
 | `demo-iniciar-api` | Inicia o recupera la API backend, esperando el estado UP en `/actuator/health` para la **escena de reconexión y sincronización**. | `-PortalHost <IP>` (opcional) |
+| `informe-metricas` | Analiza y extrae automáticamente las métricas reales del proyecto (tests, OpenAPI, BD, LOC, git) generando `docs/informe-metricas.md`. | Ninguno |
 
 ---
 

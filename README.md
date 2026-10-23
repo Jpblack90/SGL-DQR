@@ -49,6 +49,8 @@ El software cuenta con una suite integral de 230 pruebas automatizadas (100% en 
 | `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **16** | **100% Verde** |
 | **TOTAL** | **Multiplataforma** | **230** | **100% VERDE** |
 
+> Para un desglose exhaustivo de pruebas por clase, tiempos de ejecución, catálogo OpenAPI, tablas Flyway y líneas de código (LOC), consulte el [Informe Técnico de Métricas](docs/informe-metricas.md) generado automáticamente.
+
 ---
 
 ## 4. Requisitos Previos
@@ -153,9 +155,11 @@ Sistema/
 │   ├── demo-escritorio              # Lanzador de JavaFX con URL de API por parámetro
 │   ├── demo-parar-api               # Corte de la API para simulación de caída de red (offline)
 │   ├── demo-iniciar-api             # Restauración de la API para sincronización automática
+│   ├── informe-metricas             # Extracción y generación automática de métricas reales
 │   └── README.md                    # Guía de uso y guion paso a paso de demostración
 ├── docs/                            # Documentación técnica y contratos
 │   ├── estado-implementacion.md     # Matriz honesta de requerimientos RF-01..11 y RNF-01..05
+│   ├── informe-metricas.md          # Métricas reales consolidadas (tests, OpenAPI, BD, LOC, git)
 │   ├── Diccionario_Datos_SGL_DQR.md # Fuente de verdad del esquema de base de datos
 │   ├── requisitos.md                # Requisitos funcionales y no funcionales oficiales
 │   ├── dev-demo.md                  # Credenciales, tokens y catálogo de datos demo

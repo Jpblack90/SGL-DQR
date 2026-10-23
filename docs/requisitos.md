@@ -21,7 +21,7 @@ Las siguientes tres sub-soluciones tecnológicas se derivan del mismo problema c
 Sub-Solución 1: Sistema Híbrido (Seleccionada). Aplicación de Escritorio en JavaFX para la operación en sucursal (ventanilla y almacén) con conexión nativa USB a periféricos, combinada con un Portal Web en la Nube (Java Spring Boot) para el rastreo del cliente.
 Pantallas (Mockups): 1) Login y Control de Turno, 2) Registro de Encomienda y Emisión QR, 3) Escaneo Masivo en Almacén, 4) Control de Rutas y Choferes, 5) Portal Web de Consulta de Estado.
 Sub-Solución 2: Web Monolítica Cloud (Alternativa A). Centralización total en una plataforma web (Java Spring Boot API).
-Pantallas (Mockups): 1) Login RBAC, 2) Dashboard Admin, 3) CRUD Equipajes, 4) Módulo de Recepciones Web, 5) Panel Web Tracking.
+Pantallas (Mockups): 1) Login RBAC, 2) Dashboard Admin, 3) CRUD Encomiendas, 4) Módulo de Recepciones Web, 5) Panel Web Tracking.
 Sub-Solución 3: Ecosistema Móvil Android + Web (Alternativa B). Operatividad de almacén basada en dispositivos móviles (App Java Android) y operaciones de ventanilla vía web.
 Pantallas (Mockups): 1) Login Móvil, 2) Escáner por Cámara de Celular, 3) Inventario de Carga Móvil, 4) Registro Web, 5) Tracking Administrativo.
 2.2. Cuadro Comparativo y Justificación
@@ -30,7 +30,7 @@ Justificación de Elección: Se selecciona la Sub-Solución 1 (Sistema Híbrido)
 RF-01: Módulo Login y Control de Accesos (RBAC). Autenticación interna para el personal (Admin, Almacenero, Recepcionista, Chofer) y acceso público sin contraseña para clientes finales mediante token QR.
 RF-02: Panel Administrativo (Dashboard). Visualización en tiempo real de métricas, KPIs operativos y estado general de la sucursal.
 RF-03: CRUD Empleado. Gestión centralizada de perfiles operativos (altas, bajas y edición de almaceneros y recepcionistas).
-RF-04: CRUD Equipajes (Core Operativo). Registro integral del paquete (peso, volumen, fechas, RUC/datos personales). Vincula automáticamente el envío al Sistema de Doble QR.
+RF-04: CRUD Encomiendas (Core Operativo). Registro integral del paquete (peso, volumen, fechas, RUC/datos personales). Vincula automáticamente el envío al Sistema de Doble QR.
 RF-05: RU Choferes y Flota. Control de unidades de transporte, asignación de rutas y actualización de horarios de salida/llegada.
 RF-06: Módulo de Recepciones (Escaneo Batch). Interfaz de escritorio optimizada para la lectura masiva y rápida de encomiendas vía pistoleo en almacén.
 RF-07: Motor Central de Validación Criptográfica (Sistema Doble QR). Lógica de generación simultánea de QR 1 (Operativo) y QR 2 (Retiro), vinculación criptográfica y expiración post-entrega. (Nota: Caso de Uso Representativo del sistema).
