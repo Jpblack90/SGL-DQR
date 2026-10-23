@@ -53,6 +53,8 @@ secrets/
 *.sqlite
 *.sqlite3
 database/sqlite/*.db
+datos-locales/
+*/datos-locales/
 
 # ---- Node / Frontend ----
 node_modules/
