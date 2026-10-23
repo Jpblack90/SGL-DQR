@@ -1,8 +1,8 @@
 # Informe Técnico de Métricas del Sistema — SGL-DQR
 
-- **Fecha de Generación**: 2026-10-23 15:33:33 -05:00
-- **Hash de Commit**: `34fb2c5` (completo: `34fb2c52f0e90f2425e516d7a92a5bfee8f1c9aa`)
-- **Rama Actual**: `feature/P13-coherencia-metricas`
+- **Fecha de Generación**: 2026-10-23 16:06:45 -05:00
+- **Hash de Commit**: `b7938b3` (completo: `b7938b308dc213bb83becd08f779ebdb188e45a2`)
+- **Rama Actual**: `feature/W3-preregistro`
 - **Generado por**: `scripts/informe-metricas.ps1` (extracción automática en vivo)
 
 ---
@@ -11,13 +11,13 @@
 
 | Métrica | Valor Real | Observación |
 |---|:---:|---|
-| **Total de Pruebas Automatizadas** | **230** | Core (50), API (100), JavaFX (64), Web (16) |
+| **Total de Pruebas Automatizadas** | **246** | Core (50), API (100), JavaFX (64), Web (32) |
 | **Pruebas Fallidas / Errores** | **0 / 0** | **100% en verde** |
 | **Operaciones REST (OpenAPI)** | **23** | 17 internas, 6 públicas |
 | **Migraciones Flyway Oficiales** | **8** | V1 a V8 en `database/postgres/migrations` |
 | **Tablas en Base de Datos** | **18** | Coincidencia 100% con las 18 tablas del Diccionario |
-| **Total de Commits Git** | **71** | Primer commit: 2026-10-19 (0801caa) - chore: inicializar estructura base del repositorio SGL-DQR |
-| **Líneas de Código Fuente (LOC)** | **23677** | 304 archivos (Java, TypeScript, SQL sin dependencias) |
+| **Total de Commits Git** | **76** | Primer commit: 2026-10-19 (0801caa) - chore: inicializar estructura base del repositorio SGL-DQR |
+| **Líneas de Código Fuente (LOC)** | **25604** | 309 archivos (Java, TypeScript, SQL sin dependencias) |
 
 ---
 
@@ -80,14 +80,17 @@ Pruebas headless en JavaFX con mocks HTTP y base local SQLite. Valida conmutaci�
 | SQLiteColaAdapterTest | 6 | 0 | 0 | 0 | 0.363 |
 | ValidadorVentanillaTest | 5 | 0 | 0 | 0 | 0.024 |
 
-### 2.4. portal-web (16 pruebas · 1.704 s)
+### 2.4. portal-web (32 pruebas · 9.972 s)
 Ejecutadas con Vitest y React Testing Library. Valida aislamiento de hash #, tracking público y manejo de errores RFC 7807.
 
 | Archivo de Prueba | Pruebas | Fallos | Tiempo (s) |
 |---|:---:|:---:|:---:|
-| Billetera.test.tsx | 6 | 0 | 0.101 |
-| cliente.test.ts | 6 | 0 | 0.005 |
-| Rastreo.test.tsx | 4 | 0 | 1.598 |
+| Billetera.test.tsx | 6 | 0 | 0.098 |
+| cliente.test.ts | 8 | 0 | 0.006 |
+| Cotiza.test.tsx | 4 | 0 | 0.923 |
+| LineaTiempo.test.tsx | 4 | 0 | 0.037 |
+| PreRegistro.test.tsx | 6 | 0 | 7.273 |
+| Rastreo.test.tsx | 4 | 0 | 1.635 |
 
 ---
 
@@ -175,18 +178,18 @@ Ejecutadas con Vitest y React Testing Library. Valida aislamiento de hash #, tra
 
 ## 5. Métricas de Git y Control de Versiones
 
-- **Total de Commits**: 71
+- **Total de Commits**: 76
 - **Primer Commit**: 2026-10-19 (0801caa) - chore: inicializar estructura base del repositorio SGL-DQR
-- **Último Commit**: 2026-10-23 (34fb2c5) - merge: integracion de estado honesto P12b en develop
+- **Último Commit**: 2026-10-23 (b7938b3) - feat(W3): modulo de cotizacion en linea y pre-registro codigo express con generador qr
 
 ### Distribución por Convención de Commits:
 | Tipo de Commit | Cantidad | Descripción |
 |---|:---:|---|
-| `feat` | 42 | Nuevas funcionalidades operativas y de integración |
+| `feat` | 44 | Nuevas funcionalidades operativas y de integración |
 | `chore` | 11 | Mantenimiento, CI, dependencias y configuración |
-| `docs` | 7 | Documentación técnica, matrices y manuales |
-| `fix` | 3 | Corrección de defectos y deuda técnica |
-| `merge` | 6 | Integraciones de ramas hacia develop y main |
+| `docs` | 8 | Documentación técnica, matrices y manuales |
+| `fix` | 4 | Corrección de defectos y deuda técnica |
+| `merge` | 7 | Integraciones de ramas hacia develop y main |
 | `test` | 0 | Pruebas automatizadas directas |
 | Otros | 2 | Ajustes varios |
 
@@ -201,9 +204,9 @@ Ejecutadas con Vitest y React Testing Library. Valida aislamiento de hash #, tra
 | `backend-marvisur/marvisur-core` | Java 21 | 65 | 2916 |
 | `backend-marvisur/marvisur-api` | Java 21 | 142 | 11764 |
 | `frontend-marvisur/escritorio` | JavaFX 21 (Java) | 68 | 6636 |
-| `frontend-marvisur/portal-web` | TypeScript / React | 20 | 1827 |
+| `frontend-marvisur/portal-web` | TypeScript / React | 25 | 3754 |
 | `database` | PostgreSQL (SQL) | 9 | 534 |
-| **TOTAL SISTEMA** | **Multi-lenguaje** | **304** | **23677** |
+| **TOTAL SISTEMA** | **Multi-lenguaje** | **309** | **25604** |
 
 ---
 

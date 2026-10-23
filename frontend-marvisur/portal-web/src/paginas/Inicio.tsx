@@ -16,77 +16,114 @@ export const Inicio: React.FC = () => {
         </h1>
 
         <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          Rastrea tu envío en tiempo real y retira tus encomiendas con tu <strong>Billetera Digital</strong> de un solo uso. Máxima seguridad sin contraseñas ni trámites lentos.
+          Cotiza tu tarifa, genera tu <strong>Código Express</strong> para ventanilla, rastrea tu envío en tiempo real y retira con tu <strong>Billetera Digital</strong>. Fricción Cero sin contraseñas.
         </p>
 
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* Accesos rápidos principales */}
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/rastreo"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-bold text-white bg-rojo hover:bg-rojo-profundo shadow-lg shadow-rojo/25 transition-all transform active:scale-95 focus-visible:outline-rojo"
+            to="/cotiza"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl font-bold text-white bg-rojo hover:bg-rojo-profundo shadow-lg shadow-rojo/25 transition-all transform active:scale-95 focus-visible:outline-rojo"
           >
             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
-            Rastrear mi Encomienda
+            Cotiza tu Envío
           </Link>
 
           <Link
-            to="/billetera"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-bold text-azul-noche bg-white hover:bg-slate-50 border border-slate-300 shadow-sm transition-all transform active:scale-95 focus-visible:outline-rojo"
+            to="/pre-registro"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl font-bold text-azul-noche bg-white hover:bg-slate-50 border border-slate-300 shadow-sm transition-all transform active:scale-95 focus-visible:outline-rojo"
           >
             <svg className="w-5 h-5 mr-2 text-rojo" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Ir a la Billetera Digital
+            Pre-registro Express
+          </Link>
+
+          <Link
+            to="/rastreo"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all text-sm"
+          >
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Rastrear Encomienda
           </Link>
         </div>
       </section>
 
-      {/* Tarjetas de servicios principales */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-xl bg-rojo-claro text-rojo flex items-center justify-center mb-5">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+      {/* Tarjetas de servicios principales (Grid de 4 servicios) */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Tarjeta Cotiza */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-azul-noche mb-2">Cotización en Línea</h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+              Calcula al instante la tarifa referencial por peso y origen/destino para planificar tu envío.
+            </p>
           </div>
-          <h3 className="text-xl font-bold text-azul-noche mb-2">Rastreo Inmediato</h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-4">
-            Ingresa tu número de comprobante y tu documento de identidad para conocer la ubicación exacta y el estado de tu carga.
-          </p>
-          <Link to="/rastreo" className="text-sm font-bold text-rojo hover:text-rojo-profundo inline-flex items-center gap-1">
-            Consultar ahora →
+          <Link to="/cotiza" className="text-xs font-bold text-amber-600 hover:text-amber-800 inline-flex items-center gap-1">
+            Cotizar ahora →
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
+        {/* Tarjeta Pre-registro */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div className="w-12 h-12 rounded-xl bg-rojo-claro text-rojo flex items-center justify-center mb-4">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-azul-noche mb-2">Código Express</h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+              Ahorra tiempo en ventanilla: ingresa los datos de envío y presenta tu código QR al depositar.
+            </p>
           </div>
-          <h3 className="text-xl font-bold text-azul-noche mb-2">Billetera Digital</h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-4">
-            Tu llave digital de retiro en tu celular. El código QR2 se genera al vuelo y se invalida automáticamente tras la entrega.
-          </p>
-          <Link to="/billetera" className="text-sm font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
+          <Link to="/pre-registro" className="text-xs font-bold text-rojo hover:text-rojo-profundo inline-flex items-center gap-1">
+            Pre-registrar →
+          </Link>
+        </div>
+
+        {/* Tarjeta Rastreo */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-azul-noche mb-2">Rastreo Inmediato</h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+              Consulta en vivo la línea de tiempo y ubicación de tu encomienda con tu comprobante oficial y DNI.
+            </p>
+          </div>
+          <Link to="/rastreo" className="text-xs font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
+            Rastrear ahora →
+          </Link>
+        </div>
+
+        {/* Tarjeta Billetera Digital */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-azul-noche mb-2">Billetera Digital</h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+              Tu llave criptográfica QR2 para retiro seguro de un solo uso en ventanilla de destino.
+            </p>
+          </div>
+          <Link to="/billetera" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 inline-flex items-center gap-1">
             Ver Billetera →
-          </Link>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-azul-noche mb-2">Agencias a Nivel Nacional</h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-4">
-            Encuentra las direcciones y horarios de atención de nuestras agencias en Lima, Arequipa, Huancayo y todo el Perú.
-          </p>
-          <Link to="/agencias" className="text-sm font-bold text-emerald-600 hover:text-emerald-800 inline-flex items-center gap-1">
-            Ver Agencias →
           </Link>
         </div>
       </section>
@@ -98,23 +135,20 @@ export const Inicio: React.FC = () => {
             Cero Suplantaciones · Cero Fraudes
           </span>
           <h2 className="text-2xl sm:text-4xl font-extrabold mb-4 leading-tight">
-            ¿Cómo protege el sistema Doble QR tu encomienda?
+            Ecosistema de Doble Validación Criptográfica
           </h2>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-            Cada encomienda cuenta con dos códigos independientes: un código físico en la etiqueta (QR1) y una llave digital única enviada a tu Billetera (QR2). La entrega solo es autorizada cuando ambos códigos coinciden en el sistema y se invalida de inmediato.
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
+            Combinamos una etiqueta física indeleble (QR1) adherida al paquete con una llave digital única (QR2) entregada exclusivamente al destinatario. La validación cruzada en almacén garantiza que nadie pueda retirar tu carga sin autorización.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2 border-t border-slate-700/60">
-            <div>
-              <div className="text-2xl font-black text-rojo">100%</div>
-              <div className="text-xs text-slate-400 mt-1">Hashes criptográficos SHA-256 en base de datos.</div>
+          <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10">
+              <span className="text-emerald-400 font-bold">✓</span> Validación en tiempo real
             </div>
-            <div>
-              <div className="text-2xl font-black text-emerald-400">&lt; 1 seg</div>
-              <div className="text-xs text-slate-400 mt-1">Validación cruzada inmediata en ventanilla.</div>
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10">
+              <span className="text-emerald-400 font-bold">✓</span> Invalidación irreversible del QR2
             </div>
-            <div>
-              <div className="text-2xl font-black text-amber-400">1 Solo Uso</div>
-              <div className="text-xs text-slate-400 mt-1">El QR2 queda invalidado de forma irreversible.</div>
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10">
+              <span className="text-emerald-400 font-bold">✓</span> Cero contraseñas vulnerables
             </div>
           </div>
         </div>

@@ -32,22 +32,22 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 - **HTTPS ausente**: El sistema opera sobre HTTP plano sin certificados SSL/TLS configurados (O3 pendiente).
 - **Sin instalador autocontenido**: La app de escritorio requiere Maven y JDK 21 instalado; no se empaquetó instalador `.EXE`/`.MSI` mediante `jpackage` (O4 pendiente).
 - **Tarifa y comprobantes provisionales**: El cálculo tarifario por peso y la serie de comprobantes (`MV-yyyyMMdd-XXXXXXXX`) son referenciales con marcas `TODO`, pendientes de los tarifarios y numeración fiscal definitiva de Marvisur.
-- **Funcionalidades pendientes**: Dashboard administrativo con KPIs (RF-02), CRUD de empleados (RF-03), comprobantes en PDF (RF-11) y formulario web de pre-registro (W3 / RF-10) no están implementados.
+- **Funcionalidades pendientes**: Dashboard administrativo con KPIs (RF-02), CRUD de empleados (RF-03) y descarga autónoma de comprobantes en PDF (RF-11) no están implementados.
 - **Fuera de alcance oficial**: Integración técnica con SUNAT (emisión electrónica XML/CDR) y aplicaciones móviles nativas.
 
 ---
 
-## 3. Conteo de Pruebas Automatizadas (230 Pruebas en Verde)
+## 3. Conteo de Pruebas Automatizadas (246 Pruebas en Verde)
 
-El software cuenta con una suite integral de 230 pruebas automatizadas (100% en verde):
+El software cuenta con una suite integral de 246 pruebas automatizadas (100% en verde):
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Resultado |
 |---|---|:---:|:---:|
 | `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **100% Verde** |
 | `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **100** | **100% Verde** |
 | `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **64** | **100% Verde** |
-| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **16** | **100% Verde** |
-| **TOTAL** | **Multiplataforma** | **230** | **100% VERDE** |
+| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **32** | **100% Verde** |
+| **TOTAL** | **Multiplataforma** | **246** | **100% VERDE** |
 
 > Para un desglose exhaustivo de pruebas por clase, tiempos de ejecución, catálogo OpenAPI, tablas Flyway y líneas de código (LOC), consulte el [Informe Técnico de Métricas](docs/informe-metricas.md) generado automáticamente.
 

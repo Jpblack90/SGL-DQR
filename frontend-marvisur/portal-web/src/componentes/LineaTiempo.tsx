@@ -1,5 +1,5 @@
 import React from 'react';
-import { EventoTrackingPublicoDto, obtenerEtiquetaEstado } from '../api/tipos';
+import { EventoTrackingPublicoDto, obtenerEtiquetaTracking } from '../api/tipos';
 
 interface LineaTiempoProps {
   eventos: EventoTrackingPublicoDto[];
@@ -32,7 +32,7 @@ export const LineaTiempo: React.FC<LineaTiempoProps> = ({ eventos, className = '
     <div className={`relative pl-6 border-l-2 border-slate-200 space-y-6 ${className}`}>
       {eventos.map((evento, index) => {
         const esUltimo = index === eventos.length - 1;
-        const etiqueta = obtenerEtiquetaEstado(evento.estadoEvento);
+        const etiqueta = obtenerEtiquetaTracking(evento.estadoEvento);
 
         return (
           <div key={`${evento.estadoEvento}-${index}`} className="relative group">
