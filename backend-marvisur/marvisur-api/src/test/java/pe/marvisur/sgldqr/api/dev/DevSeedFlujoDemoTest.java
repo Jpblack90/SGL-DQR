@@ -115,13 +115,13 @@ class DevSeedFlujoDemoTest {
 
     @Test
     @Order(3)
-    @DisplayName("Flujo Demo: Validar QR Encomienda PAGADA en destino -> EXITOSO e invalidación del token")
+    @DisplayName("Flujo Demo: Validar QR Encomienda PAGADA en destino -> EXITOSO e invalidación del token (MV-DEMO-001)")
     void testFlujoDemo_ValidarEncomiendaPagada_Exitoso() throws Exception {
-        // 1. Login TN2
+        // 1. Login TN2 Almacenero
         String tokenAlmacenero = obtenerToken("almacenero.demo@marvisur.pe", "Demo1234*");
 
-        // 2. Validar entrega con par QR demo (MV-DEMO-001)
-        ValidarEntregaRequest req = new ValidarEntregaRequest("UUID-ENC-DEMO-001", "DEMO-TOKEN-PAGADA-001");
+        // 2. Validar entrega con par QR demo (MV-DEMO-001) usando prefijo oficial MARVISUR:QR1:
+        ValidarEntregaRequest req = new ValidarEntregaRequest("MARVISUR:QR1:UUID-ENC-DEMO-001", "DEMO-TOKEN-PAGADA-001");
 
         mockMvc.perform(post("/api/v1/entregas/validar")
                         .header("Authorization", "Bearer " + tokenAlmacenero)
@@ -144,25 +144,45 @@ class DevSeedFlujoDemoTest {
                 String.class
         );
         assertThat(estadoLogistico).isEqualTo("ENTREGADO");
-    }
 
-    @Test
-    @Order(4)
-    @DisplayName("Flujo Demo: Validar QR Encomienda PENDIENTE en destino -> 409 ENTREGA_BLOQUEADA_PAGO_PENDIENTE")
-    void testFlujoDemo_ValidarEncomiendaPendiente_Bloqueada() throws Exception {
-        String tokenAlmacenero = obtenerToken("almacenero.demo@marvisur.pe", "Demo1234*");
-
-        ValidarEntregaRequest req = new ValidarEntregaRequest("UUID-ENC-DEMO-002", "DEMO-TOKEN-PENDIENTE-002");
-
+        // 3. Repetir validación con el mismo QR2 ya utilizado -> 409 TOKEN_QR2_INVALIDO
         mockMvc.perform(post("/api/v1/entregas/validar")
                         .header("Authorization", "Bearer " + tokenAlmacenero)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo", is("TOKEN_QR2_INVALIDO")));
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Flujo Demo: Validar QR Encomienda PENDIENTE en destino -> 409 ENTREGA_BLOQUEADA_PAGO_PENDIENTE (MV-DEMO-002)")
+    void testFlujoDemo_ValidarEncomiendaPendiente_Bloqueada() throws Exception {
+        String tokenAlmacenero = obtenerToken("almacenero.demo@marvisur.pe", "Demo1234*");
+
+        // Validar con formato oficial MARVISUR:QR1:
+        ValidarEntregaRequest reqOficial = new ValidarEntregaRequest("MARVISUR:QR1:UUID-ENC-DEMO-002", "DEMO-TOKEN-PENDIENTE-002");
+
+        mockMvc.perform(post("/api/v1/entregas/validar")
+                        .header("Authorization", "Bearer " + tokenAlmacenero)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reqOficial)))
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo", is("ENTREGA_BLOQUEADA_PAGO_PENDIENTE")))
+                .andExpect(jsonPath("$.montoTotal", is(17.50)))
                 .andExpect(jsonPath("$.detail", containsString("bloqueada")));
 
-        // El token debe permanecer ACTIVO
+        // Verificar además tolerancia con formato sin prefijo
+        ValidarEntregaRequest reqSinPrefijo = new ValidarEntregaRequest("UUID-ENC-DEMO-002", "DEMO-TOKEN-PENDIENTE-002");
+
+        mockMvc.perform(post("/api/v1/entregas/validar")
+                        .header("Authorization", "Bearer " + tokenAlmacenero)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reqSinPrefijo)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo", is("ENTREGA_BLOQUEADA_PAGO_PENDIENTE")));
+
+        // El token debe permanecer ACTIVO antes de cobrar y entregar
         String estadoToken = jdbcTemplate.queryForObject(
                 "SELECT estado_token FROM tokens_qr2_estatus WHERE id_token_status = 'TOK-DEMO-002'",
                 String.class
@@ -189,8 +209,44 @@ class DevSeedFlujoDemoTest {
 
     @Test
     @Order(6)
-    @DisplayName("Flujo Demo: Rastreo público de encomienda demo MV-DEMO-001")
+    @DisplayName("Flujo Demo: Cobro de MV-DEMO-002, reintento 200 EXITOSO, invalidación QR2 e intento repetido 409")
+    void testFlujoDemo_CobroReintentoEInvalidacion_MV_DEMO_002() throws Exception {
+        String tokenAlmacenero = obtenerToken("almacenero.demo@marvisur.pe", "Demo1234*");
+
+        // 1. Cobro en ventanilla/almacén: POST /api/v1/encomiendas/UUID-ENC-DEMO-002/cobro
+        mockMvc.perform(post("/api/v1/encomiendas/UUID-ENC-DEMO-002/cobro")
+                        .header("Authorization", "Bearer " + tokenAlmacenero))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idEncomienda", is("UUID-ENC-DEMO-002")))
+                .andExpect(jsonPath("$.codigoComprobante", is("MV-DEMO-002")))
+                .andExpect(jsonPath("$.estadoPago", is("PAGADO")));
+
+        // 2. Reintento de validación con QR1 y QR2 tras el cobro -> 200 OK EXITOSO
+        ValidarEntregaRequest req = new ValidarEntregaRequest("MARVISUR:QR1:UUID-ENC-DEMO-002", "DEMO-TOKEN-PENDIENTE-002");
+
+        mockMvc.perform(post("/api/v1/entregas/validar")
+                        .header("Authorization", "Bearer " + tokenAlmacenero)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultado", is("EXITOSO")))
+                .andExpect(jsonPath("$.codigoComprobante", is("MV-DEMO-002")))
+                .andExpect(jsonPath("$.estadoLogistico", is("ENTREGADO")));
+
+        // 3. Repetir la validación con el mismo QR2 ya utilizado -> 409 TOKEN_QR2_INVALIDO
+        mockMvc.perform(post("/api/v1/entregas/validar")
+                        .header("Authorization", "Bearer " + tokenAlmacenero)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo", is("TOKEN_QR2_INVALIDO")));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Flujo Demo: Rastreo público de encomiendas demo MV-DEMO-001 y MV-DEMO-002 con DNI 45678904")
     void testFlujoDemo_RastreoPublico() throws Exception {
+        // MV-DEMO-001 con DNI 45678901 (remitente)
         mockMvc.perform(get("/api/v1/publico/rastreo")
                         .param("comprobante", "MV-DEMO-001")
                         .param("documento", "45678901"))
@@ -198,10 +254,19 @@ class DevSeedFlujoDemoTest {
                 .andExpect(jsonPath("$.codigoComprobante", is("MV-DEMO-001")))
                 .andExpect(jsonPath("$.nombreDestinatarioEnmascarado", containsString("L***")))
                 .andExpect(jsonPath("$.lineaDeTiempo", notNullValue()));
-    }
 
+        // MV-DEMO-002 con DNI 45678904 (destinatario Elena Ramos Castro)
+        mockMvc.perform(get("/api/v1/publico/rastreo")
+                        .param("comprobante", "MV-DEMO-002")
+                        .param("documento", "45678904"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.codigoComprobante", is("MV-DEMO-002")))
+                .andExpect(jsonPath("$.estadoLogistico", is("ENTREGADO")))
+                .andExpect(jsonPath("$.nombreDestinatarioEnmascarado", containsString("E***")))
+                .andExpect(jsonPath("$.lineaDeTiempo", notNullValue()));
+    }
     @Test
-    @Order(7)
+    @Order(8)
     @DisplayName("Flujo Demo: Cotización pública")
     void testFlujoDemo_CotizacionPublica() throws Exception {
         CotizacionRequest cot = new CotizacionRequest("SUC-LIM-01", "SUC-AQP-01", new BigDecimal("5.00"), new BigDecimal("0.0200"));
@@ -215,7 +280,7 @@ class DevSeedFlujoDemoTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     @DisplayName("Flujo Demo: Pre-registro web y posterior atención en ventanilla con codigoExpress")
     void testFlujoDemo_PreRegistroYVentanillaConCodigoExpress() throws Exception {
         // 1. Login TN1 Recepcionista

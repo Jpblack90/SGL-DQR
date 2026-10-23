@@ -90,13 +90,13 @@ INSERT INTO encomiendas (
 INSERT INTO parejas_doble_qr (
     id_pareja_qr, id_encomienda, uuid_qr1_operativo, hash_qr2_llave_digital, fecha_generacion
 ) VALUES (
-    'PAR-DEMO-001', 'UUID-ENC-DEMO-001', 'UUID-ENC-DEMO-001',
+    'PAR-DEMO-001', 'UUID-ENC-DEMO-001', 'MARVISUR:QR1:UUID-ENC-DEMO-001',
     '7e62e05647a89c6d03218739d3ae6d620eab27978620e12882a43fe68d3ecab2', NOW() - INTERVAL '2 day'
 ), (
-    'PAR-DEMO-002', 'UUID-ENC-DEMO-002', 'UUID-ENC-DEMO-002',
+    'PAR-DEMO-002', 'UUID-ENC-DEMO-002', 'MARVISUR:QR1:UUID-ENC-DEMO-002',
     '5871ddaceca42227833c9d428f56f2225d6d074203f6c33f854f93a6f9b9caf4', NOW() - INTERVAL '2 day'
 ), (
-    'PAR-DEMO-003', 'UUID-ENC-DEMO-003', 'UUID-ENC-DEMO-003',
+    'PAR-DEMO-003', 'UUID-ENC-DEMO-003', 'MARVISUR:QR1:UUID-ENC-DEMO-003',
     '4a0ac62303a57ec9a47bcd87c159b4a16c283812070a4bedfb9456fffe8b0b76', NOW() - INTERVAL '1 hour'
 ) ON CONFLICT (id_pareja_qr) DO NOTHING;
 
