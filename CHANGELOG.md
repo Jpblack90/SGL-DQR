@@ -11,9 +11,13 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [0.2.0] - 2026-10-22
+## [0.2.0] - 2026-10-23
 
 ### Added
+- [P12b] Auditoría técnica y corrección honesta de requerimientos y limitaciones:
+  - Adopción de las definiciones oficiales de RNF-01 a RNF-05 y fuera de alcance en `docs/requisitos.md`.
+  - Reauditoría de matriz de trazabilidad en `docs/estado-implementacion.md` ajustando RF-02 y RF-03 a Pendiente, RF-05 y RF-10 a Parcial, RF-11 a Pendiente; y RNF-01 a RNF-04 a Parcial y RNF-05 a Implementado según evidencia real en el código.
+  - Documentación de limitaciones conocidas en hardware simulado, ausencia de HTTPS, falta de instalador .EXE y datos tarifarios provisionales en README y matriz.
 - [P12] Congelamiento de funciones, kit de demostración y estabilización de Fase B:
   - Scripts de automatización en `scripts/` (versiones PowerShell `.ps1` y Bash `.sh`): `demo-reset` (limpieza y espera de PostgreSQL), `demo-api` (arranque con detección de IP LAN y variable `APP_PORTAL_URL_BASE`), `demo-portal` (`npm run dev -- --host`), `demo-escritorio` (JavaFX con `api.base-url` por parámetro), `demo-parar-api` y `demo-iniciar-api` (simulación de corte offline y recuperación con reconexión automática).
   - Guía de demostración paso a paso y guion interactivo E2E en `scripts/README.md`.

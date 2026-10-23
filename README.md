@@ -1,37 +1,45 @@
 # SGL-DQR — Sistema de Gestión Logística con Doble QR
 
 **Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.2.0 (Fase B Congelada)  
-Arquitectura Hexagonal · Java 21 · Spring Boot 3 · JavaFX 21 (Offline-First) · React 18 · PostgreSQL 16 · SQLite · Flyway · ZXing · JWT RBAC
+Arquitectura Hexagonal · Java 21 · Spring Boot 3 · JavaFX 21 (Offline-First en Ventanilla) · React 18 · PostgreSQL 16 · SQLite · Flyway · ZXing · JWT RBAC
 
 ---
 
 ## 1. Descripción del Sistema y Arquitectura
 
-El **Sistema de Gestión Logística con Doble QR (SGL-DQR)** es una solución integral desarrollada para modernizar, agilizar y asegurar las operaciones de transporte, despacho y entrega de encomiendas de **Expreso Marvisur**.
+El **Sistema de Gestión Logística con Doble QR (SGL-DQR)** es un aplicativo de software y prototipo funcional desarrollado para modernizar, agilizar y asegurar las operaciones de admisión, despacho y entrega de encomiendas de **Expreso Marvisur**.
 
-Su innovación central es el **Doble QR Criptográfico**:
-- **QR1 Físico**: Impreso en la etiqueta térmica del paquete, visible para el personal de transporte y almacén.
-- **QR2 Digital de Retiro**: Generado dinámicamente y expuesto exclusivamente en la Billetera Digital del cliente receptor mediante URL segura con token en el fragmento hash (`/billetera#<token>`).
-- **Validación Cruzada**: La entrega en almacén se autoriza únicamente tras contrastar la correspondencia matemática de ambos hashes SHA-256 y confirmar el cobro total. Tras la entrega, el QR2 queda **irreversiblemente invalidado** en la base de datos (RNF-01).
+Su mecanismo principal es el **Doble QR Criptográfico**:
+- **QR1 Físico**: Impreso en la etiqueta térmica del paquete, visible para el personal operativo de transporte y almacén.
+- **QR2 Digital de Retiro**: Generado dinámicamente y consultable exclusivamente en la Billetera Digital del cliente receptor mediante URL segura con token en el fragmento hash (`/billetera#<token>`).
+- **Validación Cruzada**: La entrega física en almacén se autoriza únicamente tras contrastar la correspondencia matemática de ambos hashes SHA-256 y confirmar el cobro total. Tras la entrega, el QR2 queda **irreversiblemente invalidado** en la base de datos (RNF-01).
 
-### Componentes del Ecosistema:
-1. **`marvisur-core`**: Núcleo de dominio puro en Java 21 sin dependencias de frameworks externos (sin Spring, JPA ni JavaFX). Contiene las entidades (`Encomienda`, `ParDobleQR`, `Cliente`, `Empleado`), enums de negocio, puertos y el `MotorQR` criptográfico. Verificado mediante ArchUnit.
-2. **`marvisur-api`**: Backend RESTful Spring Boot 3.3 con PostgreSQL 16, migraciones Flyway V1–V8 + seed V100, seguridad JWT con RBAC (roles TN1 a TN4), rate limiting en endpoints públicos, transacciones pesimistas (`SELECT ... FOR UPDATE`) en entregas y sincronización idempotente por lotes (`POST /api/v1/sync/encomiendas`).
-3. **`marvisur-escritorio`**: Cliente de ventanilla y almacén en JavaFX 21 con capacidades **offline-first** (RNF-02, RNF-05). Registra encomiendas localmente en SQLite (`datos-locales/marvisur-local.db`) ante caídas de red ($\le 2$ s) y sincroniza automáticamente en segundo plano con backoff exponencial. Incluye componente `CampoEscaneo` para lectores USB y emulación de impresión térmica de 58 mm.
-4. **`portal-web`**: Portal web de autoservicio para clientes en React 18 + Vite + TypeScript + Tailwind CSS (mobile-first), con módulos de rastreo en vivo (`/rastreo`), cotización y Billetera Digital segura (`/billetera`).
+### Módulos del Sistema:
+1. **`marvisur-core`**: Núcleo de dominio puro en Java 21 sin dependencias de frameworks externos (sin Spring, JPA ni JavaFX). Contiene las entidades (`Encomienda`, `ParDobleQR`, `Cliente`, `Empleado`), enums de negocio, puertos y el `MotorQR` criptográfico. Las reglas de aislamiento hexagonal son verificadas en cada compilación mediante ArchUnit.
+2. **`marvisur-api`**: Backend RESTful Spring Boot 3.3 con PostgreSQL 16, migraciones Flyway V1–V8 + seed V100, seguridad JWT con RBAC (roles TN1 a TN4), rate limiting en endpoints públicos, transacciones pesimistas (`SELECT ... FOR UPDATE`) en entregas y sincronización por lotes (`POST /api/v1/sync/encomiendas`).
+3. **`marvisur-escritorio`**: Cliente de ventanilla y almacén en JavaFX 21 con soporte offline para registro en ventanilla. Almacena encomiendas localmente en SQLite (`datos-locales/marvisur-local.db`) ante caídas de red y sincroniza automáticamente en segundo plano al restablecerse la conexión. Incluye componente `CampoEscaneo` para lectores USB y emulación gráfica de impresión térmica de 58 mm.
+4. **`portal-web`**: Portal web para clientes en React 18 + Vite + TypeScript + Tailwind CSS (mobile-first), con módulos de rastreo en vivo (`/rastreo`) y Billetera Digital segura (`/billetera`).
 
 ---
 
-## 2. Estado de Implementación y Kit de Demostración
+## 2. Estado de Implementación y Limitaciones Conocidas
 
-- 📊 **[Matriz de Estado de Implementación y Trazabilidad (RF / RNF)](docs/estado-implementacion.md)**: Reporte detallado de los requisitos RF-01..RF-11 y RNF-01..RNF-05 con evidencias en el código, limitaciones y conteo exacto de pruebas.
-- 🚀 **[Kit de Demostración y Scripts de Automatización](scripts/README.md)**: Guion paso a paso y scripts para Windows (`.ps1`) y Linux (`.sh`) para reset de base de datos, inicio de API, portal web, escritorio y simulación interactiva de cortes de red offline y reconexión.
+- 📊 **[Matriz de Estado de Implementación y Trazabilidad (RF / RNF)](docs/estado-implementacion.md)**: Tabla detallada de cumplimiento de los requisitos RF-01..RF-11 y RNF-01..RNF-05 basada en evidencia de código, pantallas y pruebas reales.
+- 🚀 **[Kit de Demostración y Scripts de Automatización](scripts/README.md)**: Guion paso a paso y scripts para Windows (`.ps1`) y Linux (`.sh`) para reset de base de datos, arranque de API, portal web, escritorio y simulación de contingencia offline y reconexión.
+
+### Resumen de Limitaciones Conocidas:
+- **Hardware simulado**: La ticketera térmica de 58 mm está emulada en software generando imágenes PNG en `salida/ticket_*.png`; el escáner opera mediante emulación de teclado USB con `CampoEscaneo`. No hay drivers directos para periféricos físicos (H1 y H2 pendientes).
+- **HTTPS ausente**: El sistema opera sobre HTTP plano sin certificados SSL/TLS configurados (O3 pendiente).
+- **Sin instalador autocontenido**: La app de escritorio requiere Maven y JDK 21 instalado; no se empaquetó instalador `.EXE`/`.MSI` mediante `jpackage` (O4 pendiente).
+- **Tarifa y comprobantes provisionales**: El cálculo tarifario por peso y la serie de comprobantes (`MV-yyyyMMdd-XXXXXXXX`) son referenciales con marcas `TODO`, pendientes de los tarifarios y numeración fiscal definitiva de Marvisur.
+- **Funcionalidades pendientes**: Dashboard administrativo con KPIs (RF-02), CRUD de empleados (RF-03), comprobantes en PDF (RF-11) y formulario web de pre-registro (W3 / RF-10) no están implementados.
+- **Fuera de alcance oficial**: Integración técnica con SUNAT (emisión electrónica XML/CDR) y aplicaciones móviles nativas.
 
 ---
 
 ## 3. Conteo de Pruebas Automatizadas (230 Pruebas en Verde)
 
-El sistema cuenta con una cobertura integral de pruebas unitarias, de arquitectura, de integración con contenedores Docker reales y pruebas de interfaz:
+El software cuenta con una suite integral de 230 pruebas automatizadas (100% en verde):
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Resultado |
 |---|---|:---:|:---:|
@@ -39,7 +47,7 @@ El sistema cuenta con una cobertura integral de pruebas unitarias, de arquitectu
 | `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **100** | **100% Verde** |
 | `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **64** | **100% Verde** |
 | `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **16** | **100% Verde** |
-| **TOTAL** | **Multiplataforma E2E** | **230** | **100% VERDE** |
+| **TOTAL** | **Multiplataforma** | **230** | **100% VERDE** |
 
 ---
 
@@ -131,13 +139,13 @@ Sistema/
 │   ├── marvisur-core/               # Núcleo de dominio hexagonal (Java 21 puro, ArchUnit)
 │   └── marvisur-api/                # API REST Spring Boot 3 (PostgreSQL, JWT, Flyway)
 ├── frontend-marvisur/
-│   ├── escritorio/                  # Cliente de escritorio JavaFX (offline-first con SQLite)
+│   ├── escritorio/                  # Cliente de escritorio JavaFX (offline en ventanilla con SQLite)
 │   └── portal-web/                  # Portal web de clientes y Billetera Digital (React + Vite)
 ├── database/
 │   ├── postgres/
 │   │   ├── migrations/              # Migraciones Flyway oficiales (V1__ a V8__)
 │   │   └── dev-seed/                # Datos semilla de prueba para desarrollo (V100__)
-│   └── sqlite/                      # Base de datos local para clientes desconectados
+│   └── sqlite/                      # Base de datos local para ventanilla desconectada
 ├── scripts/                         # Kit de scripts para demostración (.ps1 y .sh)
 │   ├── demo-reset                   # Reset de Docker PostgreSQL con espera pg_isready
 │   ├── demo-api                     # Lanzador de la API con detección de IP LAN
@@ -149,7 +157,7 @@ Sistema/
 ├── docs/                            # Documentación técnica y contratos
 │   ├── estado-implementacion.md     # Matriz honesta de requerimientos RF-01..11 y RNF-01..05
 │   ├── Diccionario_Datos_SGL_DQR.md # Fuente de verdad del esquema de base de datos
-│   ├── requisitos.md                # Requisitos funcionales y no funcionales de diseño
+│   ├── requisitos.md                # Requisitos funcionales y no funcionales oficiales
 │   ├── dev-demo.md                  # Credenciales, tokens y catálogo de datos demo
 │   ├── openapi-interno.json         # Especificación OpenAPI de endpoints internos
 │   └── openapi-publico.json         # Especificación OpenAPI de endpoints públicos
