@@ -9,7 +9,7 @@
 
 - **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
 - **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.0)**.
-  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital) se encuentra respaldado por 230 pruebas automatizadas en verde.
+  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 246 pruebas automatizadas en verde.
   - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
 
 ---
@@ -80,9 +80,9 @@
 - [x] **W1** Scaffold del portal con tema de marca y catálogo público de agencias
 - [x] **W2** Rastreo de envío (RF-08) con línea de tiempo y anonimización
 - [x] **W4** Billetera Digital con lectura segura del token en fragmento hash `#` (RF-09)
-- [ ] **W3** *[Pendiente / Backlog]* Pantalla web de cotización y pre-registro Código Express (RF-10; backend y escritorio 100% funcionales)
+- [x] **W3** Cotización en línea y pre-registro web «Código Express» con generación QR en cliente (RF-10)
 - [ ] **W5** *[Pendiente / Backlog]* Descarga de comprobante PDF en portal (RF-11; requiere B3)
-- [x] **Q1** Suite de pruebas unitarias e integración en Vitest (16 tests) y manual UAT documentada
+- [x] **Q1** Suite de pruebas unitarias e integración en Vitest (32 tests) y manual UAT documentada
 
 #### I4 — Hardware, Offline e Infraestructura
 - [x] **O1** Esquema SQLite local, adaptador `SQLiteColaAdapter` y conmutación offline $\le 2$ s (RNF-02, RNF-05)
