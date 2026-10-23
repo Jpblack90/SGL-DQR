@@ -110,7 +110,7 @@ mvn test -pl frontend-marvisur/escritorio
 2. El sistema abrirá automáticamente el módulo **Almacén** en la pestaña **Entrega (Doble QR)**.
 3. En el campo **QR1 Físico**, pegue o escanee:
    ```text
-   UUID-ENC-DEMO-001
+   MARVISUR:QR1:UUID-ENC-DEMO-001
    ```
 4. Presione `Enter`. El cursor saltará automáticamente al campo **QR2 Digital**.
 5. Ingrese el token de la encomienda pagada:
@@ -126,12 +126,12 @@ mvn test -pl frontend-marvisur/escritorio
 
 ### B. Escenario 2: Contra Entrega (Bloqueo 409 -> Cobro -> Reintento Exitoso)
 1. En la pestaña **Entrega**, ingrese:
-   - QR1 Físico: `UUID-ENC-DEMO-002`
+   - QR1 Físico: `MARVISUR:QR1:UUID-ENC-DEMO-002` (o `UUID-ENC-DEMO-002`)
    - QR2 Digital: `DEMO-TOKEN-PENDIENTE-002`
 2. Presione **Validar Entrega Física**.
 3. **Resultado esperado (Bloqueo 409):**
    - Panel ámbar: *"Entrega Bloqueada por Pago Pendiente"*.
-   - Monto a cobrar: `S/. 45.50`.
+   - Monto a cobrar: `S/. 17.50`.
    - Botón habilitado: **Registrar cobro y autorizar**.
 4. Haga clic en **Registrar cobro y autorizar**:
    - El sistema registra el cobro en la API (`POST /api/v1/encomiendas/{id}/cobro`).
@@ -142,7 +142,7 @@ mvn test -pl frontend-marvisur/escritorio
    - Los secretos se limpian inmediatamente de la memoria RAM.
 
 ### C. Escenario 3: Token QR2 Inválido o Ya Utilizado
-1. Intente validar nuevamente el QR1 `UUID-ENC-DEMO-001` con el token `DEMO-TOKEN-PAGADA-001` (ya invalidado en el Escenario 1), o ingrese un token erróneo como `TOKEN-FALSO-999`.
+1. Intente validar nuevamente el QR1 `MARVISUR:QR1:UUID-ENC-DEMO-001` con el token `DEMO-TOKEN-PAGADA-001` (ya invalidado en el Escenario 1), o ingrese un token erróneo como `TOKEN-FALSO-999`.
 2. Presione **Validar Entrega Física**.
 3. **Resultado esperado:**
    - Panel rojo de alerta: *"Token QR2 Inválido o Expirado"*.
