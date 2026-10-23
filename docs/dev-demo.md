@@ -40,14 +40,16 @@ Todos los usuarios de demostración tienen la contraseña común:
 - **Estado de Pago:** `PAGADO` (S/. 16.25)
 - **Remitente:** Ana María Flores (DNI `45678901`) | **Destinatario:** Luis Alberto Morales (DNI `45678902`)
 - **QR1 Físico (Operativo):**
-  - Payload QR1: `UUID-ENC-DEMO-001`
-  - Hash SHA-256 en BD: `067d6d90ad4168cba5e21c0b607624739c506c6e6ab56dacd5f0ff141be30453`
+  - **Texto exacto para el campo QR1:** `MARVISUR:QR1:UUID-ENC-DEMO-001` *(también admite `UUID-ENC-DEMO-001`)*
+  - Columna en BD (`parejas_doble_qr.uuid_qr1_operativo`): `MARVISUR:QR1:UUID-ENC-DEMO-001`
 - **QR2 Digital (Billetera / Llave de Retiro):**
-  - Token en claro: `DEMO-TOKEN-PAGADA-001`
-  - Hash SHA-256 en BD: `7e62e05647a89c6d03218739d3ae6d620eab27978620e12882a43fe68d3ecab2`
+  - **Texto exacto para el campo QR2 (token en claro):** `DEMO-TOKEN-PAGADA-001`
+  - Hash SHA-256 en BD (`parejas_doble_qr.hash_qr2_llave_digital`): `7e62e05647a89c6d03218739d3ae6d620eab27978620e12882a43fe68d3ecab2`
   - Estado del Token: `ACTIVO`
   - URL Billetera demo: `http://localhost:5173/billetera#DEMO-TOKEN-PAGADA-001`
-  - **Resultado esperado en validación cruzada:** `200 OK` (`EXITOSO`), token pasa a `INVALIDADO` y encomienda a `ENTREGADO`.
+- **Resultado esperado en validación cruzada:**
+  - `200 OK` (`EXITOSO`): Entrega física autorizada, token QR2 pasa a `INVALIDADO` y encomienda a `ENTREGADO`.
+  - Reintento con el mismo QR2: `409 Conflict` (`TOKEN_QR2_INVALIDO`).
 
 ---
 
@@ -59,14 +61,19 @@ Todos los usuarios de demostración tienen la contraseña común:
 - **Estado de Pago:** `PENDIENTE` (S/. 17.50)
 - **Remitente:** Comercializadora Andina S.A.C. (RUC `20601234567`) | **Destinatario:** Elena Ramos Castro (DNI `45678904`)
 - **QR1 Físico (Operativo):**
-  - Payload QR1: `UUID-ENC-DEMO-002`
-  - Hash SHA-256 en BD: `f36e70de59202b4a5301c333d62659cf6e1d6e01ab469ed770394030fd65a4e1`
+  - **Texto exacto para el campo QR1:** `MARVISUR:QR1:UUID-ENC-DEMO-002` *(también admite `UUID-ENC-DEMO-002`)*
+  - Columna en BD (`parejas_doble_qr.uuid_qr1_operativo`): `MARVISUR:QR1:UUID-ENC-DEMO-002`
 - **QR2 Digital (Billetera / Llave de Retiro):**
-  - Token en claro: `DEMO-TOKEN-PENDIENTE-002`
-  - Hash SHA-256 en BD: `5871ddaceca42227833c9d428f56f2225d6d074203f6c33f854f93a6f9b9caf4`
+  - **Texto exacto para el campo QR2 (token en claro):** `DEMO-TOKEN-PENDIENTE-002`
+  - Hash SHA-256 en BD (`parejas_doble_qr.hash_qr2_llave_digital`): `5871ddaceca42227833c9d428f56f2225d6d074203f6c33f854f93a6f9b9caf4`
   - Estado del Token: `ACTIVO`
   - URL Billetera demo: `http://localhost:5173/billetera#DEMO-TOKEN-PENDIENTE-002`
-  - **Resultado esperado en validación cruzada:** `409 Conflict` (`ENTREGA_BLOQUEADA_PAGO_PENDIENTE`). Requiere cobro previo en `POST /api/v1/encomiendas/{id}/cobro`.
+- **Resultado esperado en validación cruzada:**
+  - **1º Intento:** `409 Conflict` (`ENTREGA_BLOQUEADA_PAGO_PENDIENTE`), indicando monto pendiente S/. 17.50.
+  - **Cobro previo:** Registrar cobro en ventanilla/almacén mediante botón «Registrar cobro» o `POST /api/v1/encomiendas/UUID-ENC-DEMO-002/cobro` (pasa `estado_pago` a `PAGADO`).
+  - **2º Intento (Reintento tras cobro):** `200 OK` (`EXITOSO`), entrega física autorizada y token QR2 pasa a `INVALIDADO`.
+  - **Reintento posterior:** `409 Conflict` (`TOKEN_QR2_INVALIDO`).
+  - **Rastreo público:** `GET /api/v1/publico/rastreo?comprobante=MV-DEMO-002&documento=45678904` responde trazabilidad completa y estado `ENTREGADO`.
 
 ---
 
@@ -76,12 +83,17 @@ Todos los usuarios de demostración tienen la contraseña común:
 - **Origen:** Lima Central (`SUC-LIM-01`) | **Destino:** Huancayo (`SUC-HYO-01`)
 - **Estado Logístico:** `REGISTRADO`
 - **Estado de Pago:** `PAGADO` (S/. 10.00)
+- **Remitente:** Ana María Flores (DNI `45678901`) | **Destinatario:** Elena Ramos Castro (DNI `45678904`)
 - **QR1 Físico (Operativo):**
-  - Payload QR1: `UUID-ENC-DEMO-003`
-  - Hash SHA-256 en BD: `6bf69617778458d366620c34bab3487a478d9f58811e6baf40d64dfedeb29da9`
+  - **Texto exacto para el campo QR1:** `MARVISUR:QR1:UUID-ENC-DEMO-003` *(también admite `UUID-ENC-DEMO-003`)*
+  - Columna en BD (`parejas_doble_qr.uuid_qr1_operativo`): `MARVISUR:QR1:UUID-ENC-DEMO-003`
 - **QR2 Digital (Billetera / Llave de Retiro):**
-  - Token en claro: `DEMO-TOKEN-REGISTRADA-003`
-  - Hash SHA-256 en BD: `4a0ac62303a57ec9a47bcd87c159b4a16c283812070a4bedfb9456fffe8b0b76`
+  - **Texto exacto para el campo QR2 (token en claro):** `DEMO-TOKEN-REGISTRADA-003`
+  - Hash SHA-256 en BD (`parejas_doble_qr.hash_qr2_llave_digital`): `4a0ac62303a57ec9a47bcd87c159b4a16c283812070a4bedfb9456fffe8b0b76`
+  - Estado del Token: `ACTIVO`
+  - URL Billetera demo: `http://localhost:5173/billetera#DEMO-TOKEN-REGISTRADA-003`
+- **Resultado esperado en validación cruzada:**
+  - `409 Conflict` (`TRANSICION_INVALIDA`): La encomienda no se encuentra en `EN_ALMACEN_DESTINO` (estado actual: `REGISTRADO`).
 
 ---
 

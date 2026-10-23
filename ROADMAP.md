@@ -9,7 +9,7 @@
 
 - **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
 - **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.0)**.
-  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 246 pruebas automatizadas en verde.
+  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 247 pruebas automatizadas en verde.
   - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
 
 ---
