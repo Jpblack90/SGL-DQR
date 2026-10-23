@@ -83,7 +83,7 @@ public class EntregaController {
                             examples = {
                                     @ExampleObject(
                                             name = "Pago Pendiente (Contra Entrega)",
-                                            value = "{\"type\":\"https://marvisur.pe/errores/entrega-bloqueada-pago-pendiente\",\"title\":\"Entrega Bloqueada por Pago Pendiente\",\"status\":409,\"detail\":\"La entrega está bloqueada porque la encomienda se encuentra en modalidad Contra Entrega con pago pendiente.\",\"codigo\":\"ENTREGA_BLOQUEADA_PAGO_PENDIENTE\",\"montoTotal\":35.00,\"latenciaMs\":8}"
+                                            value = "{\"type\":\"https://marvisur.pe/errores/entrega-bloqueada-pago-pendiente\",\"title\":\"Entrega Bloqueada por Pago Pendiente\",\"status\":409,\"detail\":\"La entrega está bloqueada porque la encomienda se encuentra en modalidad Contra Entrega con pago pendiente.\",\"codigo\":\"ENTREGA_BLOQUEADA_PAGO_PENDIENTE\",\"idEncomienda\":\"7b92f4e8-469b-43d7-a5c9-123456789abc\",\"codigoComprobante\":\"MV-20261021-3A7MLMKY\",\"montoTotal\":35.00,\"latenciaMs\":8}"
                                     ),
                                     @ExampleObject(
                                             name = "Token QR2 Inválido o Usado",
@@ -114,6 +114,8 @@ public class EntregaController {
                 problem.setTitle("Entrega Bloqueada por Pago Pendiente");
                 problem.setType(URI.create("https://marvisur.pe/errores/entrega-bloqueada-pago-pendiente"));
                 problem.setProperty("codigo", "ENTREGA_BLOQUEADA_PAGO_PENDIENTE");
+                problem.setProperty("idEncomienda", resultado.getIdEncomienda());
+                problem.setProperty("codigoComprobante", resultado.getCodigoComprobante());
                 problem.setProperty("montoTotal", resultado.getMontoTotalPendiente());
                 problem.setProperty("latenciaMs", resultado.getLatenciaMs());
                 yield ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
