@@ -21,6 +21,9 @@
     <properties>
         <javafx.version>21.0.4</javafx.version>
         <jackson.version>2.17.2</jackson.version>
+        <javafx.args></javafx.args>
+        <marvisur.api.base-url>http://localhost:8080</marvisur.api.base-url>
+        <api.base-url>http://localhost:8080</api.base-url>
     </properties>
 
     <dependencies>
@@ -116,6 +119,11 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>pe.marvisur.sgldqr.escritorio.App</mainClass>
+                    <commandlineArgs>${javafx.args}</commandlineArgs>
+                    <options>
+                        <option>-Dmarvisur.api.base-url=${marvisur.api.base-url}</option>
+                        <option>-Dapi.base-url=${api.base-url}</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>
