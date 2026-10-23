@@ -70,7 +70,9 @@ coverage/
 # ---- Docker ----
 .docker/
 
-# ---- Temporales ----
+# ---- Temporales y Salidas de Impresión ----
+salida/
+*/salida/
 *.tmp
 *.bak
 *.swp
