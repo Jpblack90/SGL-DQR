@@ -183,9 +183,9 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarValidarEntrega() {
-        String qr1 = (this.qr1EnMemoria != null && !this.qr1EnMemoria.isBlank())
+        String qr1 = (this.idEncomiendaBloqueada != null && this.qr1EnMemoria != null && !this.qr1EnMemoria.isBlank())
                 ? this.qr1EnMemoria : txtQr1Entrega.getText().trim();
-        String qr2 = (this.qr2EnMemoria != null && !this.qr2EnMemoria.isBlank())
+        String qr2 = (this.idEncomiendaBloqueada != null && this.qr2EnMemoria != null && !this.qr2EnMemoria.isBlank())
                 ? this.qr2EnMemoria : txtQr2Entrega.getText().trim();
 
         if (qr1.isBlank() || qr2.isBlank()) {
@@ -229,6 +229,12 @@ public class ControladorAlmacen {
         panelResultadoEntrega.setManaged(true);
         lblLatenciaEntrega.setText(res.latenciaMs() + " ms");
         lblMensajeResultadoEntrega.setText(res.mensaje());
+
+        if (res.tipo() != ValidacionEntregaResultado.TipoValidacion.PAGO_PENDIENTE) {
+            this.qr1EnMemoria = null;
+            this.qr2EnMemoria = null;
+            this.idEncomiendaBloqueada = null;
+        }
 
         switch (res.tipo()) {
             case EXITOSO -> {

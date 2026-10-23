@@ -98,7 +98,9 @@ public class EntregaApiServicio {
                     if (!qr1.startsWith("MARVISUR:QR1:")) {
                         return parRepository.findByUuidQr1Operativo("MARVISUR:QR1:" + qr1);
                     }
-                    return Optional.empty();
+                    String sinPrefijo = qr1.substring("MARVISUR:QR1:".length());
+                    return parRepository.findByUuidQr1Operativo(sinPrefijo)
+                            .or(() -> parRepository.findByIdEncomienda(sinPrefijo));
                 })
                 .or(() -> parRepository.findByIdEncomienda(qr1))
                 .orElse(null);

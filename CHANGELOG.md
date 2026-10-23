@@ -7,6 +7,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Fixed
+- [P11b][SEED-QR] Corrección y normalización de parejas Doble QR de demostración y resolución bidireccional en entrega:
+  - Normalización en `database/postgres/dev-seed/V100__datos_demo.sql` de la columna `uuid_qr1_operativo` al estándar oficial canónico `MARVISUR:QR1:<id_encomienda>` para encomiendas demo `MV-DEMO-001`, `MV-DEMO-002` y `MV-DEMO-003`.
+  - Soporte bidireccional en `EntregaApiServicio` al validar entrega: despojo del prefijo `MARVISUR:QR1:` al buscar por `uuid_qr1_operativo` e `id_encomienda`, admitiendo tanto el código escaneado con prefijo oficial como identificadores directos legados.
+  - Corrección en cliente de escritorio (`ControladorAlmacen.java`) para limpiar variables en memoria (`qr1EnMemoria`, `qr2EnMemoria`, `idEncomiendaBloqueada`) tras respuestas distintas de `PAGO_PENDIENTE` (404, 409 o 200), evitando la persistencia residual de códigos erróneos en intentos sucesivos.
+  - Corrección de `docs/dev-demo.md` y `frontend-marvisur/escritorio/README.md` eliminando referencias inexistentes a «Hash SHA-256 de QR1» y documentando el texto exacto a ingresar en los campos QR1 y QR2 con sus montos reales de cobro (S/. 17.50).
+  - Suite de 9 pruebas de integración en `DevSeedFlujoDemoTest` (PostgreSQL 16 en Testcontainers) cubriendo validación con y sin prefijo, bloqueo por pago pendiente, cobro en destino, reintento exitoso, invalidación irreversible de token y rastreo público.
+
 ### Added
 - [I3][W3] Cotización en línea y pre-registro web «Código Express» (RF-10) en `frontend-marvisur/portal-web`:
   - Formulario público de cotización en línea (`/cotiza`) con selección de origen/destino (`GET /api/v1/publico/sucursales`), cálculo de peso volumétrico (factor 200) y cotización dinámica en tiempo real (`POST /api/v1/publico/cotizacion`), con transferencia fluida en memoria al pre-registro.
