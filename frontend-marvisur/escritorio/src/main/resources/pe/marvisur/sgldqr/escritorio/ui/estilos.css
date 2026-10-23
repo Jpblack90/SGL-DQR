@@ -1,0 +1,203 @@
+/* ==========================================================================
+   PALETA DE MARCA EXPRESO MARVISUR
+   Rojo Marvisur: #E30613
+   Slate Oscuro:  #0F172A
+   Slate Medio:   #1E293B
+   Gris Claro:    #F8FAFC
+   Verde Éxito:   #10B981
+   Ámbar Pago:    #F59E0B
+   Borde Suave:   #E2E8F0
+   ========================================================================== */
+
+.root {
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #F8FAFC;
+    -fx-text-fill: #0F172A;
+}
+
+/* Encabezados y barras superiores */
+.barra-superior {
+    -fx-background-color: #0F172A;
+    -fx-padding: 12px 20px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.titulo-app {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.badge-sucursal {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: #E2E8F0;
+    -fx-padding: 4px 10px;
+    -fx-background-radius: 12px;
+    -fx-font-size: 12px;
+}
+
+.badge-usuario {
+    -fx-background-color: #E30613;
+    -fx-text-fill: #FFFFFF;
+    -fx-padding: 4px 10px;
+    -fx-background-radius: 12px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+/* Menú lateral */
+.menu-lateral {
+    -fx-background-color: #1E293B;
+    -fx-pref-width: 210px;
+    -fx-padding: 16px 10px;
+    -fx-spacing: 8px;
+}
+
+.boton-menu {
+    -fx-background-color: transparent;
+    -fx-text-fill: #E2E8F0;
+    -fx-font-size: 13px;
+    -fx-alignment: BASELINE_LEFT;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-max-width: Infinity;
+}
+
+.boton-menu:hover {
+    -fx-background-color: #334155;
+    -fx-text-fill: #FFFFFF;
+}
+
+.boton-menu-activo {
+    -fx-background-color: #E30613;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+}
+
+.boton-menu-deshabilitado {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748B;
+    -fx-opacity: 0.7;
+    -fx-cursor: default;
+}
+
+/* Tarjetas y contenedores */
+.tarjeta {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 8px;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.04), 8, 0, 0, 2);
+}
+
+.tarjeta-titulo {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0F172A;
+    -fx-padding: 0 0 8px 0;
+}
+
+/* Botones principales */
+.btn-primario {
+    -fx-background-color: #E30613;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-padding: 9px 18px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.btn-primario:hover {
+    -fx-background-color: #B91C1C;
+}
+
+.btn-secundario {
+    -fx-background-color: #F1F5F9;
+    -fx-text-fill: #0F172A;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.btn-secundario:hover {
+    -fx-background-color: #E2E8F0;
+}
+
+.btn-exito {
+    -fx-background-color: #10B981;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-padding: 9px 18px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.btn-exito:hover {
+    -fx-background-color: #059669;
+}
+
+/* Campos de entrada */
+.text-field, .password-field, .combo-box, .text-area {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 10px;
+    -fx-text-fill: #0F172A;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused, .text-area:focused {
+    -fx-border-color: #E30613;
+    -fx-effect: dropshadow(three-pass-box, rgba(227, 6, 19, 0.2), 4, 0, 0, 0);
+}
+
+/* Etiquetas y estados */
+.label-campo {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #475569;
+}
+
+.estado-online {
+    -fx-fill: #10B981;
+}
+
+.estado-offline {
+    -fx-fill: #E30613;
+}
+
+.texto-error {
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.texto-exito {
+    -fx-text-fill: #059669;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.badge-pagado {
+    -fx-background-color: #DCFCE7;
+    -fx-text-fill: #15803D;
+    -fx-padding: 4px 10px;
+    -fx-background-radius: 12px;
+    -fx-font-weight: bold;
+}
+
+.badge-pendiente {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #B45309;
+    -fx-padding: 4px 10px;
+    -fx-background-radius: 12px;
+    -fx-font-weight: bold;
+}
