@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 /**
  * Carga y expone la configuración del cliente de escritorio.
- * Lee desde el classpath `escritorio.properties` con prioridad de reemplazo por propiedades de sistema.
+ * Lee desde el classpath `escritorio.properties` con prioridad de reemplazo por propiedades de sistema o argumentos CLI.
  */
 public final class ConfiguracionApi {
 
@@ -26,7 +26,8 @@ public final class ConfiguracionApi {
     }
 
     private ConfiguracionApi(Properties props) {
-        String urlProp = System.getProperty("marvisur.api.base-url", props.getProperty("api.base-url", DEFAULT_BASE_URL));
+        String urlProp = System.getProperty("marvisur.api.base-url",
+                System.getProperty("api.base-url", props.getProperty("api.base-url", DEFAULT_BASE_URL)));
         this.baseUrl = normalizarUrl(urlProp);
     }
 
@@ -45,7 +46,7 @@ public final class ConfiguracionApi {
     }
 
     private static String normalizarUrl(String url) {
-        if (url == null || url.isBlank()) {
+        if (url == null || url.isBlank() || url.startsWith("${")) {
             return DEFAULT_BASE_URL;
         }
         String limpia = url.trim();

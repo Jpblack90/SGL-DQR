@@ -81,3 +81,7 @@ salida/
 *~
 
 *.bak*
+
+# ---- PID y procesos de scripts ----
+*.pid
+scripts/*.pid

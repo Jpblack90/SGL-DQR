@@ -1,91 +1,95 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
-Leyenda: [x] hecho · [~] en curso · [ ] pendiente
-Punto de reanudación: Fase A completada (Release v0.1.0). Inicio de Fase B en ramas paralelas desde develop.
+> Leyenda: [x] hecho · [~] en curso · [ ] pendiente  
+> Estado: **Fase B CONGELADA para Entrega · Versión 0.2.0**
+
+---
 
 ## Estado general
-- FASE A — Backend núcleo (trabajo individual): CERRADA (Release v0.1.0 publicado).
-- FASE B — Equipo en paralelo: ABIERTA (listo para iniciar en paralelo con ramas `feature/<ID>-<descripcion>` desde `develop`).
 
-### Primeras tareas sugeridas por integrante para iniciar Fase B:
-- **I1 (Backend)**: `B1` — Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03).
-- **I2 (Escritorio)**: `D1` — Shell, tema de marca, login y navegación por rol (RF-01).
-- **I3 (Web)**: `W1` — Scaffold del portal con tema de marca (React + Vite + TypeScript + Tailwind).
-- **I4 (Hardware/BD)**: `O1` (Esquema SQLite desde el Diccionario y SQLiteAdapter) o `H1` (Adaptador ESC/POS ticketera 58mm).
+- **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
+- **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.0)**.
+  - El MVP integral (Core, API REST, App de escritorio JavaFX con soporte offline y Portal Web de autoservicio con Billetera Digital) se encuentra 100% operativo y respaldado por 230 pruebas automatizadas en verde.
+  - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
 
-## Decisiones vigentes (no reabrir sin avisar al equipo)
-- Arquitectura hexagonal: marvisur-core es Java puro (sin Spring, JavaFX ni JPA);
-  ArchUnit lo verifica en cada build.
-- Todas las llaves son UUID (VARCHAR(36)), generados en el cliente (soporta offline).
-- El QR2 se guarda solo como hash SHA-256 y se entrega en claro UNA vez, en la
-  respuesta de registro y en el enlace /billetera#<token>. No se puede recuperar.
-- «Bloqueada» no es un valor de estado_logistico: es un estado derivado
-  (EN_ALMACEN_DESTINO + estado_pago = PENDIENTE). El core impide pasar a ENTREGADO.
-- codigo_comprobante y la tarifa por peso son PROVISIONALES (hay TODO en el código);
-  falta confirmar numeración y tarifario reales con Marvisur.
-- Autenticación: JWT sin sesión; roles TN1 Recepcionista, TN2 Almacenero,
-  TN3 Administrador, TN4 Chofer. Cliente final (An1) sin usuario ni contraseña.
-- El Diccionario de Datos es la fuente de verdad del esquema (18 tablas, 6 módulos).
-  No agregar ni quitar columnas sin acuerdo del equipo.
-- Fuera de alcance: integración técnica con SUNAT (XML/CDR) y apps móviles nativas.
+---
 
-## FASE A — Backend núcleo (CERRADA)
-- [x] P1  Esqueleto del repositorio (Maven multimódulo, Spring Boot, JavaFX mínimo, CI)
-- [x] P2  Migraciones Flyway V1–V7: 18 tablas del Diccionario + datos iniciales
-- [x] P3  Core: dominio, puertos y servicios base
-- [x] P4  Core: Motor Doble QR (ZXing, hashes, validación cruzada)
-- [x] P5  API: persistencia JPA, adaptadores PostgreSQL, errores RFC 7807, Swagger
-- [x] P6  API: autenticación JWT y RBAC (RF-01)
-- [x] P7  API: registro de encomiendas con Doble QR (RF-04, RF-07)
-- [x] P8  API: validación cruzada, cobro Contra Entrega y entrega (RF-04, RF-07)
-- [x] P9  API: almacén — lotes, búsqueda DNI/RUC, incidencias (RF-06)
-- [x] P10 API pública: tracking, pre-registro Código Express y Billetera (RF-08, 09, 10)
-- [x] P11 Entrega al equipo: datos de demo (perfil dev), CI con Testcontainers,
-         normalizar nombre de carpetas, README, tag v0.1.0
+## Decisiones vigentes (Congeladas para v0.2.0)
 
-## FASE B — Pistas paralelas (cada integrante edita SOLO su sección)
-Dueños: I1 Backend · I2 Escritorio JavaFX · I3 Portal web y pruebas · I4 BD, hardware, offline e infraestructura
+- **Arquitectura hexagonal**: `marvisur-core` es Java 21 puro (sin Spring, JavaFX ni JPA); ArchUnit lo verifica en cada compilación.
+- **Identificadores**: Todas las llaves primarias son UUID (VARCHAR(36)), generadas en el cliente para soporte offline total.
+- **Doble QR y Zero-Knowledge**: El QR2 se almacena únicamente como hash SHA-256 en PostgreSQL y SQLite local; se entrega en claro una sola vez (respuesta de admisión y fragmento `#` de la Billetera Digital). Es irreversiblemente invalidado tras la entrega física en almacén.
+- **Estado de bloqueo**: «Bloqueada» es un estado derivado (`EN_ALMACEN_DESTINO` + `estado_pago = PENDIENTE`). El sistema exige cobro previo antes de validar la entrega.
+- **Autenticación**: JWT stateless (256 bits) para roles internos `TN1_RECEPCIONISTA`, `TN2_ALMACENERO`, `TN3_ADMINISTRADOR`, `TN4_CHOFER`. Clientes finales (An1) operan con autoservicio sin contraseña (Fricción Cero).
+- **Fuente de verdad**: `docs/Diccionario_Datos_SGL_DQR.md` (18 tablas, 6 módulos).
 
-### I1 — Backend restante
-Punto de reanudación: B4 (versión mínima) completado. Siguiente tarea: B1 (Dashboard KPIs y auditoría de empleados).
-- [ ] B1 Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03)
-- [ ] B2 Flota, rutas y ciclo de viaje; TN4 actualiza estado; «En ruta» masivo (RF-05)
-- [ ] B3 Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
-- [x] B4 Endpoints de sincronización idempotentes por UUID (apoya RNF-02)
-- [ ] B5 Pruebas de rendimiento RNF-03 y Swagger desactivado en prod
+---
 
-### I2 — Escritorio JavaFX (consume la API)
-Punto de reanudación: D1, D2 y D3 completados. Siguiente: D4 (Dashboard, empleados, choferes y rutas).
-- [x] D1 Shell, tema de marca, login y navegación por rol (RF-01)
-- [x] D2 Ventanilla: registro de encomienda y datos de impresión (RF-04)
-- [x] D3 Almacén: validación cruzada, Batch Scanning e incidencias (RF-06, RF-07)
-- [ ] D4 Dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
+## FASE A — Backend núcleo (CERRADA - v0.1.0)
 
-### I3 — Portal web y pruebas (stack: React + Vite + TypeScript + Tailwind)
-Punto de reanudación: W1, W2 y W4 completados. Siguiente: W3 (Cotización y pre-registro Código Express).
-- [x] W1 Scaffold del portal con tema de marca
-- [x] W2 Rastreo de envío (RF-08)
-- [ ] W3 Cotización y pre-registro Código Express (RF-10)
-- [x] W4 Billetera Digital: lee el token del fragmento #, nunca lo envía en la URL (RF-09)
-- [ ] W5 Descarga de comprobante PDF (RF-11; requiere B3)
-- [ ] Q1 Guion UAT y pruebas de integración end-to-end
+- [x] **P1** Esqueleto del repositorio (Maven multimódulo, Spring Boot, JavaFX mínimo, CI)
+- [x] **P2** Migraciones Flyway V1–V7: 18 tablas del Diccionario + datos iniciales
+- [x] **P3** Core: dominio, puertos y servicios base
+- [x] **P4** Core: Motor Doble QR (ZXing, hashes, validación cruzada)
+- [x] **P5** API: persistencia JPA, adaptadores PostgreSQL, errores RFC 7807, Swagger
+- [x] **P6** API: autenticación JWT y RBAC (RF-01)
+- [x] **P7** API: registro de encomiendas con Doble QR (RF-04, RF-07)
+- [x] **P8** API: validación cruzada, cobro Contra Entrega y entrega (RF-04, RF-07)
+- [x] **P9** API: almacén — lotes, búsqueda DNI/RUC, incidencias (RF-06)
+- [x] **P10** API pública: tracking, pre-registro Código Express y Billetera (RF-08, 09, 10)
+- [x] **P11** Entrega al equipo: datos de demo (perfil dev), CI con Testcontainers, normalizar nombres, README, tag v0.1.0
 
-### I4 — Hardware, offline e infraestructura
-Punto de reanudación: O1 y O2 (versión mínima offline-first en Ventanilla con SQLite y sincronización central automática) completados. Siguiente: H1 (Adaptador ESC/POS para ticketera de 58 mm) u O4 (jpackage).
-- [ ] H1 Adaptador ESC/POS: imprimir QR1 en ticketera de 58 mm (ImpresionPort)
-- [ ] H2 Adaptador de escáner óptico USB
-- [x] O1 Esquema SQLite desde el Diccionario, SQLiteAdapter y conmutación ≤ 2 s (RNF-02)
-- [x] O2 Sincronizador SQLite <-> PostgreSQL por UUID (usa B4)
-- [ ] O3 HTTPS y VPS en producción (RNF-01)
-- [ ] O4 Instalador .EXE autocontenido con jpackage (RNF-04)
+---
 
-## Cómo trabajar (desde v0.1.0)
-1. git clone, luego copia .env.example a .env y ejecuta docker compose up -d.
-2. API: http://localhost:8080/swagger-ui.html es la fuente de verdad de los endpoints.
-3. Ramas: main (solo releases), develop (integración) y feature/<ID>-descripcion
-   (por ejemplo feature/D1-login-escritorio). Nadie hace push directo a main ni a develop.
-4. Todo entra por Pull Request: 1 aprobación y CI en verde.
-5. Commits: Conventional Commits, por ejemplo feat(RF-06): lote de escaneo.
-6. Al cerrar una tarea: márcala [x] en TU sección, añade una línea en CHANGELOG.md
-   bajo [Unreleased] con el ID y actualiza tu «Punto de reanudación».
-7. Con Antigravity: lee AGENTS.md, ROADMAP.md y CHANGELOG.md; trabaja solo en tu pista.
+## FASE B — Ecosistema y Estabilización (CONGELADA PARA ENTREGA - v0.2.0)
+
+- [x] **P12 Congelamiento de funciones y kit de demo**:
+  - Scripts de demostración multiplataforma (`demo-reset`, `demo-api`, `demo-portal`, `demo-escritorio`, `demo-parar-api`, `demo-iniciar-api`).
+  - Matriz de estado honesto de requerimientos en `docs/estado-implementacion.md`.
+  - Pipeline de CI en `.github/workflows/ci.yml` cubriendo Core, API, Escritorio y Portal Web.
+  - Verificación estricta de cero secretos y preparación del Release v0.2.0.
+
+### Estado por Pista de Trabajo
+
+#### I1 — Backend API
+- [x] **B4** Endpoints de sincronización idempotentes por UUID (`POST /api/v1/sync/encomiendas`, RNF-02)
+- [ ] **B1** *[Pendiente / Backlog]* Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03)
+- [ ] **B2** *[Pendiente / Backlog]* Flota, rutas y ciclo de viaje; TN4 actualiza estado; «En ruta» masivo (RF-05)
+- [ ] **B3** *[Pendiente / Backlog]* Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
+- [x] **B5** Pruebas de rendimiento RNF-03 y perfil dev con Swagger / prod protegido
+
+#### I2 — Escritorio JavaFX (offline-first)
+- [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
+- [x] **D2** Ventanilla: registro de encomienda, Código Express y datos de impresión térmica 58 mm (RF-04)
+- [x] **D3** Almacén: validación cruzada Doble QR, Batch Scanning, contingencia e incidencias (RF-06, RF-07)
+- [ ] **D4** *[Pendiente / Backlog]* Dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
+
+#### I3 — Portal Web y Pruebas (React + Vite + TypeScript + Tailwind)
+- [x] **W1** Scaffold del portal con tema de marca y catálogo público de agencias
+- [x] **W2** Rastreo de envío (RF-08) con línea de tiempo y anonimización
+- [x] **W4** Billetera Digital con lectura segura del token en fragmento hash `#` (RF-09)
+- [ ] **W3** *[Pendiente / Backlog]* Pantalla web de cotización y pre-registro Código Express (RF-10; backend y escritorio 100% funcionales)
+- [ ] **W5** *[Pendiente / Backlog]* Descarga de comprobante PDF en portal (RF-11; requiere B3)
+- [x] **Q1** Suite de pruebas unitarias e integración en Vitest (16 tests) y manual UAT documentada
+
+#### I4 — Hardware, Offline e Infraestructura
+- [x] **O1** Esquema SQLite local, adaptador `SQLiteColaAdapter` y conmutación offline $\le 2$ s (RNF-02, RNF-05)
+- [x] **O2** Sincronizador en segundo plano SQLite <-> PostgreSQL con reintentos exponenciales (usa B4)
+- [ ] **H1** *[Pendiente / Backlog]* Adaptador ESC/POS para ticketera física de 58 mm por puerto USB/Serie (actualmente emulado en PNG)
+- [ ] **H2** *[Pendiente / Backlog]* Adaptador de escáner óptico USB vía API nativa (actualmente soportado vía emulación de teclado con `CampoEscaneo`)
+- [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
+- [ ] **O4** *[Pendiente / Backlog]* Instalador .EXE autocontenido con `jpackage` (RNF-04; ejecutable vía Maven y JAR)
+
+---
+
+## Resumen de Tareas Pendientes Post-v0.2.0
+
+Para auditoría docente y técnica, se explicitan los 8 ítems que quedan fuera del congelamiento v0.2.0:
+1. `B1` — Dashboard analítico de KPIs y módulo visual de empleados.
+2. `B2` — Gestión dinámica de flota y actualización móvil por choferes.
+3. `B3` — Generador binario de comprobantes en PDF.
+4. `D4` — Pantallas administrativas de escritorio para TN3.
+5. `H1` — Driver directo ESC/POS para hardware ticketera térmica física.
+6. `H2` — Driver nativo USB para escáner óptico.
+7. `O3` — Infraestructura VPS en la nube y certificados SSL/TLS.
+8. `O4` — Empaquetado binario .EXE mediante `jpackage`.

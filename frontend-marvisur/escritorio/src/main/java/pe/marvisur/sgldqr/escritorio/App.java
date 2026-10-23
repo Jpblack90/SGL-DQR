@@ -27,6 +27,15 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
+        if (args != null) {
+            for (String arg : args) {
+                if (arg.startsWith("--api.base-url=")) {
+                    System.setProperty("marvisur.api.base-url", arg.substring("--api.base-url=".length()));
+                } else if (arg.startsWith("--api-base-url=")) {
+                    System.setProperty("marvisur.api.base-url", arg.substring("--api-base-url=".length()));
+                }
+            }
+        }
         launch(args);
     }
 }
