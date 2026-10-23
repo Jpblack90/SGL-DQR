@@ -55,9 +55,9 @@ Punto de reanudación: (vacío)
 - [ ] B5 Pruebas de rendimiento RNF-03 y Swagger desactivado en prod
 
 ### I2 — Escritorio JavaFX (consume la API)
-Punto de reanudación: (vacío)
-- [ ] D1 Shell, tema de marca, login y navegación por rol (RF-01)
-- [ ] D2 Ventanilla: registro de encomienda y datos de impresión (RF-04)
+Punto de reanudación: D1 y D2 completados. Siguiente: D3 (Almacén: validación cruzada, Batch Scanning e incidencias).
+- [x] D1 Shell, tema de marca, login y navegación por rol (RF-01)
+- [x] D2 Ventanilla: registro de encomienda y datos de impresión (RF-04)
 - [ ] D3 Almacén: validación cruzada, Batch Scanning e incidencias (RF-06, RF-07)
 - [ ] D4 Dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
 

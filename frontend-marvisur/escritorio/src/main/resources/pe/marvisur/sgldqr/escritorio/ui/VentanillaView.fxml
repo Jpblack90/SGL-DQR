@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorVentanilla"
+            fitToWidth="true" style="-fx-background-color: transparent;">
+
+    <VBox spacing="16" style="-fx-padding: 20;">
+
+        <!-- TITULO Y ACCESO EXPRESS -->
+        <HBox alignment="CENTER_LEFT" spacing="16">
+            <VBox spacing="2">
+                <Label text="Ventanilla de Admisión · Registro de Encomienda"
+                       style="-fx-font-size: 18px; -fx-font-weight: 800; -fx-text-fill: #0F172A;"/>
+                <Label text="Emisión física de QR1 e inserción digital de llave de retiro QR2"
+                       style="-fx-font-size: 12px; -fx-text-fill: #64748B;"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Precarga Código Express -->
+            <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="tarjeta"
+                  style="-fx-padding: 8 12; -fx-background-color: #FEF2F2; -fx-border-color: #FECACA;">
+                <Label text="Código Express:" styleClass="label-campo" style="-fx-text-fill: #991B1B;"/>
+                <TextField fx:id="txtCodigoExpress" promptText="ej. CEX-481920" prefWidth="120"/>
+                <Button fx:id="btnCargarExpress" text="Cargar" onAction="#manejarCargarCodigoExpress"
+                        styleClass="btn-primario" style="-fx-padding: 5 10; -fx-font-size: 11px;"/>
+            </HBox>
+        </HBox>
+
+        <!-- FILA 1: REMITENTE Y DESTINATARIO -->
+        <HBox spacing="16">
+            <!-- TARJETA REMITENTE -->
+            <VBox spacing="10" styleClass="tarjeta" HBox.hgrow="ALWAYS">
+                <Label text="👤 Datos del Remitente" styleClass="tarjeta-titulo"/>
+                <GridPane hgap="10" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="35"/>
+                        <ColumnConstraints percentWidth="65"/>
+                    </columnConstraints>
+
+                    <Label text="Tipo Doc.:" styleClass="label-campo" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbRemitenteTipoDoc" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="N° Documento:" styleClass="label-campo" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtRemitenteNumDoc" promptText="8 dígitos (DNI) u 11 (RUC)" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Nombres / Razón:" styleClass="label-campo" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtRemitenteNombres" promptText="Nombre completo o razón social" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Teléfono:" styleClass="label-campo" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtRemitenteTelefono" promptText="9XXXXXXXX" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Correo:" styleClass="label-campo" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtRemitenteCorreo" promptText="cliente@ejemplo.com" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+
+            <!-- TARJETA DESTINATARIO -->
+            <VBox spacing="10" styleClass="tarjeta" HBox.hgrow="ALWAYS">
+                <Label text="👥 Datos del Destinatario" styleClass="tarjeta-titulo"/>
+                <GridPane hgap="10" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="35"/>
+                        <ColumnConstraints percentWidth="65"/>
+                    </columnConstraints>
+
+                    <Label text="Tipo Doc.:" styleClass="label-campo" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbDestinatarioTipoDoc" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="N° Documento:" styleClass="label-campo" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtDestinatarioNumDoc" promptText="8 dígitos (DNI) u 11 (RUC)" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Nombres / Razón:" styleClass="label-campo" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtDestinatarioNombres" promptText="Nombre completo o razón social" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Teléfono:" styleClass="label-campo" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtDestinatarioTelefono" promptText="9XXXXXXXX" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Correo:" styleClass="label-campo" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtDestinatarioCorreo" promptText="destinatario@ejemplo.com" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+        </HBox>
+
+        <!-- FILA 2: DATOS DEL PAQUETE, MODALIDAD Y COTIZACIÓN -->
+        <HBox spacing="16">
+            <!-- TARJETA PAQUETE -->
+            <VBox spacing="10" styleClass="tarjeta" HBox.hgrow="ALWAYS">
+                <Label text="📦 Paquete y Destino" styleClass="tarjeta-titulo"/>
+                <GridPane hgap="10" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="30"/>
+                        <ColumnConstraints percentWidth="70"/>
+                    </columnConstraints>
+
+                    <Label text="Agencia Destino:" styleClass="label-campo" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="cmbSucursalDestino" maxWidth="Infinity" promptText="Seleccione agencia..." GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Peso (Kg):" styleClass="label-campo" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtPesoKg" promptText="ej. 5.50" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Volumen (m³):" styleClass="label-campo" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtVolumenM3" promptText="ej. 0.02 (opcional)" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Contenido:" styleClass="label-campo" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="txtDescripcion" promptText="Descripción del contenido" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+
+            <!-- TARJETA FORMA DE PAGO Y TARIFA -->
+            <VBox spacing="12" styleClass="tarjeta" prefWidth="380">
+                <Label text="💳 Modalidad de Pago y Tarifa" styleClass="tarjeta-titulo"/>
+
+                <VBox spacing="8">
+                    <Label text="Modalidad de Pago:" styleClass="label-campo"/>
+                    <HBox spacing="16">
+                        <RadioButton fx:id="rdoContado" text="Contado (Pagado)" selected="true"/>
+                        <RadioButton fx:id="rdoContraEntrega" text="Contra Entrega (Pendiente)"/>
+                    </HBox>
+                </VBox>
+
+                <Separator/>
+
+                <!-- Sección Cotización -->
+                <VBox spacing="6">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Button fx:id="btnCotizar" text="Cotizar Tarifa" onAction="#manejarCotizar"
+                                styleClass="btn-secundario"/>
+                        <Label fx:id="lblTarifaEstimada" text="Tarifa: S/. --"
+                               style="-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #E30613;"/>
+                    </HBox>
+                    <Label text="Tarifa base S/. 5.00 + S/. 2.50 por Kg adicional"
+                           style="-fx-font-size: 10px; -fx-text-fill: #64748B;"/>
+                </VBox>
+
+                <Separator/>
+
+                <!-- Acciones de Registro -->
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnLimpiar" text="Limpiar" onAction="#limpiarFormulario"
+                            styleClass="btn-secundario"/>
+                    <Button fx:id="btnRegistrar" text="✅ Registrar Encomienda" onAction="#manejarRegistrarEncomienda"
+                            styleClass="btn-primario"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <!-- SECCIÓN DE RESULTADO / DIÁLOGO DE CONFIRMACIÓN (Visible tras registro) -->
+        <VBox fx:id="panelResultado" spacing="14" styleClass="tarjeta" visible="false" managed="false"
+              style="-fx-background-color: #F8FAFC; -fx-border-color: #10B981; -fx-border-width: 2px;">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="🎉 ¡Encomienda Registrada Exitosamente con Doble QR!"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #15803D;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblBadgeEstadoPago" text="PAGADO" styleClass="badge-pagado"/>
+            </HBox>
+
+            <Separator/>
+
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <!-- Resumen de Datos -->
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label fx:id="lblResultadoComprobante" text="Comprobante: MV-20261022-XXXX"
+                           style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                    <Label fx:id="lblResultadoMonto" text="Monto Total: S/. 16.25"
+                           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #E30613;"/>
+                    <Label fx:id="lblResultadoRuta" text="Ruta: SUC-LIM-01 -> SUC-AQP-01"
+                           style="-fx-font-size: 12px; -fx-text-fill: #475569;"/>
+                    <Label fx:id="lblResultadoEstadoLogistico" text="Estado Logístico: REGISTRADO"
+                           style="-fx-font-size: 12px; -fx-text-fill: #475569;"/>
+
+                    <Separator style="-fx-padding: 4 0;"/>
+
+                    <Label text="Enlace de Retiro Billetera Digital (QR2):" styleClass="label-campo"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <TextField fx:id="txtEnlaceBilletera" editable="false" HBox.hgrow="ALWAYS"
+                                   style="-fx-font-size: 11px;"/>
+                        <Button fx:id="btnCopiarEnlace" text="Copiar Enlace" onAction="#copiarEnlaceBilletera"
+                                styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Vista Previa QR1 Físico -->
+                <VBox alignment="CENTER" spacing="4" styleClass="tarjeta" prefWidth="170">
+                    <Label text="QR1 Físico (Bulto)" style="-fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <ImageView fx:id="imgQr1" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                    <Label text="Impreso en etiqueta" style="-fx-font-size: 9px; -fx-text-fill: #64748B;"/>
+                </VBox>
+
+                <!-- Vista Previa QR2 Digital (Generado con ZXingAdapter) -->
+                <VBox alignment="CENTER" spacing="4" styleClass="tarjeta" prefWidth="170">
+                    <Label text="QR2 Digital (Billetera)" style="-fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <ImageView fx:id="imgQr2Enlace" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                    <Label text="Llave de retiro cliente" style="-fx-font-size: 9px; -fx-text-fill: #64748B;"/>
+                </VBox>
+            </HBox>
+
+            <Separator/>
+
+            <!-- Botones de Acción Final -->
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="btnImprimirTicket" text="🖨️ Imprimir Ticket Térmico" onAction="#manejarImprimirTicket"
+                        styleClass="btn-exito"/>
+                <Button fx:id="btnCerrarResultado" text="Cerrar y Nuevo Registro" onAction="#cerrarModalResultado"
+                        styleClass="btn-secundario"/>
+            </HBox>
+        </VBox>
+
+    </VBox>
+</ScrollPane>
