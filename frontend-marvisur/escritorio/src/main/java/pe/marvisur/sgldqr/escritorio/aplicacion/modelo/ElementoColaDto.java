@@ -55,6 +55,14 @@ public class ElementoColaDto {
         return actualizadoEn;
     }
 
+    public String id() { return id; }
+    public String payload() { return payload; }
+    public EstadoElementoCola estado() { return estado; }
+    public int intentos() { return intentos; }
+    public String ultimoError() { return ultimoError; }
+    public LocalDateTime creadoEn() { return creadoEn; }
+    public LocalDateTime actualizadoEn() { return actualizadoEn; }
+
     @Override
     public String toString() {
         return "ElementoColaDto{" +

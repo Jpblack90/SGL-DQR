@@ -20,6 +20,7 @@ public final class ModeloMenuRol {
         VENTANILLA("Ventanilla", "Registro y admisión con Doble QR", true),
         ALMACEN("Almacén", "Validación cruzada Doble QR, entrega física y lotes", true),
         CONTINGENCIA("Contingencia", "Búsqueda DNI/RUC, cobro e incidencias de etiquetas", true),
+        COLA_LOCAL("Cola Local", "Gestión de registros sin conexión y sincronización", true),
         DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", false),
         EMPLEADOS("Empleados", "Gestión de personal y sucursales", false),
         RUTAS("Rutas", "Programación de viajes y asignación de flotas", false);
@@ -74,7 +75,7 @@ public final class ModeloMenuRol {
     public static boolean estaAutorizado(String rol, ModuloMenu modulo) {
         String rolNorm = normalizarRol(rol);
         return switch (modulo) {
-            case VENTANILLA -> Set.of("TN1", "TN3").contains(rolNorm);
+            case VENTANILLA, COLA_LOCAL -> Set.of("TN1", "TN3").contains(rolNorm);
             case ALMACEN -> Set.of("TN2", "TN3").contains(rolNorm);
             case CONTINGENCIA -> Set.of("TN1", "TN2", "TN3").contains(rolNorm);
             case DASHBOARD, EMPLEADOS -> Set.of("TN3").contains(rolNorm);

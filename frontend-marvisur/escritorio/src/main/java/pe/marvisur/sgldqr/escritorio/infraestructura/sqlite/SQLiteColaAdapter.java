@@ -342,4 +342,8 @@ public class SQLiteColaAdapter implements ColaLocalPort {
 
         return new ElementoColaDto(id, payload, estado, intentos, ultimoError, creadoEn, actualizadoEn);
     }
+
+    public void cerrar() {
+        // Conexiones manejadas por sentencia con try-with-resources; no-op para compatibilidad de ciclo de vida
+    }
 }
