@@ -44,6 +44,54 @@ export interface RespuestaBilleteraDto {
   qr2Base64: string;
 }
 
+// =============================================================================
+// Tipos para Cotización y Pre-Registro Express (RF-10)
+// =============================================================================
+
+export interface CotizacionRequest {
+  idSucursalOrigen: string;
+  idSucursalDestino: string;
+  pesoKg: number;
+  volumenM3?: number;
+}
+
+export interface CotizacionResponse {
+  montoEstimado: number;
+  moneda: string;
+}
+
+export type TipoDocumento = 'DNI' | 'RUC';
+
+export interface ClienteInputDto {
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
+  nombresRazonSocial: string;
+  telefono?: string;
+  correo?: string;
+  documentoValido?: boolean;
+}
+
+export interface CrearPreRegistroPublicoRequest {
+  remitente: ClienteInputDto;
+  destinatario: ClienteInputDto;
+  idSucursalDestino: string;
+  pesoEstimado: number;
+}
+
+export interface RespuestaPreRegistroPublicoDto {
+  codigoExpress: string;
+  fechaExpiracion: string;
+  montoCotizado: number;
+  pesoEstimado: number;
+  sucursalDestino: string;
+  remitenteEnmascarado: string;
+  destinatarioEnmascarado: string;
+}
+
+// =============================================================================
+// Errores RFC 7807 (ProblemDetail)
+// =============================================================================
+
 export interface ProblemDetail {
   type?: string;
   title?: string;
@@ -51,6 +99,7 @@ export interface ProblemDetail {
   detail?: string;
   instance?: string;
   codigo?: string;
+  campos?: Record<string, string>;
   invalidParams?: Record<string, string>;
   errores?: Record<string, string>;
 }
@@ -61,8 +110,16 @@ export class ApiError extends Error {
   public readonly retryAfterSeconds?: number;
   public readonly esErrorRed: boolean;
   public readonly problemDetail?: ProblemDetail;
+  public readonly campos?: Record<string, string>;
 
-  constructor(mensaje: string, status = 500, codigo?: string, retryAfterSeconds?: number, esErrorRed = false, problemDetail?: ProblemDetail) {
+  constructor(
+    mensaje: string,
+    status = 500,
+    codigo?: string,
+    retryAfterSeconds?: number,
+    esErrorRed = false,
+    problemDetail?: ProblemDetail
+  ) {
     super(mensaje);
     this.name = 'ApiError';
     this.status = status;
@@ -70,6 +127,7 @@ export class ApiError extends Error {
     this.retryAfterSeconds = retryAfterSeconds;
     this.esErrorRed = esErrorRed;
     this.problemDetail = problemDetail;
+    this.campos = problemDetail?.campos || problemDetail?.invalidParams || problemDetail?.errores;
   }
 }
 

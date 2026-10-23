@@ -7,9 +7,11 @@ export const Layout: React.FC = () => {
 
   const enlacesNav = [
     { to: '/', texto: 'Inicio' },
+    { to: '/cotiza', texto: 'Cotiza' },
+    { to: '/pre-registro', texto: 'Pre-registra' },
     { to: '/rastreo', texto: 'Rastrea tu Envío' },
-    { to: '/agencias', texto: 'Nuestras Agencias' },
     { to: '/billetera', texto: 'Billetera Digital' },
+    { to: '/agencias', texto: 'Nuestras Agencias' },
   ];
 
   const claseEnlace = ({ isActive }: { isActive: boolean }) =>
@@ -26,8 +28,8 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Cabecera */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+      {/* Cabecera (oculta al imprimir) */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs print:hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <Link
             to="/"
@@ -39,7 +41,7 @@ export const Layout: React.FC = () => {
           </Link>
 
           {/* Navegación de escritorio */}
-          <nav className="hidden md:flex items-center gap-2" aria-label="Navegación principal">
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Navegación principal">
             {enlacesNav.map((enlace) => (
               <NavLink key={enlace.to} to={enlace.to} className={claseEnlace}>
                 {enlace.texto}
@@ -98,19 +100,14 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* Pie de página */}
-      <footer className="bg-azul-noche text-slate-300 border-t border-slate-800 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+      {/* Pie de página (oculto al imprimir) */}
+      <footer className="bg-azul-noche text-slate-300 py-10 mt-auto border-t border-slate-800 print:hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-rojo text-white font-black rounded flex items-center justify-center text-lg">
-                  M
-                </div>
-                <span className="font-bold text-white text-lg tracking-wider">MARVISUR</span>
-              </div>
+              <Logo tamano="sm" />
               <p className="text-xs text-slate-400 leading-relaxed">
-                Transporte de carga pesada y encomiendas a nivel nacional con tecnología Doble QR criptográfica de alta seguridad.
+                Logística y transporte de encomiendas interprovinciales con tecnología Doble QR de máxima confianza en el Perú.
               </p>
             </div>
 
@@ -119,6 +116,16 @@ export const Layout: React.FC = () => {
                 Servicios al Cliente
               </h4>
               <ul className="space-y-2 text-xs">
+                <li>
+                  <Link to="/cotiza" className="hover:text-white transition-colors">
+                    Cotización de envíos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pre-registro" className="hover:text-white transition-colors">
+                    Pre-registro Código Express
+                  </Link>
+                </li>
                 <li>
                   <Link to="/rastreo" className="hover:text-white transition-colors">
                     Rastreo en tiempo real
