@@ -172,3 +172,55 @@ mvn test -pl frontend-marvisur/escritorio
    - Presione **Confirmar Incidencia y Regenerar QR1**.
    - Se mostrará la imagen regenerada del código **QR1 Operativo**.
    - Presione **Imprimir Etiqueta Térmica** para generar el archivo físico simulado en `salida/ticket_*.png`.
+
+---
+
+## 5. Modo Sin Conexión (Offline-First) y Cola Local SQLite (O1, O2)
+
+### A. Alcance Honesto del Modo Offline
+- **Operaciones Soportadas Sin Conexión:**
+  - **Registro de Encomiendas en Ventanilla:** Emisión completa local de la encomienda con generación offline de identificador único (idEncomienda UUID), código de comprobante oficial (MV-yyyyMMdd-XXXXXXXX), cálculo de tarifa con TarifarioPorPeso (tarifa base S/. 5.00 + S/. 2.50/kg) y generación criptográfica del par Doble QR con MotorQR de marvisur-core.
+  - **Persistencia en Cola Local SQLite:** Almacenamiento seguro en datos-locales/marvisur-local.db (tabla cola_registro) con estado PENDIENTE.
+  - **Caché Local de Sucursales:** El combo de sucursales destino se alimenta de cache_sucursales, sincronizada en cada arranque con conexión.
+- **Operaciones NO Disponibles Sin Conexión (Muestran «Requiere conexión»):**
+  - **Login nuevo:** El inicio de sesión inicial requiere conexión con el servidor central; la sesión previamente iniciada se mantiene en memoria sin conexión.
+  - **Código Express:** La consulta y precarga de pre-registros web requiere conectividad central.
+  - **Almacén (Entrega Física, Lotes Masivos y Contingencia):** Requieren validación contra la base de datos central para invalidar el token o registrar incidencias.
+- **Esquema de Persistencia Local Mínimo:**
+  - Base SQLite en datos-locales/marvisur-local.db con solo 2 tablas operativas: cola_registro (id, payload, estado, intentos, ultimo_error, creado_en, actualizado_en) y cache_sucursales (id, nombre_agencia, ciudad, direccion, actualizado_en).
+- **Seguridad Cero Conocimiento (Zero Knowledge en Disco):**
+  - El archivo binario .db almacena **únicamente hashes SHA-256** (uuidQr1, hashQr2).
+  - El token qr2Token en texto claro jamás se persiste en SQLite, disco ni registros de logs. Reside exclusivamente en la memoria RAM del diálogo de confirmación mientras la ventana está abierta.
+
+---
+
+### B. Guía de Prueba Manual del Modo Offline y Sincronización Automática
+
+1. **Paso 1 — Iniciar sesión con conexión:**
+   - Inicie el backend central (marvisur-api) y la app de escritorio.
+   - Inicie sesión como **TN1 Recepcionista** (ecepcionista.demo@marvisur.pe / Demo1234*).
+   - Observe el indicador superior en verde: **«En línea»**.
+2. **Paso 2 — Simular caída del servidor / desconexión:**
+   - Detenga el backend central (Ctrl+C en la terminal del backend o apague el servicio).
+   - Observe la cabecera: en **<= 2 segundos** (RNF-02) el indicador conmuta automáticamente a punto rojo: **«Sin conexión»**.
+3. **Paso 3 — Verificar pestañas bloqueadas:**
+   - Intente precargar un Código Express en Ventanilla o ingrese al módulo Almacén e intente validar una entrega: el sistema desplegará una alerta explicativa: *«Requiere conexión: esta operación requiere conexión activa con el servidor central»*.
+4. **Paso 4 — Registrar encomienda sin conexión:**
+   - En la pestaña **Ventanilla**, ingrese los datos del remitente, destinatario, sucursal destino (cargada desde la caché local SQLite) y peso del paquete.
+   - Haga clic en **Registrar Encomienda**.
+   - El sistema emitirá la encomienda localmente mostrando el modal con:
+     - Banner amarillo: *«⚠️ REGISTRADO SIN CONEXIÓN: se sincronizará automáticamente; el enlace de la Billetera funcionará después de sincronizar»*.
+     - Imagen del código **QR1 Físico** e impresión de ticket térmico en salida/.
+     - Enlace temporal de la Billetera con el token QR2 en el fragmento #.
+   - En la cabecera superior se actualizará el contador: **«Sin conexión · Pendientes: 1»**.
+5. **Paso 5 — Inspeccionar la pantalla «Cola local»:**
+   - En el menú lateral, haga clic en **📋 Cola Local** (módulo accesible para TN1 y TN3).
+   - Verifique que la encomienda figura en la tabla con estado **PENDIENTE**, 0 intentos y fecha de creación.
+6. **Paso 6 — Reconectar y verificar sincronización automática:**
+   - Vuelva a encender el backend marvisur-api.
+   - En **<= 2 segundos**, el indicador de la cabecera conmuta automáticamente a **«En línea»** (punto verde).
+   - En un lapso de 10 segundos, el hilo de segundo plano (SincronizadorOffline) enviará automáticamente el lote a POST /api/v1/sync/encomiendas.
+   - La cabecera superior notificará en verde: **«En línea · Sincronizado: 1 encomienda»**, y el contador de pendientes desaparecerá.
+   - En la pantalla **Cola Local**, el estado del registro pasará automáticamente a **SINCRONIZADA**.
+7. **Paso 7 — Verificación en base de datos central:**
+   - Consulte la base de datos central PostgreSQL (marvisur_db) o consulte el tracking web del comprobante: la encomienda estará registrada con sus hashes de Doble QR intactos y trazabilidad activa.

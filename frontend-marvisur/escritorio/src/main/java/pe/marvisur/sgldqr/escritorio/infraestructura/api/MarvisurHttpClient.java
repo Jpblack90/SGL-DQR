@@ -10,6 +10,8 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AlmacenPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.SyncPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -31,11 +33,11 @@ import java.util.logging.Logger;
  * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort},
  * {@link AlmacenPort} y {@link EstadoConexionPort}.
  */
-public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort {
+public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort {
 
     private static final Logger LOGGER = Logger.getLogger(MarvisurHttpClient.class.getName());
-    private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(10);
-    private static final Duration TIMEOUT_SALUD = Duration.ofSeconds(3);
+    private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(2);
+    private static final Duration TIMEOUT_SALUD = Duration.ofSeconds(2);
 
     private final String baseUrl;
     private final HttpClient httpClient;
@@ -626,6 +628,47 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Al
     }
 
     // =========================================================================
+    // SINCRONIZACIÓN OFFLINE (B4, O2)
+    // =========================================================================
+
+    @Override
+    public RespuestaSyncLoteDto sincronizarLote(String jsonLote) {
+        if (!SesionContexto.estaAutenticado()) {
+            throw new ApiExcepcion(401, "NO_AUTENTICADO", "Debe iniciar sesión para sincronizar la cola local.", null);
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/v1/sync/encomiendas"))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonLote));
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            ServicioConexion.getInstancia().reportarExitoConexion();
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), RespuestaSyncLoteDto.class);
+            } else if (response.statusCode() == 401) {
+                SesionContexto.notificarSesionExpirada("Sesión expirada durante sincronización offline");
+                throw new ApiExcepcion(401, "NO_AUTORIZADO", "Su sesión ha expirado o no tiene autorización.", null);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error en sincronización: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error de red al sincronizar lote offline: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red en sincronización: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al sincronizar lote: " + e.getMessage(), e);
+        }
+    }
+
+    // =========================================================================
     // ESTADO DE CONEXIÓN (POLLING /actuator/health)
     // =========================================================================
 
@@ -669,6 +712,7 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Al
     }
 
     private void procesarErrorRespuesta(HttpResponse<String> response) {
+        ServicioConexion.getInstancia().reportarExitoConexion();
         int status = response.statusCode();
         String body = response.body();
 

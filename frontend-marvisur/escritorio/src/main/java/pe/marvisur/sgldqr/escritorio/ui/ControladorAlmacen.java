@@ -12,6 +12,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOfflineViewModel;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AlmacenPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;

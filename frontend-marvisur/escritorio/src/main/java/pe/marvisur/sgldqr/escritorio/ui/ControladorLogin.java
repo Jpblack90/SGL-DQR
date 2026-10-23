@@ -10,6 +10,8 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ApiExcepcion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOfflineViewModel;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 
@@ -56,6 +58,11 @@ public class ControladorLogin {
 
         if (correo.isBlank() || pass.isBlank()) {
             mostrarMensajeError("Por favor ingrese su correo corporativo y contraseña.");
+            return;
+        }
+
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            mostrarMensajeError(PestanasBloqueadasOfflineViewModel.MENSAJE_LOGIN_REQUIERE_CONEXION);
             return;
         }
 

@@ -14,6 +14,10 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ModeloMenuRol;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.ColaLocalPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.SincronizadorOffline;
+import pe.marvisur.sgldqr.escritorio.infraestructura.sqlite.SQLiteColaAdapter;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 
@@ -38,6 +42,12 @@ public class ControladorPrincipal {
     private Label lblEstadoConexion;
 
     @FXML
+    private Label lblPendientes;
+
+    @FXML
+    private Label lblNotificacionSync;
+
+    @FXML
     private Label lblSucursal;
 
     @FXML
@@ -54,6 +64,9 @@ public class ControladorPrincipal {
 
     @FXML
     private Button btnMenuContingencia;
+
+    @FXML
+    private Button btnMenuColaLocal;
 
     @FXML
     private Button btnMenuRutas;
@@ -110,6 +123,7 @@ public class ControladorPrincipal {
         configurarBotonMenu(btnMenuVentanilla, ModeloMenuRol.ModuloMenu.VENTANILLA, rol);
         configurarBotonMenu(btnMenuAlmacen, ModeloMenuRol.ModuloMenu.ALMACEN, rol);
         configurarBotonMenu(btnMenuContingencia, ModeloMenuRol.ModuloMenu.CONTINGENCIA, rol);
+        configurarBotonMenu(btnMenuColaLocal, ModeloMenuRol.ModuloMenu.COLA_LOCAL, rol);
         configurarBotonMenu(btnMenuRutas, ModeloMenuRol.ModuloMenu.RUTAS, rol);
         configurarBotonMenu(btnMenuDashboard, ModeloMenuRol.ModuloMenu.DASHBOARD, rol);
         configurarBotonMenu(btnMenuEmpleados, ModeloMenuRol.ModuloMenu.EMPLEADOS, rol);
@@ -149,7 +163,7 @@ public class ControladorPrincipal {
     }
 
     private void marcarBotonActivo(Button botonActivo) {
-        Button[] botones = {btnMenuVentanilla, btnMenuAlmacen, btnMenuContingencia, btnMenuRutas, btnMenuDashboard, btnMenuEmpleados};
+        Button[] botones = {btnMenuVentanilla, btnMenuAlmacen, btnMenuContingencia, btnMenuColaLocal, btnMenuRutas, btnMenuDashboard, btnMenuEmpleados};
         for (Button btn : botones) {
             if (btn != null) {
                 btn.getStyleClass().remove("boton-menu-activo");

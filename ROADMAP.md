@@ -71,11 +71,11 @@ Punto de reanudación: W1, W2 y W4 completados. Siguiente: W3 (Cotización y pre
 - [ ] Q1 Guion UAT y pruebas de integración end-to-end
 
 ### I4 — Hardware, offline e infraestructura
-Punto de reanudación: (vacío)
+Punto de reanudación: O1 y O2 (versión mínima offline-first en Ventanilla con SQLite y sincronización central automática) completados. Siguiente: H1 (Adaptador ESC/POS para ticketera de 58 mm) u O4 (jpackage).
 - [ ] H1 Adaptador ESC/POS: imprimir QR1 en ticketera de 58 mm (ImpresionPort)
 - [ ] H2 Adaptador de escáner óptico USB
-- [ ] O1 Esquema SQLite desde el Diccionario, SQLiteAdapter y conmutación ≤ 2 s (RNF-02)
-- [ ] O2 Sincronizador SQLite <-> PostgreSQL por UUID (usa B4)
+- [x] O1 Esquema SQLite desde el Diccionario, SQLiteAdapter y conmutación ≤ 2 s (RNF-02)
+- [x] O2 Sincronizador SQLite <-> PostgreSQL por UUID (usa B4)
 - [ ] O3 HTTPS y VPS en producción (RNF-01)
 - [ ] O4 Instalador .EXE autocontenido con jpackage (RNF-04)
 

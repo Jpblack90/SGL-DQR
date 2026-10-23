@@ -161,7 +161,13 @@
 
             <Separator/>
 
-            <HBox spacing="20" alignment="CENTER_LEFT">
+                        <Label fx:id="lblBannerOffline"
+                   text="⚠️ REGISTRADO SIN CONEXIÓN: se sincronizará automáticamente; el enlace de la Billetera funcionará después de sincronizar."
+                   wrapText="true"
+                   style="-fx-background-color: #FEF3C7; -fx-text-fill: #92400E; -fx-padding: 8 12; -fx-background-radius: 6; -fx-font-weight: bold; -fx-font-size: 11px;"
+                   visible="false" managed="false"/>
+
+<HBox spacing="20" alignment="CENTER_LEFT">
                 <!-- Resumen de Datos -->
                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                     <Label fx:id="lblResultadoComprobante" text="Comprobante: MV-20261022-XXXX"
