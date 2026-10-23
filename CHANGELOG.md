@@ -7,7 +7,20 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+<!-- Las entradas futuras se añaden aquí durante el desarrollo -->
+
+---
+
+## [0.2.0] - 2026-10-22
+
 ### Added
+- [P12] Congelamiento de funciones, kit de demostración y estabilización de Fase B:
+  - Scripts de automatización en `scripts/` (versiones PowerShell `.ps1` y Bash `.sh`): `demo-reset` (limpieza y espera de PostgreSQL), `demo-api` (arranque con detección de IP LAN y variable `APP_PORTAL_URL_BASE`), `demo-portal` (`npm run dev -- --host`), `demo-escritorio` (JavaFX con `api.base-url` por parámetro), `demo-parar-api` y `demo-iniciar-api` (simulación de corte offline y recuperación con reconexión automática).
+  - Guía de demostración paso a paso y guion interactivo E2E en `scripts/README.md`.
+  - Matriz de trazabilidad y estado honesto de requerimientos en `docs/estado-implementacion.md` (RF-01..RF-11 y RNF-01..RNF-05) con 230 pruebas automatizadas en verde.
+  - Ampliación del pipeline de CI en `.github/workflows/ci.yml` para compilar y probar todo el reactor Maven (`marvisur-core`, `marvisur-api`, `marvisur-escritorio`) y el portal web (`portal-web`).
+  - Actualización integral del `README.md` raíz con enlaces al kit de demo y matriz de requerimientos.
+  - Congelamiento formal de la Fase B y declaración explícita de tareas secundarias postergadas a backlog (B1, B2, B3, D4, H1, H2, O3, O4).
 - [I4][O1] Modo sin conexión de Ventanilla (versión mínima) en escritorio JavaFX: persistencia local con SQLite (org.xerial:sqlite-jdbc 3.46.1.3) en datos-locales/marvisur-local.db (.gitignore), puerto ColaLocalPort y adaptador SQLiteColaAdapter (tablas cola_registro con índices y cache_sucursales); detección de conectividad en <= 2 s (RNF-02) con ServicioConexion reaccionando a timeouts HTTP (2 s) y sondeo /actuator/health; indicador visual en cabecera «En línea» / «Sin conexión» y contador de pendientes; emisión de encomiendas offline en Ventanilla con id UUID, comprobante local MV-yyyyMMdd-XXXXXXXX, cálculo con TarifarioPorPeso, Doble QR con MotorQR (solo hashes SHA-256 en SQLite, token en claro solo en RAM del modal), ticket térmico simulado e insumos para Billetera.
 - [I4][O2] Sincronización automática en segundo plano y gestión de cola local (RNF-02, B4): servicio SincronizadorOffline periódico (cada 10 s) y reactivo a reconexión que envía lotes de hasta 50 registros a POST /api/v1/sync/encomiendas (B4); soporte de idempotencia (YA_SINCRONIZADA), reintento con fórmula de backoff exponencial 2^intentos (hasta 5 intentos) para fallos recuperables y rechazo sin reintento para errores de validación; preservación total de la cola local ante respuestas 401; pantalla «Cola Local» (TN1 y TN3) con métricas en vivo, listado de registros y acción «Reintentar errores»; modelo PestanasBloqueadasOfflineViewModel restringiendo operaciones no offline («Requiere conexión»); suite completa de 64 pruebas unitarias headless (DeteccionCaidaServidorTest, RegistroOfflineCriptograficoTest, SeguridadCeroQr2EnSqliteTest, SincronizadorOfflineTest, PestanasBloqueadasOfflineViewModelTest, SQLiteColaAdapterTest).
 - [I1][B4] Endpoint de sincronización de registros creados sin conexión en marvisur-api (POST /api/v1/sync/encomiendas, RNF-02): recepción masiva por lotes (hasta app.sync.lote-maximo=100) con aislamiento transaccional por ítem (TransactionTemplate REQUIRES_NEW), soporte de formato JSON array y envolvente, idempotencia estricta por UUID sin duplicar tracking ni auditoría, recálculo oficial de tarifa con TarifarioPort (advertencia MONTO_AJUSTADO), acotación de reloj cliente frente a la hora del servidor, registro de hashes criptográficos del Doble QR (token QR2 ACTIVO), validación RBAC (exclusivo para TN1 Recepcionista y TN3 Administrador; 403 Forbidden para TN2/TN4), auditoría operativa REGISTRO_ENCOMIENDA_OFFLINE, documentación en OpenAPI interno y suite de 9 pruebas de integración con Testcontainers PostgreSQL 16 incluyendo la prueba clave de flujo completo Doble QR offline con validación física e invalidación irreversible.
@@ -17,8 +30,6 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - [I3][W1] Scaffolding del portal web de clientes en `frontend-marvisur/portal-web` con Vite, React 18, TypeScript, Tailwind CSS, React Router 6, tipografía corporativa Poppins (`@fontsource/poppins`), layout con cabecera receptiva y pie de página, catálogo público de agencias (`GET /api/v1/publico/sucursales`), página 404, cliente HTTP fetch tipado con `docs/openapi-publico.json` y manejo robusto de errores (404, 400, 429 con Retry-After, desconexión de red); pruebas con Vitest y job `portal` en `.github/workflows/ci.yml`.
 - [I3][W2] Módulo de Rastreo de Encomiendas (RF-08): formulario con validación estricta de comprobante y documento (DNI de 8 dígitos o RUC de 11 dígitos), consulta en vivo (`GET /api/v1/publico/rastreo`), visualización de estados logísticos con etiquetas amigables, estados de pago, nombres enmascarados, línea de tiempo vertical cronológica y banner de advertencia para cobros Contra Entrega pendientes, garantizando cero persistencia en `localStorage`.
 - [I3][W4] Módulo de Billetera Digital (RF-09): ruta `/billetera` con extracción segura del token de retiro exclusivamente desde `location.hash`, envío en el cuerpo de `POST /api/v1/publico/billetera`, renderizado del código QR2 en Base64 de alta resolución, estados ACTIVO (con alerta de importe en Contra Entrega), INVALIDADO (envío ya entregado) y EXPIRADO, aviso de confidencialidad y garantía estricta de cero almacenamiento en `localStorage`, `sessionStorage`, cookies o consola del navegador.
-
-<!-- Las entradas de la Fase B se añaden aquí durante el desarrollo por cada integrante: [Ix][ID] Descripción -->
 
 ---
 
@@ -106,5 +117,4 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-*Los integrantes añaden entradas bajo [Unreleased] con formato:*
-*`[Ix][ID-TAREA] Descripción breve — pendiente: X`*
+*Formato de versionado: Semantic Versioning (v0.2.0).*
