@@ -7,6 +7,11 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- [I3][W1] Scaffolding del portal web de clientes en `frontend-marvisur/portal-web` con Vite, React 18, TypeScript, Tailwind CSS, React Router 6, tipografía corporativa Poppins (`@fontsource/poppins`), layout con cabecera receptiva y pie de página, catálogo público de agencias (`GET /api/v1/publico/sucursales`), página 404, cliente HTTP fetch tipado con `docs/openapi-publico.json` y manejo robusto de errores (404, 400, 429 con Retry-After, desconexión de red); pruebas con Vitest y job `portal` en `.github/workflows/ci.yml`.
+- [I3][W2] Módulo de Rastreo de Encomiendas (RF-08): formulario con validación estricta de comprobante y documento (DNI de 8 dígitos o RUC de 11 dígitos), consulta en vivo (`GET /api/v1/publico/rastreo`), visualización de estados logísticos con etiquetas amigables, estados de pago, nombres enmascarados, línea de tiempo vertical cronológica y banner de advertencia para cobros Contra Entrega pendientes, garantizando cero persistencia en `localStorage`.
+- [I3][W4] Módulo de Billetera Digital (RF-09): ruta `/billetera` con extracción segura del token de retiro exclusivamente desde `location.hash`, envío en el cuerpo de `POST /api/v1/publico/billetera`, renderizado del código QR2 en Base64 de alta resolución, estados ACTIVO (con alerta de importe en Contra Entrega), INVALIDADO (envío ya entregado) y EXPIRADO, aviso de confidencialidad y garantía estricta de cero almacenamiento en `localStorage`, `sessionStorage`, cookies o consola del navegador.
+
 <!-- Las entradas de la Fase B se añaden aquí durante el desarrollo por cada integrante: [Ix][ID] Descripción -->
 
 ---

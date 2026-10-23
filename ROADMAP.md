@@ -61,12 +61,12 @@ Punto de reanudación: (vacío)
 - [ ] D3 Almacén: validación cruzada, Batch Scanning e incidencias (RF-06, RF-07)
 - [ ] D4 Dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
 
-### I3 — Portal web y pruebas (stack propuesto: React + Vite + TypeScript + Tailwind; confirmar antes de W1)
-Punto de reanudación: (vacío)
-- [ ] W1 Scaffold del portal con tema de marca
-- [ ] W2 Rastreo de envío (RF-08)
+### I3 — Portal web y pruebas (stack: React + Vite + TypeScript + Tailwind)
+Punto de reanudación: W1, W2 y W4 completados. Siguiente: W3 (Cotización y pre-registro Código Express).
+- [x] W1 Scaffold del portal con tema de marca
+- [x] W2 Rastreo de envío (RF-08)
 - [ ] W3 Cotización y pre-registro Código Express (RF-10)
-- [ ] W4 Billetera Digital: lee el token del fragmento #, nunca lo envía en la URL (RF-09)
+- [x] W4 Billetera Digital: lee el token del fragmento #, nunca lo envía en la URL (RF-09)
 - [ ] W5 Descarga de comprobante PDF (RF-11; requiere B3)
 - [ ] Q1 Guion UAT y pruebas de integración end-to-end
 
