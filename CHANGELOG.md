@@ -7,7 +7,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-<!-- Las entradas futuras se añaden aquí durante el desarrollo -->
+### Added
+- [P13] Coherencia documental, auditoría técnica de métricas e informe reproducible:
+  - Normalización de títulos en `docs/estado-implementacion.md` para correspondencia exacta con `docs/requisitos.md` (RF-04: CRUD Encomiendas, RF-07: Motor Central de Validación Criptográfica (Sistema Doble QR), RF-11: Comprobantes Web).
+  - Eliminación de la palabra «equipaje» y sustitución por «encomienda» en `docs/requisitos.md` y `docs/estado-implementacion.md` según el Diccionario de Datos del SGL-DQR.
+  - Distinción explícita en RNF-05 de las 5 pruebas de arquitectura ArchUnit (`ArquitecturaHexagonalTest`) dentro de las 50 pruebas totales de `marvisur-core`.
+  - Precisión del alcance de RF-10 (Pre-registro Web y Cotización) confirmando operatividad en backend y escritorio, con interfaz web React (W3) pendiente en backlog.
+  - Creación de scripts reproducibles de auditoría técnica (`scripts/informe-metricas.ps1` y `scripts/informe-metricas.sh`) que analizan surefire XML, Vitest JSON, especificaciones OpenAPI, migraciones Flyway, historial Git y LOC.
+  - Generación del informe consolidado `docs/informe-metricas.md` y alineación del conteo de pruebas (230 pruebas en verde) y arquitectura en `README.md`.
 
 ---
 
