@@ -75,3 +75,5 @@ coverage/
 *.bak
 *.swp
 *~
+
+*.bak*
