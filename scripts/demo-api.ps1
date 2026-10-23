@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Arranca marvisur-api en perfil dev con soporte para detección de IP LAN y portal web.
 .DESCRIPTION
@@ -70,5 +70,5 @@ if ($Background) {
     Write-Host "--> PID del lanzador ($PID) guardado en $PidFile" -ForegroundColor Gray
     Write-Host "--> Iniciando Spring Boot en consola interactiva (Ctrl+C para detener)...`n" -ForegroundColor Yellow
 
-    mvn spring-boot:run -pl :marvisur-api -Dspring-boot.run.profiles=dev "-Dspring-boot.run.jvmArguments=-Dapp.portal.url-base=$PortalUrl"
+    mvn spring-boot:run -pl :marvisur-api "-Dspring-boot.run.profiles=dev" "-Dspring-boot.run.jvmArguments=-Dapp.portal.url-base=$PortalUrl"
 }
