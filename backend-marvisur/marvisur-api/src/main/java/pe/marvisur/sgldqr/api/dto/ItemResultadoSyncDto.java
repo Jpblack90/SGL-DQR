@@ -21,7 +21,7 @@ public class ItemResultadoSyncDto {
     private String advertencia;
 
     @Schema(description = "Motivo de error en caso de rechazo", example = "CODIGO_COMPROBANTE_DUPLICADO")
-    private MotivoErrorSync motivo;
+    private MotivoErrorSync motivoError;
 
     @Schema(description = "Mensaje explicativo del resultado", example = "Encomienda sincronizada exitosamente.")
     private String mensaje;
@@ -30,25 +30,33 @@ public class ItemResultadoSyncDto {
     }
 
     public ItemResultadoSyncDto(String idEncomienda, String codigoComprobante, ResultadoSync resultado,
-                                String advertencia, MotivoErrorSync motivo, String mensaje) {
+                                String advertencia, MotivoErrorSync motivoError, String mensaje) {
         this.idEncomienda = idEncomienda;
         this.codigoComprobante = codigoComprobante;
         this.resultado = resultado;
         this.advertencia = advertencia;
-        this.motivo = motivo;
+        this.motivoError = motivoError;
         this.mensaje = mensaje;
+    }
+
+    public static ItemResultadoSyncDto ok(String idEncomienda, String codigoComprobante, String advertencia) {
+        return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.OK, advertencia, null, "Sincronización exitosa");
     }
 
     public static ItemResultadoSyncDto ok(String idEncomienda, String codigoComprobante, String advertencia, String mensaje) {
         return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.OK, advertencia, null, mensaje);
     }
 
+    public static ItemResultadoSyncDto yaSincronizada(String idEncomienda, String codigoComprobante) {
+        return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.YA_SINCRONIZADA, null, null, "La encomienda ya se encuentra sincronizada previamente");
+    }
+
     public static ItemResultadoSyncDto yaSincronizada(String idEncomienda, String codigoComprobante, String mensaje) {
         return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.YA_SINCRONIZADA, null, null, mensaje);
     }
 
-    public static ItemResultadoSyncDto error(String idEncomienda, String codigoComprobante, MotivoErrorSync motivo, String mensaje) {
-        return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.ERROR, null, motivo, mensaje);
+    public static ItemResultadoSyncDto error(String idEncomienda, String codigoComprobante, MotivoErrorSync motivoError, String mensaje) {
+        return new ItemResultadoSyncDto(idEncomienda, codigoComprobante, ResultadoSync.ERROR, null, motivoError, mensaje);
     }
 
     public String getIdEncomienda() {
@@ -83,12 +91,20 @@ public class ItemResultadoSyncDto {
         this.advertencia = advertencia;
     }
 
+    public MotivoErrorSync getMotivoError() {
+        return motivoError;
+    }
+
+    public void setMotivoError(MotivoErrorSync motivoError) {
+        this.motivoError = motivoError;
+    }
+
     public MotivoErrorSync getMotivo() {
-        return motivo;
+        return motivoError;
     }
 
     public void setMotivo(MotivoErrorSync motivo) {
-        this.motivo = motivo;
+        this.motivoError = motivo;
     }
 
     public String getMensaje() {

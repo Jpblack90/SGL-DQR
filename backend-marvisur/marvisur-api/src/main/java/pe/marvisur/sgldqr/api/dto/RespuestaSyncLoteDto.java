@@ -26,6 +26,8 @@ public class RespuestaSyncLoteDto {
     private int totalErrores;
 
     @Schema(description = "Tiempo total de procesamiento del lote en milisegundos", example = "45")
+    @JsonProperty("tiempoProcesamientoMs")
+    @JsonAlias({"tiempoMs"})
     private long tiempoProcesamientoMs;
 
     @Schema(description = "Detalle del resultado de cada encomienda sincronizada")
@@ -84,6 +86,14 @@ public class RespuestaSyncLoteDto {
 
     public void setTiempoProcesamientoMs(long tiempoProcesamientoMs) {
         this.tiempoProcesamientoMs = tiempoProcesamientoMs;
+    }
+
+    public long getTiempoMs() {
+        return tiempoProcesamientoMs;
+    }
+
+    public void setTiempoMs(long tiempoMs) {
+        this.tiempoProcesamientoMs = tiempoMs;
     }
 
     public List<ItemResultadoSyncDto> getDetalles() {

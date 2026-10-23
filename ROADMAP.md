@@ -47,11 +47,11 @@ Punto de reanudación: Fase A completada (Release v0.1.0). Inicio de Fase B en r
 Dueños: I1 Backend · I2 Escritorio JavaFX · I3 Portal web y pruebas · I4 BD, hardware, offline e infraestructura
 
 ### I1 — Backend restante
-Punto de reanudación: B4 en curso (Paso 1 completado: DTOs y modelos creados. Siguiente: Paso 2, SyncServicio con transacciones independientes).
+Punto de reanudación: B4 (versión mínima) completado. Siguiente tarea: B1 (Dashboard KPIs y auditoría de empleados).
 - [ ] B1 Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03)
 - [ ] B2 Flota, rutas y ciclo de viaje; TN4 actualiza estado; «En ruta» masivo (RF-05)
 - [ ] B3 Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
-- [ ] B4 Endpoints de sincronización idempotentes por UUID (apoya RNF-02)
+- [x] B4 Endpoints de sincronización idempotentes por UUID (apoya RNF-02)
 - [ ] B5 Pruebas de rendimiento RNF-03 y Swagger desactivado en prod
 
 ### I2 — Escritorio JavaFX (consume la API)
