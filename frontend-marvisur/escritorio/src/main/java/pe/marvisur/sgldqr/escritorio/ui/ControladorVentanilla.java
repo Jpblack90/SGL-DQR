@@ -11,6 +11,10 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.VentanillaOfflineServicio;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.SincronizadorOffline;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOfflineViewModel;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
@@ -81,6 +85,7 @@ public class ControladorVentanilla {
     @FXML private ImageView imgQr2Enlace;
     @FXML private Button btnImprimirTicket;
     @FXML private Button btnCerrarResultado;
+    @FXML private Label lblBannerOffline;
 
     private final VentanillaPort ventanillaPort;
     private final ImpresionPort impresionPort;
@@ -91,7 +96,7 @@ public class ControladorVentanilla {
     private RegistrarEncomiendaComando ultimoComandoRegistrado;
 
     public ControladorVentanilla() {
-        this(new MarvisurHttpClient(), new ImpresionSimuladaAdapter(), new ZXingAdapter());
+        this(new VentanillaOfflineServicio(), new ImpresionSimuladaAdapter(), new ZXingAdapter());
     }
 
     public ControladorVentanilla(VentanillaPort ventanillaPort, ImpresionPort impresionPort, ImagenQRPort imagenQRPort) {
@@ -394,6 +399,12 @@ public class ControladorVentanilla {
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Error al generar imagen de QR2 enlace: " + ex.getMessage());
             }
+        }
+
+        if (lblBannerOffline != null) {
+            boolean offline = res.advertencia() != null && res.advertencia().contains("OFFLINE");
+            lblBannerOffline.setVisible(offline);
+            lblBannerOffline.setManaged(offline);
         }
 
         panelResultado.setVisible(true);
