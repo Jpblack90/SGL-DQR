@@ -38,13 +38,16 @@ RF-08: Portal Web de Seguimiento (Tracking). Autoservicio web para la consulta d
 RF-09: Billetera Digital de QR. Interfaz web para que el cliente destinatario almacene y presente su código QR de retiro.
 RF-10: Pre-registro Web y Cotización. Formulario para calcular tarifas e ingresar datos anticipadamente. (Diagrama documentado bajo estándar de Casos de Uso).
 RF-11: Comprobantes Web. Generación y descarga automatizada de comprobantes de pago y entrega en formato PDF.
+
 4. Especificación de Requisitos No Funcionales (RNF)
-RNF-01 Seguridad (RBAC): Restricción estricta de módulos según rol interno. Invalidación automática del QR del cliente tras una entrega exitosa para evitar duplicidad.
-RNF-02 Rendimiento: La latencia de validación cruzada criptográfica en almacén y actualización de base de datos no debe superar los 1000 milisegundos.
-RNF-03 Usabilidad: La interfaz de recepción en escritorio debe minimizar los clics a cero durante el proceso de escaneo continuo.
-RNF-04 Compatibilidad: El portal web debe ser funcional en navegadores modernos (Chrome, Edge, Safari) y completamente responsivo en móviles.
-RNF-05 Disponibilidad: Uptime garantizado del 99.9% en el entorno cloud VPS durante horarios operativos.
-RNF-06 Escalabilidad: La arquitectura debe soportar picos de peticiones concurrentes durante temporadas altas sin degradación del servicio.
+RNF-01 Seguridad: comunicaciones cifradas HTTPS/SSL; el hash del QR2 se invalida en <= 500 ms tras la validación cruzada.
+RNF-02 Fiabilidad y contingencia offline: conmutación automática a base local (SQLite/H2) en <= 2 s ante caída de red; uptime operativo 100% en ventanilla.
+RNF-03 Rendimiento: latencia máxima 1000 ms en la validación cruzada y en actualizaciones por lote, con hasta 50 lecturas ópticas por minuto.
+RNF-04 Portabilidad e instalación: cliente web responsivo sin descargas; App de escritorio como instalador autocontenido (.EXE/.MSI) con JRE embebido (jpackage).
+RNF-05 Mantenibilidad: Arquitectura Hexagonal; lógica de negocio desacoplada de los frameworks.
+
+Fuera de alcance: integración técnica con SUNAT (XML/CDR) y apps móviles nativas.
+
 5. Requisitos de Integraciones Externas
 SUNAT: Diseño de arquitectura para el envío asíncrono de XML hacia la API de SUNAT (emisión de Guías de Remisión Electrónica).
 Pasarelas de Pago: Capas de abstracción para conexiones vía webhooks con Yape, Plin y procesadores de tarjetas (Niubiz/Izipay).
