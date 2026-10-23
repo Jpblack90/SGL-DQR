@@ -9,7 +9,7 @@
 
 - **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
 - **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.0)**.
-  - El MVP integral (Core, API REST, App de escritorio JavaFX con soporte offline y Portal Web de autoservicio con Billetera Digital) se encuentra 100% operativo y respaldado por 230 pruebas automatizadas en verde.
+  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital) se encuentra respaldado por 230 pruebas automatizadas en verde.
   - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
 
 ---
@@ -45,9 +45,14 @@
 
 - [x] **P12 Congelamiento de funciones y kit de demo**:
   - Scripts de demostración multiplataforma (`demo-reset`, `demo-api`, `demo-portal`, `demo-escritorio`, `demo-parar-api`, `demo-iniciar-api`).
-  - Matriz de estado honesto de requerimientos en `docs/estado-implementacion.md`.
+  - Matriz de estado de requerimientos en `docs/estado-implementacion.md`.
   - Pipeline de CI en `.github/workflows/ci.yml` cubriendo Core, API, Escritorio y Portal Web.
   - Verificación estricta de cero secretos y preparación del Release v0.2.0.
+- [x] **P12b Auditoría y corrección honesta de requerimientos y limitaciones**:
+  - Corrección de definiciones oficiales de RNF-01 a RNF-05 y fuera de alcance en `docs/requisitos.md`.
+  - Reauditoría honesta de RF y RNF contra código real en `docs/estado-implementacion.md` (RF-02 Pendiente, RF-03 Pendiente, RF-05 Parcial, RF-10 Parcial, RF-11 Pendiente; RNF-01..RNF-04 Parciales, RNF-05 Implementado).
+  - Explicitación de limitaciones conocidas (hardware simulado, HTTPS ausente, sin instalador .EXE, tarifario provisional).
+  - Ajuste de redacción en README raíz eliminando afirmaciones no verificables.
 
 ### Estado por Pista de Trabajo
 
