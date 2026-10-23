@@ -27,17 +27,17 @@ Pantallas (Mockups): 1) Login Móvil, 2) Escáner por Cámara de Celular, 3) Inv
 2.2. Cuadro Comparativo y Justificación
 Justificación de Elección: Se selecciona la Sub-Solución 1 (Sistema Híbrido) porque el software de escritorio JavaFX asegura una velocidad de procesamiento ininterrumpida y conexión directa con impresoras térmicas y lectoras USB en las sucursales, mientras que el portal web brinda accesibilidad universal para que el cliente final rastree su envío sin fricciones.
 3. Especificación de Requisitos Funcionales (RF)
-RF-01: Módulo Login y Control de Accesos (RBAC). Autenticación interna para el personal (Admin, Almacenero, Recepcionista, Chofer) y acceso público sin contraseña para clientes finales mediante token QR.
-RF-02: Panel Administrativo (Dashboard). Visualización en tiempo real de métricas, KPIs operativos y estado general de la sucursal.
-RF-03: CRUD Empleado. Gestión centralizada de perfiles operativos (altas, bajas y edición de almaceneros y recepcionistas).
-RF-04: CRUD Encomiendas (Core Operativo). Registro integral del paquete (peso, volumen, fechas, RUC/datos personales). Vincula automáticamente el envío al Sistema de Doble QR.
-RF-05: RU Choferes y Flota. Control de unidades de transporte, asignación de rutas y actualización de horarios de salida/llegada.
-RF-06: Módulo de Recepciones (Escaneo Batch). Interfaz de escritorio optimizada para la lectura masiva y rápida de encomiendas vía pistoleo en almacén.
-RF-07: Motor Central de Validación Criptográfica (Sistema Doble QR). Lógica de generación simultánea de QR 1 (Operativo) y QR 2 (Retiro), vinculación criptográfica y expiración post-entrega. (Nota: Caso de Uso Representativo del sistema).
-RF-08: Portal Web de Seguimiento (Tracking). Autoservicio web para la consulta de trazabilidad e historial de estados del paquete por parte del usuario final.
-RF-09: Billetera Digital de QR. Interfaz web para que el cliente destinatario almacene y presente su código QR de retiro.
-RF-10: Pre-registro Web y Cotización. Formulario para calcular tarifas e ingresar datos anticipadamente. (Diagrama documentado bajo estándar de Casos de Uso).
-RF-11: Comprobantes Web. Generación y descarga automatizada de comprobantes de pago y entrega en formato PDF.
+RF-01 Autenticación interna por roles (RBAC); acceso del cliente final sin contraseña mediante tokens dinámicos.
+RF-02 Dashboard administrativo con KPIs operativos en tiempo real.
+RF-03 Gestión de personal operativo (CRUD) con registro de auditoría.
+RF-04 Gestión del ciclo de vida y estado de pago de encomiendas, con bloqueo por pago "Pendiente".
+RF-05 Control de flota y asignación de rutas interprovinciales.
+RF-06 Módulo de almacén con procesamiento por lotes (Batch Scanning) y contingencia por DNI/RUC.
+RF-07 Motor Criptográfico de Doble QR: generación y validación cruzada de QR1/QR2.
+RF-08 Portal web público de tracking y trazabilidad histórica.
+RF-09 Billetera Digital del código QR2 para el destinatario.
+RF-10 Pre-registro web de encomiendas ("Código Express") con cotización dinámica.
+RF-11 Descarga autónoma de comprobantes electrónicos en PDF.
 
 4. Especificación de Requisitos No Funcionales (RNF)
 RNF-01 Seguridad: comunicaciones cifradas HTTPS/SSL; el hash del QR2 se invalida en <= 500 ms tras la validación cruzada.

@@ -116,7 +116,7 @@ $escritorioData = Obtener-SurefireData "frontend-marvisur/escritorio/target/sure
 
 # Vitest JSON
 $vitestJsonPath = "frontend-marvisur/portal-web/vitest-results.json"
-if (-not (Test-Path $vitestJsonPath)) {
+if ($true) {
     Write-Host "--> Generando reporte vitest-results.json..." -ForegroundColor Yellow
     npm --prefix frontend-marvisur/portal-web test -- --reporter=json --outputFile=vitest-results.json | Out-Null
 }

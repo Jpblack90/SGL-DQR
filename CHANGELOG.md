@@ -8,6 +8,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- [I3][W3] Cotización en línea y pre-registro web «Código Express» (RF-10) en `frontend-marvisur/portal-web`:
+  - Formulario público de cotización en línea (`/cotiza`) con selección de origen/destino (`GET /api/v1/publico/sucursales`), cálculo de peso volumétrico (factor 200) y cotización dinámica en tiempo real (`POST /api/v1/publico/cotizacion`), con transferencia fluida en memoria al pre-registro.
+  - Asistente de pre-registro Código Express (`/pre-registro`) en 4 pasos: Datos del envío con cotizador integrado, Datos de contacto (remitente y destinatario con validación de DNI 8 / RUC 11 dígitos y teléfono 9 dígitos), Confirmación con consentimiento obligatorio y Pantalla de éxito.
+  - Generación en cliente del código QR con librería oficial `qrcode` (`^1.5.4`) para presentación física rápida en ventanilla, vigencia de 48 horas, botón de copiado, botón de impresión amigable (`@media print`) y botón de compartir en WhatsApp conteniendo únicamente el código y vigencia (cero exposición de datos personales).
+  - Manejo integral de errores según RFC 7807 (400 con desglose por campo, 404 agencia no encontrada, 429 con `Retry-After` por exceso de peticiones y detección de caída de red).
+  - Soporte de privacidad absoluta: cero persistencia de datos personales en `localStorage`, `sessionStorage` ni cookies (el estado vive exclusivamente en memoria).
+  - Normalización tolerante en `LineaTiempo.tsx` para estados emitidos por la API (`RECEPCIONADO`, `EN_ALMACEN_ORIGEN`, `EN_TRANSITO`, `LISTO_PARA_RETIRO`, `ENTREGADO`) con alias para `EN_ALMACEN_DESTINO` y soporte de texto directo ante estados no catalogados.
+  - Cobertura completa de pruebas en Vitest y Testing Library: `Cotiza.test.tsx` (4 tests), `PreRegistro.test.tsx` (6 tests), `LineaTiempo.test.tsx` (4 tests), elevando la suite de `portal-web` a 32 pruebas automatizadas (100% verde).
 - [P13] Coherencia documental, auditoría técnica de métricas e informe reproducible:
   - Normalización de títulos en `docs/estado-implementacion.md` para correspondencia exacta con `docs/requisitos.md` (RF-04: CRUD Encomiendas, RF-07: Motor Central de Validación Criptográfica (Sistema Doble QR), RF-11: Comprobantes Web).
   - Eliminación de la palabra «equipaje» y sustitución por «encomienda» en `docs/requisitos.md` y `docs/estado-implementacion.md` según el Diccionario de Datos del SGL-DQR.
