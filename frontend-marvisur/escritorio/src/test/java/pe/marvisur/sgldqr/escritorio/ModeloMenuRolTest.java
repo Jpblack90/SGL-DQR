@@ -9,11 +9,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ModeloMenuRolTest {
 
     @Test
-    @DisplayName("estaAutorizado: TN1 Recepcionista tiene acceso únicamente a Ventanilla")
+    @DisplayName("estaAutorizado: TN1 Recepcionista tiene acceso a Ventanilla y Contingencia")
     void testPermisosTN1Recepcionista() {
         String rol = "ROLE_RECEPCIONISTA";
 
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.VENTANILLA)).isTrue();
+        assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)).isFalse();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.EMPLEADOS)).isFalse();
@@ -21,13 +22,15 @@ class ModeloMenuRolTest {
     }
 
     @Test
-    @DisplayName("estaAutorizado: TN2 Almacenero tiene acceso a Almacén")
+    @DisplayName("estaAutorizado: TN2 Almacenero tiene acceso a Almacén y Contingencia")
     void testPermisosTN2Almacenero() {
         String rol = "ROLE_ALMACENERO";
 
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.VENTANILLA)).isFalse();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)).isTrue();
+        assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
+        assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.RUTAS)).isFalse();
     }
 
     @Test
@@ -37,6 +40,7 @@ class ModeloMenuRolTest {
 
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.VENTANILLA)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)).isTrue();
+        assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.DASHBOARD)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.EMPLEADOS)).isTrue();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.RUTAS)).isTrue();
@@ -48,17 +52,29 @@ class ModeloMenuRolTest {
         String rol = "ROLE_CHOFER";
 
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.VENTANILLA)).isFalse();
+        assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)).isFalse();
         assertThat(ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.RUTAS)).isTrue();
     }
 
     @Test
-    @DisplayName("estaHabilitado: sólo VENTANILLA está habilitado funcionalmente en esta fase")
-    void testModulosHabilitadosFaseBase() {
+    @DisplayName("estaHabilitado: VENTANILLA, ALMACEN y CONTINGENCIA están habilitados funcionalmente en D3")
+    void testModulosHabilitadosFaseD3() {
+        // TN1
         assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.VENTANILLA)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.ALMACEN)).isFalse();
+
+        // TN2
+        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.ALMACEN)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.VENTANILLA)).isFalse();
+
+        // TN3
         assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.VENTANILLA)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.ALMACEN)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.CONTINGENCIA)).isTrue();
 
         // Módulos en desarrollo para fases posteriores
-        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.ALMACEN)).isFalse();
         assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
         assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.RUTAS)).isFalse();
     }

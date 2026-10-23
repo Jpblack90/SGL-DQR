@@ -56,30 +56,6 @@
           "required" : true
         },
         "responses" : {
-          "200" : {
-            "description" : "ValidaciÃ³n cruzada exitosa y entrega fÃ­sica autorizada",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/RespuestaValidacionEntregaDto"
-                },
-                "examples" : {
-                  "ValidaciÃ³n Exitosa" : {
-                    "description" : "ValidaciÃ³n Exitosa",
-                    "value" : {
-                      "idEncomienda" : "7b92f4e8-469b-43d7-a5c9-123456789abc",
-                      "codigoComprobante" : "MV-20261021-3A7MLMKY",
-                      "resultado" : "EXITOSO",
-                      "estadoLogistico" : "ENTREGADO",
-                      "mensaje" : "Entrega fÃ­sica autorizada y token QR2 invalidado de forma irreversible.",
-                      "latenciaMs" : 15,
-                      "fechaEntrega" : "2026-10-21T19:30:00"
-                    }
-                  }
-                }
-              }
-            }
-          },
           "403" : {
             "description" : "Acceso denegado: rol no autorizado (TN1 Recepcionista o TN4 Chofer)",
             "content" : {
@@ -112,6 +88,30 @@
               }
             }
           },
+          "200" : {
+            "description" : "ValidaciÃ³n cruzada exitosa y entrega fÃ­sica autorizada",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RespuestaValidacionEntregaDto"
+                },
+                "examples" : {
+                  "ValidaciÃ³n Exitosa" : {
+                    "description" : "ValidaciÃ³n Exitosa",
+                    "value" : {
+                      "idEncomienda" : "7b92f4e8-469b-43d7-a5c9-123456789abc",
+                      "codigoComprobante" : "MV-20261021-3A7MLMKY",
+                      "resultado" : "EXITOSO",
+                      "estadoLogistico" : "ENTREGADO",
+                      "mensaje" : "Entrega fÃ­sica autorizada y token QR2 invalidado de forma irreversible.",
+                      "latenciaMs" : 15,
+                      "fechaEntrega" : "2026-10-21T19:30:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "409" : {
             "description" : "ValidaciÃ³n rechazada por pago pendiente, token invÃ¡lido o estado incorrecto",
             "content" : {
@@ -128,6 +128,8 @@
                       "status" : 409,
                       "detail" : "La entrega estÃ¡ bloqueada porque la encomienda se encuentra en modalidad Contra Entrega con pago pendiente.",
                       "codigo" : "ENTREGA_BLOQUEADA_PAGO_PENDIENTE",
+                      "idEncomienda" : "7b92f4e8-469b-43d7-a5c9-123456789abc",
+                      "codigoComprobante" : "MV-20261021-3A7MLMKY",
                       "montoTotal" : 35.0,
                       "latenciaMs" : 8
                     }
@@ -240,16 +242,6 @@
           "required" : true
         },
         "responses" : {
-          "400" : {
-            "description" : "ValidaciÃ³n de entrada fallida",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
           "401" : {
             "description" : "No autenticado",
             "content" : {
@@ -276,6 +268,16 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/RegistrarEncomiendaResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "ValidaciÃ³n de entrada fallida",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -333,28 +335,6 @@
               }
             }
           },
-          "409" : {
-            "description" : "La encomienda ya se encuentra pagada",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                },
-                "examples" : {
-                  "Ya Pagada" : {
-                    "description" : "Ya Pagada",
-                    "value" : {
-                      "type" : "https://marvisur.pe/errores/encomienda-ya-pagada",
-                      "title" : "Encomienda Ya Pagada",
-                      "status" : 409,
-                      "detail" : "La encomienda con cÃ³digo MV-20261021-3A7MLMKY ya se encuentra pagada.",
-                      "codigo" : "YA_PAGADA"
-                    }
-                  }
-                }
-              }
-            }
-          },
           "200" : {
             "description" : "Cobro registrado exitosamente y encomienda desbloqueada",
             "content" : {
@@ -373,6 +353,28 @@
                       "estadoLogistico" : "EN_ALMACEN_DESTINO",
                       "mensaje" : "Cobro registrado exitosamente. La encomienda ha sido desbloqueada para su validaciÃ³n cruzada y entrega.",
                       "fechaCobro" : "2026-10-21T19:30:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "La encomienda ya se encuentra pagada",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                },
+                "examples" : {
+                  "Ya Pagada" : {
+                    "description" : "Ya Pagada",
+                    "value" : {
+                      "type" : "https://marvisur.pe/errores/encomienda-ya-pagada",
+                      "title" : "Encomienda Ya Pagada",
+                      "status" : 409,
+                      "detail" : "La encomienda con cÃ³digo MV-20261021-3A7MLMKY ya se encuentra pagada.",
+                      "codigo" : "YA_PAGADA"
                     }
                   }
                 }
@@ -402,12 +404,12 @@
           "required" : true
         },
         "responses" : {
-          "400" : {
-            "description" : "ValidaciÃ³n de campos fallida",
+          "200" : {
+            "description" : "AutenticaciÃ³n exitosa",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
+                  "$ref" : "#/components/schemas/LoginResponse"
                 }
               }
             }
@@ -422,12 +424,12 @@
               }
             }
           },
-          "200" : {
-            "description" : "AutenticaciÃ³n exitosa",
+          "400" : {
+            "description" : "ValidaciÃ³n de campos fallida",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/LoginResponse"
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -452,6 +454,16 @@
           "required" : true
         },
         "responses" : {
+          "403" : {
+            "description" : "Acceso denegado (requiere TN2 Almacenero o TN3 Administrador)",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
           "200" : {
             "description" : "Lote procesado exitosamente (con resultados individuales por Ã­tem)",
             "content" : {
@@ -490,6 +502,16 @@
               }
             }
           },
+          "401" : {
+            "description" : "No autenticado",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
           "400" : {
             "description" : "PeticiÃ³n invÃ¡lida (lote vacÃ­o, tamaÃ±o excede el mÃ¡ximo permitido o idViaje faltante para despacho)",
             "content" : {
@@ -508,26 +530,6 @@
                       "codigo" : "SOLICITUD_INVALIDA"
                     }
                   }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "No autenticado",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Acceso denegado (requiere TN2 Almacenero o TN3 Administrador)",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -606,56 +608,6 @@
           "required" : true
         },
         "responses" : {
-          "401" : {
-            "description" : "No autenticado",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Datos de incidencia invÃ¡lidos",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Encomienda o pareja Doble QR no encontrada",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Conflicto: la encomienda ya fue entregada",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Acceso denegado (requiere TN1, TN2 o TN3)",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
           "201" : {
             "description" : "Incidencia registrada exitosamente y QR1 regenerado",
             "content" : {
@@ -676,6 +628,56 @@
                       "qr1Base64" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
                     }
                   }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Acceso denegado (requiere TN1, TN2 o TN3)",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Encomienda o pareja Doble QR no encontrada",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "No autenticado",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflicto: la encomienda ya fue entregada",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Datos de incidencia invÃ¡lidos",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -713,6 +715,16 @@
           "example" : "suc-lima-01"
         } ],
         "responses" : {
+          "401" : {
+            "description" : "No autenticado",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
           "200" : {
             "description" : "Lista de viajes obtenida exitosamente",
             "content" : {
@@ -738,16 +750,6 @@
                       "estadoViaje" : "PROGRAMADO"
                     } ]
                   }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "No autenticado",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -871,12 +873,12 @@
           }
         } ],
         "responses" : {
-          "404" : {
-            "description" : "Encomienda no encontrada",
+          "200" : {
+            "description" : "Detalles de la encomienda",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
+                  "$ref" : "#/components/schemas/DetalleEncomiendaDto"
                 }
               }
             }
@@ -891,12 +893,12 @@
               }
             }
           },
-          "200" : {
-            "description" : "Detalles de la encomienda",
+          "404" : {
+            "description" : "Encomienda no encontrada",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/DetalleEncomiendaDto"
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -946,22 +948,22 @@
         "description" : "Devuelve los datos del empleado asociado al token JWT actual.",
         "operationId" : "me",
         "responses" : {
-          "401" : {
-            "description" : "Token JWT ausente, expirado o manipulado",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
           "200" : {
             "description" : "Datos del empleado autenticado",
             "content" : {
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/EmpleadoAutenticadoDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Token JWT ausente, expirado o manipulado",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -989,6 +991,16 @@
           "example" : 45879632
         } ],
         "responses" : {
+          "403" : {
+            "description" : "Acceso denegado (requiere TN1, TN2 o TN3)",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
+          },
           "401" : {
             "description" : "No autenticado",
             "content" : {
@@ -1001,16 +1013,6 @@
           },
           "400" : {
             "description" : "Documento de bÃºsqueda vacÃ­o o invÃ¡lido",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProblemDetail"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Acceso denegado (requiere TN1, TN2 o TN3)",
             "content" : {
               "*/*" : {
                 "schema" : {
@@ -1075,6 +1077,35 @@
         },
         "description" : "PeticiÃ³n de validaciÃ³n cruzada Doble QR para entrega fÃ­sica"
       },
+      "ProblemDetail" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "instance" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "properties" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        }
+      },
       "RespuestaValidacionEntregaDto" : {
         "type" : "object",
         "properties" : {
@@ -1116,35 +1147,6 @@
           }
         },
         "description" : "Respuesta de validaciÃ³n cruzada y entrega fÃ­sica exitosa"
-      },
-      "ProblemDetail" : {
-        "type" : "object",
-        "properties" : {
-          "type" : {
-            "type" : "string",
-            "format" : "uri"
-          },
-          "title" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "detail" : {
-            "type" : "string"
-          },
-          "instance" : {
-            "type" : "string",
-            "format" : "uri"
-          },
-          "properties" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "type" : "object"
-            }
-          }
-        }
       },
       "ClienteInputDto" : {
         "required" : [ "nombresRazonSocial", "numeroDocumento", "tipoDocumento" ],
@@ -1744,12 +1746,12 @@
           "last" : {
             "type" : "boolean"
           },
-          "pageable" : {
-            "$ref" : "#/components/schemas/PageableObject"
-          },
           "numberOfElements" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "pageable" : {
+            "$ref" : "#/components/schemas/PageableObject"
           },
           "empty" : {
             "type" : "boolean"
@@ -1769,19 +1771,19 @@
               "$ref" : "#/components/schemas/SortObject"
             }
           },
-          "pageNumber" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "pageSize" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "paged" : {
             "type" : "boolean"
           },
           "unpaged" : {
             "type" : "boolean"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageNumber" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

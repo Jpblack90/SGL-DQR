@@ -5,16 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ApiExcepcion;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ClienteDto;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.CotizacionComando;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.CotizacionResultado;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EncomiendaRegistradaResultado;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PreRegistroDto;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.Qr1Data;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.RegistrarEncomiendaComando;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.SucursalDto;
-import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AlmacenPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
@@ -22,9 +14,11 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -34,9 +28,10 @@ import java.util.logging.Logger;
 
 /**
  * Cliente HTTP REST para comunicación con la API central de Expreso Marvisur.
- * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort} y {@link EstadoConexionPort}.
+ * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort},
+ * {@link AlmacenPort} y {@link EstadoConexionPort}.
  */
-public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, EstadoConexionPort {
+public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort {
 
     private static final Logger LOGGER = Logger.getLogger(MarvisurHttpClient.class.getName());
     private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(10);
@@ -310,6 +305,323 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Es
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error al registrar encomienda: " + e.getMessage());
             throw new ApiExcepcion("Error al registrar la encomienda en el servidor: " + e.getMessage(), e);
+        }
+    }
+
+    // =========================================================================
+    // ALMACÉN: VALIDACIÓN CRUZADA, COBRO, VIAJES, LOTES, BÚSQUEDA, INCIDENCIAS
+    // =========================================================================
+
+    @Override
+    public ValidacionEntregaResultado validarEntrega(String qr1, String qr2) {
+        if (!SesionContexto.estaAutenticado()) {
+            throw new ApiExcepcion(401, "NO_AUTENTICADO", "Debe iniciar sesión para validar entregas.", null);
+        }
+
+        try {
+            Map<String, String> cuerpo = Map.of("qr1", qr1.trim(), "qr2", qr2.trim());
+            String jsonPeticion = objectMapper.writeValueAsString(cuerpo);
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/v1/entregas/validar"))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPeticion));
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                String idEnc = root.path("idEncomienda").asText(null);
+                String codComprobante = root.path("codigoComprobante").asText(null);
+                String estadoLogistico = root.path("estadoLogistico").asText("ENTREGADO");
+                long latencia = root.path("latenciaMs").asLong(0);
+                String mensaje = root.path("mensaje").asText("Entrega física autorizada.");
+
+                return new ValidacionEntregaResultado(
+                        ValidacionEntregaResultado.TipoValidacion.EXITOSO,
+                        idEnc, codComprobante, null, estadoLogistico, latencia, mensaje
+                );
+            } else if (response.statusCode() == 409) {
+                JsonNode root = objectMapper.readTree(response.body());
+                String codigo = root.path("codigo").asText("");
+                if (codigo.isBlank()) {
+                    codigo = root.path("title").asText("");
+                }
+                String codigoUpper = codigo.toUpperCase();
+                long latencia = root.path("latenciaMs").asLong(0);
+
+                if (codigoUpper.contains("PAGO_PENDIENTE") || codigoUpper.contains("BLOQUEADA")) {
+                    String idEnc = root.path("idEncomienda").asText(null);
+                    String codComprobante = root.path("codigoComprobante").asText(null);
+                    BigDecimal monto = root.hasNonNull("montoTotal")
+                            ? new BigDecimal(root.path("montoTotal").asText())
+                            : BigDecimal.ZERO;
+                    String mensaje = root.path("detail").asText("Entrega bloqueada: modalidad Contra Entrega con pago pendiente.");
+
+                    return new ValidacionEntregaResultado(
+                            ValidacionEntregaResultado.TipoValidacion.PAGO_PENDIENTE,
+                            idEnc, codComprobante, monto, "EN_ALMACEN_DESTINO", latencia, mensaje
+                    );
+                } else if (codigoUpper.contains("TOKEN") || codigoUpper.contains("INVALIDO_O_EXPIRADO") || "TOKEN_QR2_INVALIDO".equals(codigoUpper)) {
+                    return new ValidacionEntregaResultado(
+                            ValidacionEntregaResultado.TipoValidacion.TOKEN_INVALIDO,
+                            null, null, null, null, latencia,
+                            root.path("detail").asText("El código digital presentado es inválido, ya fue utilizado o no corresponde a esta encomienda.")
+                    );
+                } else if (codigoUpper.contains("TRANSICION")) {
+                    String estadoActual = root.path("estadoActual").asText("");
+                    String mensaje = root.path("detail").asText("La encomienda no se encuentra en estado 'EN_ALMACEN_DESTINO'.");
+                    return new ValidacionEntregaResultado(
+                            ValidacionEntregaResultado.TipoValidacion.TRANSICION_INVALIDA,
+                            null, null, null, estadoActual, latencia, mensaje
+                    );
+                } else {
+                    return new ValidacionEntregaResultado(
+                            ValidacionEntregaResultado.TipoValidacion.ERROR_INESPERADO,
+                            null, null, null, null, latencia,
+                            root.path("detail").asText("Error de validación cruzada.")
+                    );
+                }
+            } else if (response.statusCode() == 404) {
+                return new ValidacionEntregaResultado(
+                        ValidacionEntregaResultado.TipoValidacion.NO_ENCONTRADO,
+                        null, null, null, null, 0,
+                        "No se encontró encomienda asociada al código QR1 escaneado."
+                );
+            } else if (response.statusCode() == 403) {
+                throw new ApiExcepcion(403, "ACCESO_DENEGADO", "No tienes permiso para esta acción (requiere rol Almacenero o Administrador).", null);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al validar entrega: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error de red al validar entrega: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al validar entrega: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RespuestaCobroDto registrarCobro(String idEncomienda) {
+        if (!SesionContexto.estaAutenticado()) {
+            throw new ApiExcepcion(401, "NO_AUTENTICADO", "Debe iniciar sesión para registrar cobros.", null);
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/v1/encomiendas/" + idEncomienda + "/cobro"))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.noBody());
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                return new RespuestaCobroDto(
+                        root.path("idEncomienda").asText(idEncomienda),
+                        root.path("codigoComprobante").asText(null),
+                        root.hasNonNull("montoTotal") ? new BigDecimal(root.path("montoTotal").asText()) : BigDecimal.ZERO,
+                        root.path("estadoPago").asText("PAGADO"),
+                        root.path("estadoLogistico").asText(null),
+                        root.path("mensaje").asText("Cobro registrado exitosamente."),
+                        root.path("fechaCobro").asText(null)
+                );
+            } else if (response.statusCode() == 409) {
+                throw new ApiExcepcion(409, "YA_PAGADA", "La encomienda ya se encuentra pagada.", null);
+            } else if (response.statusCode() == 403) {
+                throw new ApiExcepcion(403, "ACCESO_DENEGADO", "No tienes permiso para registrar cobros.", null);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al registrar cobro.");
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al registrar cobro de encomienda " + idEncomienda + ": " + e.getMessage());
+            throw new ApiExcepcion("Error al registrar cobro: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<ViajeDto> listarViajes(String estado, String idSucursalOrigen) {
+        try {
+            StringBuilder sb = new StringBuilder(baseUrl).append("/api/v1/viajes?");
+            if (estado != null && !estado.isBlank()) {
+                sb.append("estado=").append(URLEncoder.encode(estado.trim(), StandardCharsets.UTF_8)).append("&");
+            }
+            if (idSucursalOrigen != null && !idSucursalOrigen.isBlank()) {
+                sb.append("idSucursalOrigen=").append(URLEncoder.encode(idSucursalOrigen.trim(), StandardCharsets.UTF_8));
+            }
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(sb.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), new TypeReference<List<ViajeDto>>() {});
+            } else {
+                procesarErrorRespuesta(response);
+                return List.of();
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error al listar viajes: " + e.getMessage());
+            throw new ApiExcepcion("Error al consultar viajes: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RespuestaLoteEscaneoDto procesarLote(LoteEscaneoComando comando) {
+        if (!SesionContexto.estaAutenticado()) {
+            throw new ApiExcepcion(401, "NO_AUTENTICADO", "Debe iniciar sesión para procesar lotes.", null);
+        }
+
+        try {
+            String jsonPeticion = objectMapper.writeValueAsString(comando);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/v1/almacen/lotes/escaneo"))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(20))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPeticion));
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), RespuestaLoteEscaneoDto.class);
+            } else if (response.statusCode() == 403) {
+                throw new ApiExcepcion(403, "ACCESO_DENEGADO", "No tienes permiso para procesar lotes (requiere Almacenero o Administrador).", null);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al procesar lote de escaneo.");
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al procesar lote de escaneo: " + e.getMessage());
+            throw new ApiExcepcion("Error de red al procesar lote: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<EncomiendaBusquedaDto> buscarEncomiendasPorDocumento(String documento) {
+        if (documento == null || documento.isBlank()) {
+            throw new ApiExcepcion(400, "DOCUMENTO_REQUERIDO", "Debe ingresar un número de DNI o RUC.", null);
+        }
+
+        try {
+            String url = baseUrl + "/api/v1/almacen/encomiendas/buscar?documento=" +
+                    URLEncoder.encode(documento.trim(), StandardCharsets.UTF_8);
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), new TypeReference<List<EncomiendaBusquedaDto>>() {});
+            } else if (response.statusCode() == 403) {
+                throw new ApiExcepcion(403, "ACCESO_DENEGADO", "No tienes permiso para buscar encomiendas por documento.", null);
+            } else {
+                procesarErrorRespuesta(response);
+                return List.of();
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error al buscar encomiendas por documento: " + e.getMessage());
+            throw new ApiExcepcion("Error al buscar encomiendas: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public RespuestaIncidenciaDto reportarIncidencia(RegistrarIncidenciaComando comando) {
+        if (!SesionContexto.estaAutenticado()) {
+            throw new ApiExcepcion(401, "NO_AUTENTICADO", "Debe iniciar sesión para reportar incidencias.", null);
+        }
+
+        try {
+            String jsonPeticion = objectMapper.writeValueAsString(comando);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/v1/almacen/incidencias"))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPeticion));
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201 || response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), RespuestaIncidenciaDto.class);
+            } else if (response.statusCode() == 409) {
+                throw new ApiExcepcion(409, "ENCOMIENDA_ENTREGADA", "No se puede reportar incidencia sobre una encomienda ya entregada.", null);
+            } else if (response.statusCode() == 403) {
+                throw new ApiExcepcion(403, "ACCESO_DENEGADO", "No tienes permiso para reportar incidencias.", null);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al reportar incidencia.");
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error al reportar incidencia de encomienda: " + e.getMessage());
+            throw new ApiExcepcion("Error al reportar incidencia: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<IncidenciaHistorialDto> listarIncidencias(String idEncomienda) {
+        try {
+            StringBuilder sb = new StringBuilder(baseUrl).append("/api/v1/almacen/incidencias");
+            if (idEncomienda != null && !idEncomienda.isBlank()) {
+                sb.append("?idEncomienda=").append(URLEncoder.encode(idEncomienda.trim(), StandardCharsets.UTF_8));
+            }
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(sb.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), new TypeReference<List<IncidenciaHistorialDto>>() {});
+            } else {
+                procesarErrorRespuesta(response);
+                return List.of();
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error al listar historial de incidencias: " + e.getMessage());
+            throw new ApiExcepcion("Error al consultar historial de incidencias: " + e.getMessage(), e);
         }
     }
 

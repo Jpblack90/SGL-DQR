@@ -224,6 +224,8 @@ public class EntregaApiServicio {
         } else if (resultadoCruzado.getResultado() == ResultadoValidacion.FALLIDO_PAGO_PENDIENTE) {
             log.warn("Validación cruzada bloqueada por pago pendiente: Encomienda {}", encomiendaEntidad.getIdEncomienda());
             return ResultadoProcesoValidacion.pagoPendiente(
+                    encomiendaEntidad.getIdEncomienda(),
+                    encomiendaEntidad.getCodigoComprobante(),
                     encomiendaEntidad.getMontoTotal(),
                     resultadoCruzado.getLatenciaProcesamientoMs()
             );

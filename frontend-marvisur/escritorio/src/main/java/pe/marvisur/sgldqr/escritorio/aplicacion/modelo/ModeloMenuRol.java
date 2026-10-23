@@ -6,19 +6,20 @@ import java.util.Set;
  * Define la matriz de permisos de navegación del menú lateral según el rol del empleado.
  * <p>
  * Roles:
- * - TN1 Recepcionista: Ventanilla
- * - TN2 Almacenero: Almacén
- * - TN3 Administrador: Ventanilla, Almacén, Dashboard, Empleados
+ * - TN1 Recepcionista: Ventanilla, Contingencia
+ * - TN2 Almacenero: Almacén (Entrega, Lotes, Contingencia)
+ * - TN3 Administrador: Ventanilla, Almacén, Contingencia, Dashboard, Empleados
  * - TN4 Chofer: Rutas
  * </p>
- * En la versión base actual, únicamente el módulo Ventanilla está operativo; los demás
- * aparecen marcados como 'Próximamente'.
+ * En la versión actual (Fase D1 + D2 + D3), los módulos Ventanilla, Almacén y Contingencia
+ * están plenamente operativos. Dashboard, Empleados y Rutas siguen marcados como 'Próximamente'.
  */
 public final class ModeloMenuRol {
 
     public enum ModuloMenu {
-        VENTANILLA("Ventanilla", "Registro y emisión de Doble QR", true),
-        ALMACEN("Almacén", "Recepción y validación cruzada Doble QR", false),
+        VENTANILLA("Ventanilla", "Registro y admisión con Doble QR", true),
+        ALMACEN("Almacén", "Validación cruzada Doble QR, entrega física y lotes", true),
+        CONTINGENCIA("Contingencia", "Búsqueda DNI/RUC, cobro e incidencias de etiquetas", true),
         DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", false),
         EMPLEADOS("Empleados", "Gestión de personal y sucursales", false),
         RUTAS("Rutas", "Programación de viajes y asignación de flotas", false);
@@ -75,6 +76,7 @@ public final class ModeloMenuRol {
         return switch (modulo) {
             case VENTANILLA -> Set.of("TN1", "TN3").contains(rolNorm);
             case ALMACEN -> Set.of("TN2", "TN3").contains(rolNorm);
+            case CONTINGENCIA -> Set.of("TN1", "TN2", "TN3").contains(rolNorm);
             case DASHBOARD, EMPLEADOS -> Set.of("TN3").contains(rolNorm);
             case RUTAS -> Set.of("TN4", "TN3").contains(rolNorm);
         };
