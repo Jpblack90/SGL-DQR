@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-verify:
-    name: Build y Verificación Maven + Docker
+    name: Build y Verificación Maven + Docker (Core, API y Escritorio)
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,8 @@ jobs:
       - name: Verificar Docker disponible
         run: docker info
 
-      - name: Compilación y Pruebas con Maven (Core + API con Testcontainers)
-        run: mvn -B clean verify -f backend-marvisur/pom.xml
+      - name: Compilación y Pruebas con Maven (Core + API con Testcontainers + Escritorio)
+        run: mvn -B clean verify
 
   portal:
     name: Build, Lint y Pruebas Portal Web (Node 20)
