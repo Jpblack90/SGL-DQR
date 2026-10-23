@@ -332,6 +332,8 @@ class EntregaControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo", is("ENTREGA_BLOQUEADA_PAGO_PENDIENTE")))
+                .andExpect(jsonPath("$.idEncomienda", is(idEncomienda)))
+                .andExpect(jsonPath("$.codigoComprobante", is(registrada.codigoComprobante())))
                 .andExpect(jsonPath("$.montoTotal").exists());
 
         // Token debe seguir ACTIVO

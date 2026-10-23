@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorLogin"
+           style="-fx-background-color: #0F172A;">
+
+    <VBox alignment="CENTER" maxWidth="420" spacing="20" styleClass="tarjeta"
+          style="-fx-background-color: #FFFFFF; -fx-padding: 32; -fx-background-radius: 12;">
+        <padding>
+            <Insets bottom="32" left="32" right="32" top="32"/>
+        </padding>
+
+        <!-- Cabecera / Identidad -->
+        <VBox alignment="CENTER" spacing="6">
+            <HBox alignment="CENTER" spacing="8">
+                <Circle radius="10" fill="#E30613"/>
+                <Label text="EXPRESO MARVISUR"
+                       style="-fx-font-size: 20px; -fx-font-weight: 800; -fx-text-fill: #E30613;"/>
+            </HBox>
+            <Label text="SGL-DQR · Ventanilla y Operaciones"
+                   style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+            <Label text="Ingrese sus credenciales de colaborador"
+                   style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
+        </VBox>
+
+        <!-- Formulario de Login -->
+        <VBox spacing="12">
+            <VBox spacing="4">
+                <Label text="Correo Corporativo" styleClass="label-campo"/>
+                <TextField fx:id="txtCorreo" promptText="ej. recepcionista.demo@marvisur.pe"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Contraseña" styleClass="label-campo"/>
+                <PasswordField fx:id="txtPassword" promptText="••••••••"/>
+            </VBox>
+
+            <!-- Mensaje de error -->
+            <Label fx:id="lblError" wrapText="true" styleClass="texto-error" visible="false"/>
+
+            <!-- Botón y progreso -->
+            <StackPane>
+                <Button fx:id="btnIniciarSesion" text="Iniciar Sesión" onAction="#manejarLogin"
+                        maxWidth="Infinity" styleClass="btn-primario" defaultButton="true"/>
+                <ProgressIndicator fx:id="spinnerCarga" maxWidth="24" maxHeight="24" visible="false"/>
+            </StackPane>
+        </VBox>
+
+        <!-- Ayuda rápida demo -->
+        <VBox alignment="CENTER" spacing="2" style="-fx-padding: 10 0 0 0;">
+            <Label text="Acceso demo: recepcionista.demo@marvisur.pe"
+                   style="-fx-font-size: 10px; -fx-text-fill: #94A3B8;"/>
+            <Label text="Contraseña: Demo1234*"
+                   style="-fx-font-size: 10px; -fx-text-fill: #94A3B8;"/>
+        </VBox>
+    </VBox>
+</StackPane>

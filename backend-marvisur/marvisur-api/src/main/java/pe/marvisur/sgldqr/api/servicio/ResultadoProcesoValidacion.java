@@ -22,16 +22,21 @@ public class ResultadoProcesoValidacion {
 
     private final Tipo tipo;
     private final RespuestaValidacionEntregaDto respuestaDto;
+    private final String idEncomienda;
+    private final String codigoComprobante;
     private final BigDecimal montoTotalPendiente;
     private final String estadoActual;
     private final String mensaje;
     private final long latenciaMs;
 
     private ResultadoProcesoValidacion(Tipo tipo, RespuestaValidacionEntregaDto respuestaDto,
+                                       String idEncomienda, String codigoComprobante,
                                        BigDecimal montoTotalPendiente, String estadoActual,
                                        String mensaje, long latenciaMs) {
         this.tipo = Objects.requireNonNull(tipo, "El tipo de resultado no puede ser nulo");
         this.respuestaDto = respuestaDto;
+        this.idEncomienda = idEncomienda;
+        this.codigoComprobante = codigoComprobante;
         this.montoTotalPendiente = montoTotalPendiente;
         this.estadoActual = estadoActual;
         this.mensaje = mensaje;
@@ -39,25 +44,29 @@ public class ResultadoProcesoValidacion {
     }
 
     public static ResultadoProcesoValidacion exitoso(RespuestaValidacionEntregaDto respuestaDto, long latenciaMs) {
-        return new ResultadoProcesoValidacion(Tipo.EXITOSO, respuestaDto, null, null, respuestaDto.mensaje(), latenciaMs);
+        return new ResultadoProcesoValidacion(Tipo.EXITOSO, respuestaDto,
+                respuestaDto.idEncomienda(), respuestaDto.codigoComprobante(),
+                null, null, respuestaDto.mensaje(), latenciaMs);
     }
 
-    public static ResultadoProcesoValidacion pagoPendiente(BigDecimal montoTotalPendiente, long latenciaMs) {
-        return new ResultadoProcesoValidacion(Tipo.FALLIDO_PAGO_PENDIENTE, null, montoTotalPendiente, null,
+    public static ResultadoProcesoValidacion pagoPendiente(String idEncomienda, String codigoComprobante,
+                                                          BigDecimal montoTotalPendiente, long latenciaMs) {
+        return new ResultadoProcesoValidacion(Tipo.FALLIDO_PAGO_PENDIENTE, null,
+                idEncomienda, codigoComprobante, montoTotalPendiente, null,
                 "La entrega está bloqueada porque la encomienda se encuentra en modalidad Contra Entrega con pago pendiente.", latenciaMs);
     }
 
     public static ResultadoProcesoValidacion tokenInvalido(long latenciaMs) {
-        return new ResultadoProcesoValidacion(Tipo.FALLIDO_TOKEN_INVALIDO, null, null, null,
+        return new ResultadoProcesoValidacion(Tipo.FALLIDO_TOKEN_INVALIDO, null, null, null, null, null,
                 "El código QR2 digital presentado es inválido, ya fue utilizado o no corresponde a esta encomienda.", latenciaMs);
     }
 
     public static ResultadoProcesoValidacion transicionInvalida(String estadoActual, String mensaje) {
-        return new ResultadoProcesoValidacion(Tipo.TRANSICION_INVALIDA, null, null, estadoActual, mensaje, 0);
+        return new ResultadoProcesoValidacion(Tipo.TRANSICION_INVALIDA, null, null, null, null, estadoActual, mensaje, 0);
     }
 
     public static ResultadoProcesoValidacion noEncontrado(String mensaje) {
-        return new ResultadoProcesoValidacion(Tipo.NO_ENCONTRADO, null, null, null, mensaje, 0);
+        return new ResultadoProcesoValidacion(Tipo.NO_ENCONTRADO, null, null, null, null, null, mensaje, 0);
     }
 
     public Tipo getTipo() {
@@ -66,6 +75,14 @@ public class ResultadoProcesoValidacion {
 
     public RespuestaValidacionEntregaDto getRespuestaDto() {
         return respuestaDto;
+    }
+
+    public String getIdEncomienda() {
+        return idEncomienda;
+    }
+
+    public String getCodigoComprobante() {
+        return codigoComprobante;
     }
 
     public BigDecimal getMontoTotalPendiente() {

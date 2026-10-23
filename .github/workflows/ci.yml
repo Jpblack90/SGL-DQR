@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-verify:
-    name: Build y Verificación Maven + Docker
+    name: Build y Verificación Maven + Docker (Core, API y Escritorio)
     runs-on: ubuntu-latest
 
     steps:
@@ -25,5 +25,35 @@ jobs:
       - name: Verificar Docker disponible
         run: docker info
 
-      - name: Compilación y Pruebas con Maven (Core + API con Testcontainers)
-        run: mvn -B clean verify -f backend-marvisur/pom.xml
+      - name: Compilación y Pruebas con Maven (Core + API con Testcontainers + Escritorio)
+        run: mvn -B clean verify
+
+  portal:
+    name: Build, Lint y Pruebas Portal Web (Node 20)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-marvisur/portal-web
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend-marvisur/portal-web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar linter
+        run: npm run lint
+
+      - name: Ejecutar pruebas unitarias (Vitest)
+        run: npm test
+
+      - name: Compilar aplicación web (Vite build)
+        run: npm run build
