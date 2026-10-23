@@ -44,9 +44,11 @@
                    style="-fx-text-fill: #94A3B8; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 6 10;"/>
 
             <Button fx:id="btnMenuVentanilla" text="📦 Ventanilla" onAction="#mostrarVentanilla"
-                    styleClass="boton-menu, boton-menu-activo"/>
-            <Button fx:id="btnMenuAlmacen" text="🏬 Almacén (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+                    styleClass="boton-menu"/>
+            <Button fx:id="btnMenuAlmacen" text="🏬 Almacén" onAction="#mostrarAlmacen"
+                    styleClass="boton-menu"/>
+            <Button fx:id="btnMenuContingencia" text="🚨 Contingencia" onAction="#mostrarContingencia"
+                    styleClass="boton-menu"/>
             <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota (Próx.)" onAction="#mostrarAvisoProximamente"
                     styleClass="boton-menu, boton-menu-deshabilitado"/>
 
@@ -72,7 +74,7 @@
     <!-- ÁREA DE TRABAJO PRINCIPAL -->
     <center>
         <StackPane fx:id="contenedorContenido" style="-fx-background-color: #F8FAFC;">
-            <!-- El contenido de VentanillaView se carga dinámicamente aquí -->
+            <!-- El contenido se carga dinámicamente aquí -->
         </StackPane>
     </center>
 

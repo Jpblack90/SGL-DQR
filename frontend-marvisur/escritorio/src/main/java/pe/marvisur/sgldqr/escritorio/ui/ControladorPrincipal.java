@@ -53,6 +53,9 @@ public class ControladorPrincipal {
     private Button btnMenuAlmacen;
 
     @FXML
+    private Button btnMenuContingencia;
+
+    @FXML
     private Button btnMenuRutas;
 
     @FXML
@@ -84,7 +87,7 @@ public class ControladorPrincipal {
         configurarDatosUsuario();
         configurarMenuSegunRol();
         iniciarMonitoreoConectividad();
-        mostrarVentanilla();
+        mostrarVistaInicialSegunRol();
     }
 
     private void configurarDatosUsuario() {
@@ -106,6 +109,7 @@ public class ControladorPrincipal {
 
         configurarBotonMenu(btnMenuVentanilla, ModeloMenuRol.ModuloMenu.VENTANILLA, rol);
         configurarBotonMenu(btnMenuAlmacen, ModeloMenuRol.ModuloMenu.ALMACEN, rol);
+        configurarBotonMenu(btnMenuContingencia, ModeloMenuRol.ModuloMenu.CONTINGENCIA, rol);
         configurarBotonMenu(btnMenuRutas, ModeloMenuRol.ModuloMenu.RUTAS, rol);
         configurarBotonMenu(btnMenuDashboard, ModeloMenuRol.ModuloMenu.DASHBOARD, rol);
         configurarBotonMenu(btnMenuEmpleados, ModeloMenuRol.ModuloMenu.EMPLEADOS, rol);
@@ -125,6 +129,34 @@ public class ControladorPrincipal {
         if (!habilitado) {
             boton.setDisable(false); // Se mantiene clickable para mostrar el diálogo explicativo
             boton.setStyle("-fx-opacity: 0.65;");
+        }
+    }
+
+    private void mostrarVistaInicialSegunRol() {
+        UsuarioSesion sesion = SesionContexto.obtenerSesion();
+        String rol = sesion != null ? sesion.rol() : "";
+
+        if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.VENTANILLA)) {
+            mostrarVentanilla();
+        } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)) {
+            mostrarAlmacen();
+        } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)) {
+            mostrarContingencia();
+        } else {
+            marcarBotonActivo(null);
+            mostrarAvisoProximamente();
+        }
+    }
+
+    private void marcarBotonActivo(Button botonActivo) {
+        Button[] botones = {btnMenuVentanilla, btnMenuAlmacen, btnMenuContingencia, btnMenuRutas, btnMenuDashboard, btnMenuEmpleados};
+        for (Button btn : botones) {
+            if (btn != null) {
+                btn.getStyleClass().remove("boton-menu-activo");
+            }
+        }
+        if (botonActivo != null && !botonActivo.getStyleClass().contains("boton-menu-activo")) {
+            botonActivo.getStyleClass().add("boton-menu-activo");
         }
     }
 
@@ -151,12 +183,39 @@ public class ControladorPrincipal {
 
     @FXML
     public void mostrarVentanilla() {
+        marcarBotonActivo(btnMenuVentanilla);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/VentanillaView.fxml"));
             Node vista = loader.load();
             contenedorContenido.getChildren().setAll(vista);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error al cargar VentanillaView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    @FXML
+    public void mostrarAlmacen() {
+        marcarBotonActivo(btnMenuAlmacen);
+        cargarVistaAlmacen("ENTREGA");
+    }
+
+    @FXML
+    public void mostrarContingencia() {
+        marcarBotonActivo(btnMenuContingencia);
+        cargarVistaAlmacen("CONTINGENCIA");
+    }
+
+    private void cargarVistaAlmacen(String pestana) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/AlmacenView.fxml"));
+            Node vista = loader.load();
+            ControladorAlmacen controlador = loader.getController();
+            if (controlador != null && pestana != null) {
+                controlador.seleccionarPestana(pestana);
+            }
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar AlmacenView.fxml: " + e.getMessage(), e);
         }
     }
 
