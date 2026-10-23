@@ -103,7 +103,7 @@ class RegistrarEncomiendaServiceTest {
                 "remitente-1",
                 "destinatario-2",
                 "sucursal-lima",
-                "sucursal-cusco",
+                "sucursal-huancayo",
                 new BigDecimal("5.00"),
                 null,
                 "Prendas de vestir",
