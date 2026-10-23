@@ -36,7 +36,7 @@ while (-not $listo -and $intentos -lt $maxIntentos) {
         $listo = $true
         break
     }
-    Write-Host "    Intento $intentos/$maxIntentos: esperando a PostgreSQL..." -ForegroundColor Gray
+    Write-Host "    Intento $intentos/${maxIntentos}: esperando a PostgreSQL..." -ForegroundColor Gray
 }
 
 if ($listo) {

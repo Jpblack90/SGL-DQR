@@ -46,7 +46,7 @@ while (-not $lista -and $intentos -lt $maxIntentos) {
             break
         }
     } catch {
-        Write-Host "    Intento $intentos/$maxIntentos: esperando salud UP de la API..." -ForegroundColor Gray
+        Write-Host "    Intento $intentos/${nombre}: esperando salud UP de la API..." -ForegroundColor Gray
     }
 }
 
