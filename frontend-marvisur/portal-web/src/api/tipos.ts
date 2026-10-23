@@ -51,6 +51,8 @@ export interface ProblemDetail {
   detail?: string;
   instance?: string;
   codigo?: string;
+  invalidParams?: Record<string, string>;
+  errores?: Record<string, string>;
 }
 
 export class ApiError extends Error {
@@ -58,19 +60,21 @@ export class ApiError extends Error {
   public readonly codigo?: string;
   public readonly retryAfterSeconds?: number;
   public readonly esErrorRed: boolean;
+  public readonly problemDetail?: ProblemDetail;
 
-  constructor(mensaje: string, status = 500, codigo?: string, retryAfterSeconds?: number, esErrorRed = false) {
+  constructor(mensaje: string, status = 500, codigo?: string, retryAfterSeconds?: number, esErrorRed = false, problemDetail?: ProblemDetail) {
     super(mensaje);
     this.name = 'ApiError';
     this.status = status;
     this.codigo = codigo;
     this.retryAfterSeconds = retryAfterSeconds;
     this.esErrorRed = esErrorRed;
+    this.problemDetail = problemDetail;
   }
 }
 
 /**
- * Diccionario de etiquetas legibles y amigables para los estados logísticos
+ * Diccionario de etiquetas legibles y amigables para los estados logísticos generales
  */
 export const ETIQUETAS_ESTADO_LOGISTICO: Record<string, string> = {
   RECEPCIONADO: 'Recibido en agencia',
@@ -84,5 +88,27 @@ export const ETIQUETAS_ESTADO_LOGISTICO: Record<string, string> = {
 };
 
 export function obtenerEtiquetaEstado(estado: string): string {
-  return ETIQUETAS_ESTADO_LOGISTICO[estado] || estado.replace(/_/g, ' ');
+  return ETIQUETAS_ESTADO_LOGISTICO[estado] || estado;
+}
+
+/**
+ * Mapa oficial de etiquetas legibles para los eventos emitidos por la API de tracking:
+ * RECEPCIONADO, EN_ALMACEN_ORIGEN, EN_TRANSITO, LISTO_PARA_RETIRO, ENTREGADO.
+ * EN_ALMACEN_DESTINO actúa como alias tolerado de LISTO_PARA_RETIRO.
+ */
+export const MAPA_ESTADOS_TRACKING: Record<string, string> = {
+  RECEPCIONADO: 'Recibido en agencia',
+  EN_ALMACEN_ORIGEN: 'En almacén de origen',
+  EN_TRANSITO: 'En tránsito',
+  LISTO_PARA_RETIRO: 'Listo para retiro',
+  EN_ALMACEN_DESTINO: 'Listo para retiro', // Alias tolerado
+  ENTREGADO: 'Entregado',
+};
+
+/**
+ * Devuelve la etiqueta amigable del estado de tracking o el texto crudo si es desconocido.
+ */
+export function obtenerEtiquetaTracking(estado: string): string {
+  if (!estado) return '';
+  return MAPA_ESTADOS_TRACKING[estado] || estado;
 }
