@@ -37,9 +37,9 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -107,6 +107,28 @@ class DashboardControllerTest {
 
     @BeforeEach
     void setUp() {
+        // Limpieza previa en orden seguro de claves foráneas
+        validacionLogRepository.deleteAllInBatch();
+        trackingRepository.deleteAllInBatch();
+        parDobleQrRepository.deleteAllInBatch();
+        encomiendaRepository.deleteAllInBatch();
+        clienteRepository.deleteAllInBatch();
+
+        // Limpiar solo los empleados creados por pruebas anteriores (preservar EMP-ADMIN-01 de V7)
+        for (EmpleadoJpaEntity emp : empleadoRepository.findAll()) {
+            if (!"EMP-ADMIN-01".equals(emp.getIdEmpleado())) {
+                empleadoRepository.delete(emp);
+            }
+        }
+
+        // Limpiar solo las sucursales creadas por pruebas anteriores (preservar SUC-LIM-01 de V7)
+        for (SucursalJpaEntity suc : sucursalRepository.findAll()) {
+            if (!"SUC-LIM-01".equals(suc.getIdSucursal())) {
+                sucursalRepository.delete(suc);
+            }
+        }
+
+        // Identificadores UUID de 36 caracteres y datos únicos para esta ejecución
         sucursalOrigenId = UUID.randomUUID().toString();
         sucursalDestinoId = UUID.randomUUID().toString();
         empleadoAdminId = UUID.randomUUID().toString();
@@ -114,35 +136,63 @@ class DashboardControllerTest {
         String empleadoAlmId = UUID.randomUUID().toString();
         String empleadoChoId = UUID.randomUUID().toString();
 
-        sucursalRepository.save(new SucursalJpaEntity(sucursalOrigenId, "Agencia Test Origen " + sucursalOrigenId.substring(0, 6), "Av. Origen 123", "Lima"));
-        sucursalRepository.save(new SucursalJpaEntity(sucursalDestinoId, "Agencia Test Destino " + sucursalDestinoId.substring(0, 6), "Av. Destino 456", "Arequipa"));
+        sucursalRepository.save(new SucursalJpaEntity(
+                sucursalOrigenId,
+                "Agencia Test Origen " + sucursalOrigenId.substring(0, 6),
+                "Av. Origen 123",
+                "Lima"
+        ));
+        sucursalRepository.save(new SucursalJpaEntity(
+                sucursalDestinoId,
+                "Agencia Test Destino " + sucursalDestinoId.substring(0, 6),
+                "Av. Destino 456",
+                "Arequipa"
+        ));
 
-        guardarEmpleado(empleadoAdminId, ConstantesSeguridad.ID_ROL_ADMINISTRADOR, sucursalOrigenId, "10000001", "Admin", "Test", "admin.dash@marvisur.pe");
-        guardarEmpleado(empleadoRecId, ConstantesSeguridad.ID_ROL_RECEPCIONISTA, sucursalOrigenId, "10000002", "Recep", "Test", "rec.dash@marvisur.pe");
-        guardarEmpleado(empleadoAlmId, ConstantesSeguridad.ID_ROL_ALMACENERO, sucursalOrigenId, "10000003", "Almacen", "Test", "alm.dash@marvisur.pe");
-        guardarEmpleado(empleadoChoId, ConstantesSeguridad.ID_ROL_CHOFER, sucursalOrigenId, "10000004", "Chofer", "Test", "chofer.dash@marvisur.pe");
+        // DNIs de 8 dígitos al azar y únicos (garantizan no colisionar con uq_empleados_dni)
+        String dniAdmin = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniRec = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniAlm = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniCho = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+
+        String correoAdmin = "admin." + UUID.randomUUID().toString().substring(0, 8) + "@marvisur.pe";
+        String correoRec = "rec." + UUID.randomUUID().toString().substring(0, 8) + "@marvisur.pe";
+        String correoAlm = "alm." + UUID.randomUUID().toString().substring(0, 8) + "@marvisur.pe";
+        String correoCho = "cho." + UUID.randomUUID().toString().substring(0, 8) + "@marvisur.pe";
+
+        empleadoRepository.save(new EmpleadoJpaEntity(
+                empleadoAdminId, ConstantesSeguridad.ID_ROL_ADMINISTRADOR, sucursalOrigenId,
+                dniAdmin, "Admin", "Test", correoAdmin,
+                "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
+        ));
+        empleadoRepository.save(new EmpleadoJpaEntity(
+                empleadoRecId, ConstantesSeguridad.ID_ROL_RECEPCIONISTA, sucursalOrigenId,
+                dniRec, "Recep", "Test", correoRec,
+                "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
+        ));
+        empleadoRepository.save(new EmpleadoJpaEntity(
+                empleadoAlmId, ConstantesSeguridad.ID_ROL_ALMACENERO, sucursalOrigenId,
+                dniAlm, "Almacen", "Test", correoAlm,
+                "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
+        ));
+        empleadoRepository.save(new EmpleadoJpaEntity(
+                empleadoChoId, ConstantesSeguridad.ID_ROL_CHOFER, sucursalOrigenId,
+                dniCho, "Chofer", "Test", correoCho,
+                "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
+        ));
 
         tokenAdmin = jwtServicio.generarToken(new EmpleadoAutenticadoDto(
-                empleadoAdminId, "Admin", "Test", "admin.dash@marvisur.pe", ConstantesSeguridad.AUTH_ADMINISTRADOR, sucursalOrigenId
+                empleadoAdminId, "Admin", "Test", correoAdmin, ConstantesSeguridad.AUTH_ADMINISTRADOR, sucursalOrigenId
         ));
         tokenRecepcionista = jwtServicio.generarToken(new EmpleadoAutenticadoDto(
-                empleadoRecId, "Recep", "Test", "rec.dash@marvisur.pe", ConstantesSeguridad.AUTH_RECEPCIONISTA, sucursalOrigenId
+                empleadoRecId, "Recep", "Test", correoRec, ConstantesSeguridad.AUTH_RECEPCIONISTA, sucursalOrigenId
         ));
         tokenAlmacenero = jwtServicio.generarToken(new EmpleadoAutenticadoDto(
-                empleadoAlmId, "Almacen", "Test", "alm.dash@marvisur.pe", ConstantesSeguridad.AUTH_ALMACENERO, sucursalOrigenId
+                empleadoAlmId, "Almacen", "Test", correoAlm, ConstantesSeguridad.AUTH_ALMACENERO, sucursalOrigenId
         ));
         tokenChofer = jwtServicio.generarToken(new EmpleadoAutenticadoDto(
-                empleadoChoId, "Chofer", "Test", "chofer.dash@marvisur.pe", ConstantesSeguridad.AUTH_CHOFER, sucursalOrigenId
+                empleadoChoId, "Chofer", "Test", correoCho, ConstantesSeguridad.AUTH_CHOFER, sucursalOrigenId
         ));
-    }
-
-    private void guardarEmpleado(String id, String idRol, String idSucursal, String dni, String nombres, String apellidos, String correo) {
-        if (!empleadoRepository.existsById(id)) {
-            empleadoRepository.save(new EmpleadoJpaEntity(
-                    id, idRol, idSucursal, dni, nombres, apellidos, correo,
-                    "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
-            ));
-        }
     }
 
     @Test
@@ -150,35 +200,37 @@ class DashboardControllerTest {
     void debeRetornarTotalesYEstadosCorrectamenteParaAdministrador() throws Exception {
         String cliRemId = UUID.randomUUID().toString();
         String cliDestId = UUID.randomUUID().toString();
-        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", "70" + cliRemId.substring(0, 6), "Remitente Test", "911222333", "rem@test.com"));
-        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", "71" + cliDestId.substring(0, 6), "Destinatario Test", "944555666", "dest@test.com"));
+        String dniRem = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniDest = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Remitente Test", "911222333", "rem." + cliRemId.substring(0, 8) + "@test.com"));
+        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", dniDest, "Destinatario Test", "944555666", "dest." + cliDestId.substring(0, 8) + "@test.com"));
 
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.of("-05:00"));
 
         // 1. Encomienda entregada y pagada (hoy)
         String enc1Id = UUID.randomUUID().toString();
-        String comp1 = "C1-" + enc1Id.substring(0, 8);
+        String comp1 = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
         encomiendaRepository.save(new EncomiendaJpaEntity(
                 enc1Id, comp1, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
-                new BigDecimal("5.00"), new BigDecimal("0.02"), "Paquete entregado",
+                new BigDecimal("5.00"), new BigDecimal("0.0200"), "Paquete entregado",
                 new BigDecimal("100.00"), "PAGADO", "ENTREGADO", ahora.minusHours(2)
         ));
 
         // 2. Encomienda pendiente de pago en almacén origen (hoy)
         String enc2Id = UUID.randomUUID().toString();
-        String comp2 = "C2-" + enc2Id.substring(0, 8);
+        String comp2 = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
         encomiendaRepository.save(new EncomiendaJpaEntity(
                 enc2Id, comp2, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
-                new BigDecimal("2.50"), new BigDecimal("0.01"), "Paquete pendiente",
+                new BigDecimal("2.50"), new BigDecimal("0.0100"), "Paquete pendiente",
                 new BigDecimal("50.00"), "PENDIENTE", "EN_ALMACEN_ORIGEN", ahora.minusHours(1)
         ));
 
         // 3. Encomienda estancada: registrada hace 60 horas, sin movimiento en las últimas 55 horas
         String enc3Id = UUID.randomUUID().toString();
-        String comp3 = "C3-" + enc3Id.substring(0, 8);
+        String comp3 = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
         encomiendaRepository.save(new EncomiendaJpaEntity(
                 enc3Id, comp3, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
-                new BigDecimal("8.00"), new BigDecimal("0.03"), "Paquete estancado",
+                new BigDecimal("8.00"), new BigDecimal("0.0300"), "Paquete estancado",
                 new BigDecimal("80.00"), "PAGADO", "EN_RUTA", ahora.minusHours(60)
         ));
         trackingRepository.save(new HistorialTrackingJpaEntity(
@@ -214,15 +266,18 @@ class DashboardControllerTest {
     void debeRetornarRecaudacionPorSucursalCorrectamente() throws Exception {
         String cliRemId = UUID.randomUUID().toString();
         String cliDestId = UUID.randomUUID().toString();
-        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", "72" + cliRemId.substring(0, 6), "Remitente Rec", "911222333", "rem.rec@test.com"));
-        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", "73" + cliDestId.substring(0, 6), "Destinatario Rec", "944555666", "dest.rec@test.com"));
+        String dniRem = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniDest = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Remitente Rec", "911222333", "rem.rec." + cliRemId.substring(0, 8) + "@test.com"));
+        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", dniDest, "Destinatario Rec", "944555666", "dest.rec." + cliDestId.substring(0, 8) + "@test.com"));
 
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.of("-05:00"));
 
         String encId = UUID.randomUUID().toString();
+        String comp = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
         encomiendaRepository.save(new EncomiendaJpaEntity(
-                encId, "CR-" + encId.substring(0, 8), cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
-                new BigDecimal("3.00"), new BigDecimal("0.01"), "Caja mediana",
+                encId, comp, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
+                new BigDecimal("3.00"), new BigDecimal("0.0100"), "Caja mediana",
                 new BigDecimal("250.00"), "PAGADO", "REGISTRADO", ahora.minusHours(1)
         ));
 
@@ -242,15 +297,18 @@ class DashboardControllerTest {
     void debeRetornarMetricasValidacionConLatenciasConocidas() throws Exception {
         String cliRemId = UUID.randomUUID().toString();
         String cliDestId = UUID.randomUUID().toString();
-        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", "74" + cliRemId.substring(0, 6), "Rem Val", "911222333", "rem.val@test.com"));
-        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", "75" + cliDestId.substring(0, 6), "Dest Val", "944555666", "dest.val@test.com"));
+        String dniRem = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniDest = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Rem Val", "911222333", "rem.val." + cliRemId.substring(0, 8) + "@test.com"));
+        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", dniDest, "Dest Val", "944555666", "dest.val." + cliDestId.substring(0, 8) + "@test.com"));
 
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.of("-05:00"));
 
         String encId = UUID.randomUUID().toString();
+        String comp = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
         encomiendaRepository.save(new EncomiendaJpaEntity(
-                encId, "CV-" + encId.substring(0, 8), cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
-                new BigDecimal("1.00"), new BigDecimal("0.01"), "Sobre",
+                encId, comp, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
+                new BigDecimal("1.00"), new BigDecimal("0.0100"), "Sobre",
                 new BigDecimal("20.00"), "PAGADO", "ENTREGADO", ahora.minusMinutes(30)
         ));
 
@@ -310,7 +368,7 @@ class DashboardControllerTest {
     void debeRechazarCon401CuandoNoSeEnviaToken() throws Exception {
         mockMvc.perform(get("/api/v1/dashboard/resumen"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.codigo", is("AUTENTICACION_REQUERIDA")));
+                .andExpect(jsonPath("$.codigo", is("NO_AUTORIZADO")));
     }
 
     @Test

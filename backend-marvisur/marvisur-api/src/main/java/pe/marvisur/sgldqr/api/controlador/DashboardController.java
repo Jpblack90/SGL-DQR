@@ -103,8 +103,8 @@ public class DashboardController {
                             )
                     )
             ),
-            @ApiResponse(responseCode = "401", description = "No autenticado o token JWT ausente/inválido"),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado: requiere rol Administrador (TN3)")
+            @ApiResponse(responseCode = "401", description = "No autenticado o token JWT ausente/inválido (código: NO_AUTORIZADO)"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado: requiere rol Administrador TN3 (código: ACCESO_DENEGADO)")
     })
     public ResponseEntity<DashboardResumenResponse> obtenerResumen(
             @Parameter(description = "Período temporal para la agregación de métricas (por defecto HOY)")

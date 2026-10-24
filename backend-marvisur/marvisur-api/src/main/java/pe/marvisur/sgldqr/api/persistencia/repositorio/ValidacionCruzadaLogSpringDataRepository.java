@@ -18,8 +18,8 @@ public interface ValidacionCruzadaLogSpringDataRepository extends JpaRepository<
            "COALESCE(SUM(CASE WHEN v.resultado = 'EXITOSO' THEN 1L ELSE 0L END), 0L) AS exitosas, " +
            "COALESCE(SUM(CASE WHEN v.resultado = 'FALLIDO_PAGO_PENDIENTE' THEN 1L ELSE 0L END), 0L) AS rechazadasPagoPendiente, " +
            "COALESCE(SUM(CASE WHEN v.resultado = 'FALLIDO_TOKEN_INVALIDO' THEN 1L ELSE 0L END), 0L) AS rechazadasTokenInvalido, " +
-           "AVG(CAST(v.latenciaProcesamientoMs AS double)) AS latenciaPromedioMs, " +
-           "MAX(v.latenciaProcesamientoMs) AS latenciaMaximaMs " +
+           "COALESCE(AVG(v.latenciaProcesamientoMs), 0.0) AS latenciaPromedioMs, " +
+           "COALESCE(MAX(v.latenciaProcesamientoMs), 0) AS latenciaMaximaMs " +
            "FROM ValidacionCruzadaLogJpaEntity v " +
            "WHERE v.fechaValidacion >= :inicio AND v.fechaValidacion < :fin " +
            "AND (:idSucursal IS NULL OR EXISTS (" +

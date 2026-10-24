@@ -32,6 +32,11 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Pruebas unitarias de presentación**: Ampliación de `ComprobantePdfGeneradorTest` verificando títulos, tipos referenciales, ausencia estricta de «venta» y ajuste multilínea de descripción.
 
 ### Fixed
+- [I1][B1] Corrección de datos de prueba en DashboardControllerTest, códigos de error 401/403 y robustez de consultas agregadas:
+  - **Aislamiento e idempotencia de datos**: Generación de DNIs únicos de 8 dígitos al azar y correos únicos con UUID para cada empleado, cliente y encomienda en `DashboardControllerTest`, eliminando colisiones sobre la restricción única `uq_empleados_dni` entre ejecuciones consecutivas.
+  - **Limpieza en orden de claves foráneas**: Implementación de borrado en cascada segura en `@BeforeEach` (`validaciones_cruzadas_logs` $\rightarrow$ `historial_tracking` $\rightarrow$ `parejas_doble_qr` $\rightarrow$ `encomiendas` $\rightarrow$ `clientes`), preservando los datos base de migración V7 (`EMP-ADMIN-01` y `SUC-LIM-01`).
+  - **Alineación de códigos de error RFC 7807**: Corrección de aserciones de prueba y anotaciones `@ApiResponse` en `DashboardController` con los códigos reales devueltos por la arquitectura de seguridad (`NO_AUTORIZADO` para 401 en `PuntoEntradaAutenticacionJwt` y `ACCESO_DENEGADO` para 403 en `ManejadorAccesoDenegadoJwt` y `ManejadorGlobalExcepciones`).
+  - **Robustez de agregaciones en PostgreSQL**: Sustitución de `CAST(... AS double)` por `COALESCE(AVG(v.latenciaProcesamientoMs), 0.0)` y `COALESCE(MAX(...), 0)` en `ValidacionCruzadaLogSpringDataRepository`, evitando fallos de tipo inexistente en PostgreSQL nativo y asegurando valores por defecto seguros ante tablas vacías.
 - [I1][B3] Corrección de configuración Testcontainers PostgreSQL y preparación de datos en `ComprobantePdfIntegracionTest`:
   - **Inyección dinámica de DataSource**: Adición del método estático `@DynamicPropertySource` conectando `spring.datasource.url/username/password`, driver PostgreSQL y dialecto Hibernate al contenedor `postgres:16-alpine`, evitando que Spring Boot caiga a la base H2 en memoria de `application-test.properties`.
   - **Longitud estricta de UUID**: Corrección de `id_encomienda` a `UUID.randomUUID().toString()` (36 caracteres exactos), eliminando desbordamiento de columna `VARCHAR(36)` provocado por prefijo `'ENC-TEST-'`.
