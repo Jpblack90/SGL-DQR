@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -35,6 +37,7 @@ import java.util.Objects;
  *   <li>Los documentos de remitente y destinatario se muestran enmascarados (solo los 3 últimos dígitos visibles).</li>
  *   <li>No incluye correos electrónicos ni teléfonos.</li>
  *   <li>Incluye leyenda expresa de que el documento es informativo de control interno y no constituye comprobante SUNAT.</li>
+ *   <li>No emplea la palabra «venta» en títulos ni subtítulos.</li>
  * </ul>
  * </p>
  */
@@ -86,25 +89,44 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
 
                 y -= 60;
 
-                // --- 2. CAJA DE TIPO Y SERIE CORRELATIVO ---
+                // --- 2. CAJA DE TIPO, CORRELATIVO Y FECHA DE REGISTRO ---
+                float altoCajaCabecera = 62;
                 cs.setNonStrokingColor(COLOR_FONDO_SECCION);
                 cs.setStrokingColor(COLOR_BORDE);
-                cs.addRect(margenIzquierdo, y - 55, anchoUtil, 55);
+                cs.addRect(margenIzquierdo, y - altoCajaCabecera, anchoUtil, altoCajaCabecera);
                 cs.fillAndStroke();
 
                 cs.setNonStrokingColor(COLOR_TEXTO_OSCURO);
-                String tipoDoc = datos.tipoComprobante().toUpperCase();
-                dibujarTexto(cs, fontBold, 13, margenIzquierdo + 15, y - 22, tipoDoc + " DE VENTA");
-                dibujarTexto(cs, fontBold, 12, margenIzquierdo + 15, y - 42, "N° " + datos.serieCorrelativo());
 
-                String fechaStr = datos.fechaEmision().format(FORMATO_FECHA) + " (America/Lima)";
-                dibujarTexto(cs, fontRegular, 9, margenIzquierdo + 280, y - 22, "Fecha de emisión:");
-                dibujarTexto(cs, fontBold, 9, margenIzquierdo + 365, y - 22, fechaStr);
+                // Columna izquierda: Comprobante de envío, tipo referencial y serie correlativo
+                dibujarTexto(cs, fontBold, 12, margenIzquierdo + 15, y - 18, "COMPROBANTE DE ENVÍO");
 
-                dibujarTexto(cs, fontRegular, 9, margenIzquierdo + 280, y - 42, "Modalidad de pago:");
-                dibujarTexto(cs, fontBold, 9, margenIzquierdo + 365, y - 42, datos.modalidadPago() + " (" + datos.estadoPago() + ")");
+                String tipoReferencial = "FACTURA".equalsIgnoreCase(datos.tipoComprobante())
+                        ? "Tipo: Factura (referencial)"
+                        : "Tipo: Boleta (referencial)";
+                dibujarTexto(cs, fontRegular, 8.5f, margenIzquierdo + 15, y - 33, tipoReferencial);
+                dibujarTexto(cs, fontBold, 10, margenIzquierdo + 15, y - 48, "N° " + datos.serieCorrelativo());
 
-                y -= 75;
+                // Columna derecha: Fecha de registro y Modalidad de pago
+                String fechaStr = datos.fechaEmision().format(FORMATO_FECHA) + " (hora de Lima)";
+                dibujarTexto(cs, fontRegular, 8f, margenIzquierdo + 240, y - 24, "Fecha de registro:");
+                dibujarTexto(cs, fontBold, 8f, margenIzquierdo + 320, y - 24, fechaStr);
+
+                String modalidadTexto;
+                if ("CONTRA_ENTREGA".equalsIgnoreCase(datos.modalidadPago())) {
+                    modalidadTexto = "PAGADO".equalsIgnoreCase(datos.estadoPago())
+                            ? "Contra entrega (pagado)"
+                            : "Contra entrega (pendiente de cobro)";
+                } else if ("PENDIENTE".equalsIgnoreCase(datos.estadoPago())) {
+                    modalidadTexto = "Contra entrega (pendiente de cobro)";
+                } else {
+                    modalidadTexto = "Contado (pagado)";
+                }
+
+                dibujarTexto(cs, fontRegular, 8f, margenIzquierdo + 240, y - 44, "Modalidad de pago:");
+                dibujarTexto(cs, fontBold, 8f, margenIzquierdo + 320, y - 44, modalidadTexto);
+
+                y -= (altoCajaCabecera + 20);
 
                 // --- 3. TRAYECTO (ORIGEN Y DESTINO) ---
                 dibujarSeccionHeader(cs, fontBold, margenIzquierdo, y, anchoUtil, "ITINERARIO Y SUCURSALES");
@@ -138,7 +160,7 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
 
                 // --- 5. DETALLE DE LA ENCOMIENDA ---
                 dibujarSeccionHeader(cs, fontBold, margenIzquierdo, y, anchoUtil, "DETALLE DE LA ENCOMIENDA");
-                y -= 25;
+                y -= 22;
 
                 cs.setNonStrokingColor(COLOR_TEXTO_OSCURO);
                 dibujarTexto(cs, fontBold, 9, margenIzquierdo + 10, y, "Peso tasado:");
@@ -146,9 +168,17 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
 
                 dibujarTexto(cs, fontBold, 9, margenIzquierdo + 180, y, "Descripción:");
                 String desc = datos.descripcionContenido() != null ? datos.descripcionContenido() : "SIN DESCRIPCION";
-                dibujarTexto(cs, fontRegular, 9, margenIzquierdo + 250, y, truncarTexto(desc, 45));
 
-                y -= 35;
+                float xDesc = margenIzquierdo + 250;
+                float anchoMaxDesc = anchoUtil - 250 - 10; // 255 pt disponible
+                List<String> lineasDesc = ajustarTextoEnLineas(fontRegular, 8.5f, desc, anchoMaxDesc, 2);
+
+                for (int i = 0; i < lineasDesc.size(); i++) {
+                    dibujarTexto(cs, fontRegular, 8.5f, xDesc, y - (i * 12), lineasDesc.get(i));
+                }
+
+                float altoDetalle = lineasDesc.size() > 1 ? 40 : 30;
+                y -= altoDetalle;
 
                 // --- 6. LIQUIDACIÓN DE MONTOS Y QR1 ---
                 dibujarSeccionHeader(cs, fontBold, margenIzquierdo, y, anchoUtil, "LIQUIDACIÓN Y CÓDIGO QR1 DE BULTO");
@@ -186,17 +216,20 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
                 dibujarTexto(cs, fontOblique, 8, margenIzquierdo + 15, yTot, "Moneda oficial: Soles (PEN)");
 
                 // Imagen QR1 Operativo a la derecha
-                float xQr = margenIzquierdo + 320;
+                float xQr = margenIzquierdo + 330;
                 float yQr = y - altoCajaTotales + 5;
                 float tamanoQr = 110;
 
                 if (datos.qr1PngBytes() != null && datos.qr1PngBytes().length > 0) {
                     PDImageXObject pdImage = PDImageXObject.createFromByteArray(doc, datos.qr1PngBytes(), "QR1");
-                    cs.drawImage(pdImage, xQr, yQr + 10, tamanoQr, tamanoQr);
+                    cs.drawImage(pdImage, xQr, yQr + 12, tamanoQr, tamanoQr);
                 }
 
                 cs.setNonStrokingColor(COLOR_SECUNDARIO);
-                dibujarTexto(cs, fontBold, 8, xQr - 10, yQr, "QR1 Operativo: " + datos.serieCorrelativo());
+                String etiquetaQr = "Código QR del bulto (QR1)";
+                float anchoEtiqueta = calcularAnchoTexto(fontBold, 8, etiquetaQr);
+                float xEtiqueta = xQr + (tamanoQr - anchoEtiqueta) / 2f;
+                dibujarTexto(cs, fontBold, 8, xEtiqueta, yQr - 2, etiquetaQr);
 
                 y -= (altoCajaTotales + 30);
 
@@ -270,6 +303,72 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
             }
         }
         return sb.toString();
+    }
+
+    private List<String> ajustarTextoEnLineas(PDFont font, float fontSize, String texto, float anchoMaximo, int maxLineas) {
+        List<String> lineas = new ArrayList<>();
+        if (texto == null || texto.isBlank()) {
+            lineas.add("SIN DESCRIPCION");
+            return lineas;
+        }
+
+        String[] palabras = texto.trim().split("\\s+");
+        StringBuilder lineaActual = new StringBuilder();
+
+        int indicePalabra = 0;
+        while (indicePalabra < palabras.length && lineas.size() < maxLineas - 1) {
+            String palabra = palabras[indicePalabra];
+            String candidata = lineaActual.isEmpty() ? palabra : lineaActual + " " + palabra;
+            if (calcularAnchoTexto(font, fontSize, candidata) <= anchoMaximo) {
+                lineaActual = new StringBuilder(candidata);
+                indicePalabra++;
+            } else {
+                if (lineaActual.isEmpty()) {
+                    lineaActual.append(recortarAAncho(font, fontSize, palabra, anchoMaximo, false));
+                    indicePalabra++;
+                }
+                lineas.add(lineaActual.toString());
+                lineaActual = new StringBuilder();
+            }
+        }
+
+        if (indicePalabra < palabras.length) {
+            StringBuilder resto = new StringBuilder();
+            for (int i = indicePalabra; i < palabras.length; i++) {
+                if (!resto.isEmpty()) resto.append(" ");
+                resto.append(palabras[i]);
+            }
+            String textoRestante = lineaActual.isEmpty() ? resto.toString() : lineaActual + " " + resto;
+            if (calcularAnchoTexto(font, fontSize, textoRestante) <= anchoMaximo) {
+                lineas.add(textoRestante);
+            } else {
+                lineas.add(recortarAAncho(font, fontSize, textoRestante, anchoMaximo, true));
+            }
+        } else if (!lineaActual.isEmpty()) {
+            lineas.add(lineaActual.toString());
+        }
+
+        return lineas;
+    }
+
+    private float calcularAnchoTexto(PDFont font, float fontSize, String texto) {
+        try {
+            String saneado = sanearTexto(font, texto);
+            return font.getStringWidth(saneado) / 1000f * fontSize;
+        } catch (Exception e) {
+            return texto.length() * fontSize * 0.55f;
+        }
+    }
+
+    private String recortarAAncho(PDFont font, float fontSize, String texto, float anchoMaximo, boolean agregarPuntos) {
+        String sufijo = agregarPuntos ? "..." : "";
+        for (int len = texto.length(); len > 0; len--) {
+            String intento = texto.substring(0, len).trim() + sufijo;
+            if (calcularAnchoTexto(font, fontSize, intento) <= anchoMaximo) {
+                return intento;
+            }
+        }
+        return sufijo;
     }
 
     private String truncarTexto(String texto, int longitudMaxima) {
