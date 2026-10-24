@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -33,6 +34,7 @@ import pe.marvisur.sgldqr.api.dto.RegistrarEncomiendaRequest;
 import pe.marvisur.sgldqr.api.dto.RegistrarEncomiendaResponse;
 import pe.marvisur.sgldqr.api.dto.RespuestaCobroDto;
 import pe.marvisur.sgldqr.api.seguridad.UsuarioAutenticado;
+import pe.marvisur.sgldqr.api.servicio.ComprobanteServicio;
 import pe.marvisur.sgldqr.api.servicio.EncomiendaApiServicio;
 import pe.marvisur.sgldqr.api.servicio.EntregaApiServicio;
 import pe.marvisur.sgldqr.api.servicio.ResultadoCobro;
@@ -54,10 +56,14 @@ public class EncomiendaController {
 
     private final EncomiendaApiServicio servicio;
     private final EntregaApiServicio entregaServicio;
+    private final ComprobanteServicio comprobanteServicio;
 
-    public EncomiendaController(EncomiendaApiServicio servicio, EntregaApiServicio entregaServicio) {
+    public EncomiendaController(EncomiendaApiServicio servicio,
+                                EntregaApiServicio entregaServicio,
+                                ComprobanteServicio comprobanteServicio) {
         this.servicio = Objects.requireNonNull(servicio, "El servicio no puede ser nulo");
         this.entregaServicio = Objects.requireNonNull(entregaServicio, "El entregaServicio no puede ser nulo");
+        this.comprobanteServicio = Objects.requireNonNull(comprobanteServicio, "El comprobanteServicio no puede ser nulo");
     }
 
     @PostMapping
@@ -222,5 +228,26 @@ public class EncomiendaController {
             return xf.split(",")[0].trim();
         }
         return request.getRemoteAddr() != null ? request.getRemoteAddr() : "127.0.0.1";
+    }
+
+    @GetMapping(value = "/{id}/comprobante.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'ALMACENERO')")
+    @Operation(summary = "Descargar comprobante en PDF",
+            description = "Descarga el comprobante informativo de control interno en PDF (RF-11). Acceso para TN1, TN2 (solo sucursal) y TN3 (todas).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "PDF generado exitosamente",
+                    content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "400", description = "Identificador de encomienda inválido"),
+            @ApiResponse(responseCode = "403", description = "Sin permisos para ver comprobante de otra sucursal o rol Chofer"),
+            @ApiResponse(responseCode = "404", description = "Encomienda no encontrada")
+    })
+    public ResponseEntity<byte[]> descargarComprobantePdf(
+            @PathVariable("id") String id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        ComprobanteServicio.ResultadoPdfComprobante resultado = comprobanteServicio.obtenerOgenerarPdfInterno(id, usuario);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resultado.nombreArchivo() + "\"")
+                .body(resultado.contenidoPdf());
     }
 }
