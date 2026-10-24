@@ -7,6 +7,10 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+---
+
+## [0.2.1] - 2026-10-23
+
 ### Fixed
 - [I2][I1][I3][UX-SYNC] Corrección de badge de pendientes, sincronización de zonas horarias en tracking y unicidad de evento de cobro:
   - **Escritorio («Pendientes: N» reactivo)**: Creación de `EncabezadoConexionViewModel` con cálculo desacoplado del estado del encabezado (`colorCirculoHex`, `textoEstado`, `mostrarBadgePendientes`, `textoBadgePendientes`). Actualización reactiva inmediata de `servicioConexion.actualizarPendientes(...)` al encolar encomiendas offline en `VentanillaOfflineServicio` y al restablecer reintentos en `ControladorColaLocal`, garantizando visibilidad del badge en cualquier pantalla (Ventanilla incluida). Suite de 6 pruebas unitarias en `EncabezadoConexionViewModelTest`.
