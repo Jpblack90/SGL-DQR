@@ -36,6 +36,7 @@
         <springdoc.version>2.6.0</springdoc.version>
         <testcontainers.version>1.20.1</testcontainers.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <pdfbox.version>3.0.3</pdfbox.version>
     </properties>
 
     <!-- Gestión de dependencias (sin declararlas como activas) -->
@@ -127,6 +128,13 @@
                 <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${mockito.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- Apache PDFBox 3.x (RF-11) -->
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${pdfbox.version}</version>
             </dependency>
 
             <!-- ArchUnit — Reglas de arquitectura hexagonal -->
