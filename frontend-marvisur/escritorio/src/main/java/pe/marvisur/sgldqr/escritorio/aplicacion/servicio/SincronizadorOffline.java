@@ -20,6 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +31,7 @@ import java.util.logging.Logger;
  * <ul>
  *   <li>Ejecución periódica cada 10 segundos o disparada ante reconexión del servidor.</li>
  *   <li>Envío en lotes de hasta 50 registros por petición a {@code POST /api/v1/sync/encomiendas}.</li>
+ *   <li>Garantiza una única sincronización activa concurrente mediante {@link AtomicBoolean}.</li>
  *   <li>Tratamiento idempotente (reconocimiento de registros ya sincronizados como éxito local).</li>
  *   <li>Reintento con backoff exponencial hasta 5 intentos (errores de validación se rechazan sin reintento).</li>
  *   <li>Preservación íntegra de la cola local ante expiración de sesión (HTTP 401).</li>
@@ -50,7 +52,7 @@ public class SincronizadorOffline {
     private final List<ListenerSincronizacion> listeners = new CopyOnWriteArrayList<>();
 
     private ScheduledExecutorService planificador;
-    private final Object bloqueoSync = new Object();
+    private final AtomicBoolean sincronizandoEnCurso = new AtomicBoolean(false);
 
     public interface ListenerSincronizacion {
         void onSincronizacionCompletada(int totalSincronizados, int pendientesRestantes);
@@ -105,10 +107,13 @@ public class SincronizadorOffline {
         // Tarea periódica cada 10 segundos
         planificador.scheduleWithFixedDelay(this::ejecutarSincronizacionSegura, 3, INTERVALO_SEGUNDOS, TimeUnit.SECONDS);
 
-        // Reaccionar inmediatamente cuando la conectividad se restablece
+        // Reaccionar inmediatamente cuando la conectividad se restablece si hay registros pendientes
         servicioConexion.agregarListener(online -> {
             if (online && planificador != null && !planificador.isShutdown()) {
-                planificador.submit(this::ejecutarSincronizacionSegura);
+                if (colaLocalPort.contarPendientes() > 0) {
+                    LOGGER.info("Conectividad restablecida con pendientes en cola. Disparando sincronización...");
+                    planificador.submit(this::ejecutarSincronizacionSegura);
+                }
             }
         });
 
@@ -141,12 +146,18 @@ public class SincronizadorOffline {
 
     /**
      * Ejecuta una ronda de sincronización enviando hasta 50 registros pendientes.
+     * Garantiza que solo exista una sincronización activa a la vez.
      *
      * @param forzarReintento Si es true, ignora el cálculo de backoff exponencial temporal.
      * @return total de registros sincronizados con éxito en esta ejecución (nuevos + ya sincronizados).
      */
     public int sincronizarLote(boolean forzarReintento) {
-        synchronized (bloqueoSync) {
+        if (!sincronizandoEnCurso.compareAndSet(false, true)) {
+            LOGGER.fine("Sincronización omitida: ya existe un proceso de sincronización en curso.");
+            return 0;
+        }
+
+        try {
             if (!servicioConexion.estaEnLinea()) {
                 return 0;
             }
@@ -155,8 +166,16 @@ public class SincronizadorOffline {
                 return 0;
             }
 
+            int totalPendientes = colaLocalPort.contarPendientes();
+            if (totalPendientes <= 0) {
+                servicioConexion.actualizarPendientes(0);
+                notificarColaActualizada(0);
+                return 0;
+            }
+
             List<ElementoColaDto> pendientes = colaLocalPort.listarPendientes(TAMANO_LOTE_MAXIMO);
             if (pendientes.isEmpty()) {
+                servicioConexion.actualizarPendientes(0);
                 notificarColaActualizada(0);
                 return 0;
             }
@@ -170,8 +189,15 @@ public class SincronizadorOffline {
             }
 
             if (loteAEnviar.isEmpty()) {
+                servicioConexion.actualizarPendientes(totalPendientes);
                 return 0;
             }
+
+            LOGGER.info("Iniciando sincronización offline con " + totalPendientes + " registros pendientes...");
+            servicioConexion.reportarInicioSincronizacion(totalPendientes);
+
+            LOGGER.info("Enviando lote de " + loteAEnviar.size() + " registros a sincronizar...");
+            long inicioLote = System.currentTimeMillis();
 
             // Construir el JSON del lote en formato compatible: { "items": [ {...}, ... ] }
             StringBuilder jsonBuilder = new StringBuilder("{\"items\":[");
@@ -185,19 +211,26 @@ public class SincronizadorOffline {
             try {
                 respuesta = syncPort.sincronizarLote(jsonBuilder.toString());
             } catch (ApiExcepcion ae) {
+                long duracionMs = System.currentTimeMillis() - inicioLote;
                 if (ae.getStatusCode() == 401) {
                     LOGGER.warning("Sesión expirada durante la sincronización: la cola local se preserva íntegra.");
                     SesionContexto.notificarSesionExpirada("Sesión expirada durante sincronización offline");
+                    servicioConexion.reportarFinSincronizacion(0, colaLocalPort.contarPendientes());
                     return 0;
                 }
-                LOGGER.log(Level.WARNING, "Error HTTP al sincronizar lote: " + ae.getMessage());
+                LOGGER.log(Level.WARNING, "Error HTTP (" + ae.getStatusCode() + ") al sincronizar lote en " + duracionMs + " ms: " + ae.getMessage());
+                servicioConexion.reportarFinSincronizacion(0, colaLocalPort.contarPendientes());
                 return 0;
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Fallo de conexión al sincronizar lote: " + e.getMessage());
+                long duracionMs = System.currentTimeMillis() - inicioLote;
+                LOGGER.log(Level.WARNING, "Fallo de conexión al sincronizar lote en " + duracionMs + " ms: " + e.getMessage());
+                servicioConexion.reportarFalloConexion("Fallo de red en endpoint de sincronización", duracionMs);
+                servicioConexion.reportarFinSincronizacion(0, colaLocalPort.contarPendientes());
                 return 0;
             }
 
             if (respuesta == null || respuesta.getDetalles() == null) {
+                servicioConexion.reportarFinSincronizacion(0, colaLocalPort.contarPendientes());
                 return 0;
             }
 
@@ -216,9 +249,15 @@ public class SincronizadorOffline {
                 }
             }
 
+            long duracionLote = System.currentTimeMillis() - inicioLote;
             int pendientesRestantes = colaLocalPort.contarPendientes();
+            LOGGER.info("Lote procesado en " + duracionLote + " ms: " + exitosos + " sincronizados exitosamente, " + pendientesRestantes + " pendientes restantes.");
+
+            servicioConexion.reportarFinSincronizacion(exitosos, pendientesRestantes);
             notificarSincronizacion(exitosos, pendientesRestantes);
             return exitosos;
+        } finally {
+            sincronizandoEnCurso.set(false);
         }
     }
 

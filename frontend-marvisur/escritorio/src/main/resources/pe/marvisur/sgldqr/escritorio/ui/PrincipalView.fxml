@@ -24,6 +24,8 @@
                 <Circle fx:id="circuloConexion" radius="5" fill="#10B981"/>
                 <Label fx:id="lblEstadoConexion" text="En línea"
                        style="-fx-text-fill: #E2E8F0; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                <Label fx:id="lblPendientes" text="Pendientes: 0" visible="false" managed="false"
+                       style="-fx-text-fill: #F59E0B; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: #78350F; -fx-padding: 2 6; -fx-background-radius: 4;"/>
             </HBox>
 
             <!-- Datos del Colaborador -->
@@ -48,6 +50,8 @@
             <Button fx:id="btnMenuAlmacen" text="🏬 Almacén" onAction="#mostrarAlmacen"
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuContingencia" text="🚨 Contingencia" onAction="#mostrarContingencia"
+                    styleClass="boton-menu"/>
+            <Button fx:id="btnMenuColaLocal" text="📋 Cola Local" onAction="#mostrarColaLocal"
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota (Próx.)" onAction="#mostrarAvisoProximamente"
                     styleClass="boton-menu, boton-menu-deshabilitado"/>

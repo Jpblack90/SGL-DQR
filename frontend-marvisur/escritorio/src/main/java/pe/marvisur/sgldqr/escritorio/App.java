@@ -2,6 +2,7 @@ package pe.marvisur.sgldqr.escritorio;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.SincronizadorOffline;
 import pe.marvisur.sgldqr.escritorio.ui.NavegadorUI;
 
 import java.util.logging.Logger;
@@ -23,6 +24,10 @@ public class App extends Application {
     @Override
     public void stop() {
         LOGGER.info("Cerrando aplicación de escritorio SGL-DQR.");
+        try {
+            SincronizadorOffline.getInstancia().detener();
+        } catch (Exception ignored) {
+        }
         System.exit(0);
     }
 

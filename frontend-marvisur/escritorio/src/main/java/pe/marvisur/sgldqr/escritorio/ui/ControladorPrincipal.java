@@ -20,6 +20,9 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.SincronizadorOffline;
 import pe.marvisur.sgldqr.escritorio.infraestructura.sqlite.SQLiteColaAdapter;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EstadoConexionUI;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -82,17 +85,27 @@ public class ControladorPrincipal {
 
     private final AutenticacionPort autenticacionPort;
     private final EstadoConexionPort estadoConexionPort;
+    private final ServicioConexion servicioConexion;
+    private final SincronizadorOffline sincronizadorOffline;
+    private final ColaLocalPort colaLocalPort;
     private ScheduledExecutorService planificadorConectividad;
+    private PauseTransition pausaNotificacionSync;
 
     public ControladorPrincipal() {
-        MarvisurHttpClient client = new MarvisurHttpClient();
-        this.autenticacionPort = client;
-        this.estadoConexionPort = client;
+        this(new MarvisurHttpClient(), ServicioConexion.getInstancia(), SincronizadorOffline.getInstancia(), new SQLiteColaAdapter());
     }
 
     public ControladorPrincipal(AutenticacionPort autenticacionPort, EstadoConexionPort estadoConexionPort) {
+        this(autenticacionPort, ServicioConexion.getInstancia(), SincronizadorOffline.getInstancia(), new SQLiteColaAdapter());
+    }
+
+    public ControladorPrincipal(AutenticacionPort autenticacionPort, ServicioConexion servicioConexion,
+                                SincronizadorOffline sincronizadorOffline, ColaLocalPort colaLocalPort) {
         this.autenticacionPort = autenticacionPort;
-        this.estadoConexionPort = estadoConexionPort;
+        this.servicioConexion = servicioConexion;
+        this.sincronizadorOffline = sincronizadorOffline;
+        this.colaLocalPort = colaLocalPort;
+        this.estadoConexionPort = (autenticacionPort instanceof EstadoConexionPort ecp) ? ecp : new MarvisurHttpClient();
     }
 
     @FXML
@@ -175,6 +188,29 @@ public class ControladorPrincipal {
     }
 
     private void iniciarMonitoreoConectividad() {
+        // 1. Suscripción a la fuente única de verdad (ServicioConexion)
+        servicioConexion.agregarListenerUI((estado, pendientes, notificacion) -> {
+            try {
+                Platform.runLater(() -> actualizarIndicadorUI(estado, pendientes, notificacion));
+            } catch (IllegalStateException e) {
+                actualizarIndicadorUI(estado, pendientes, notificacion);
+            }
+        });
+
+        // 2. Iniciar el sincronizador offline en segundo plano (daemon)
+        sincronizadorOffline.iniciar();
+
+        // 3. Si se inicia sesión con pendientes y la API está en línea, disparar sincronización inicial
+        int pendientesIniciales = colaLocalPort.contarPendientes();
+        servicioConexion.actualizarPendientes(pendientesIniciales);
+        actualizarIndicadorUI(servicioConexion.getEstadoUI(), pendientesIniciales, "");
+
+        if (pendientesIniciales > 0 && servicioConexion.estaEnLinea()) {
+            LOGGER.info("Sesión iniciada con " + pendientesIniciales + " registros pendientes en cola local. Disparando sincronización...");
+            sincronizadorOffline.sincronizarAhora();
+        }
+
+        // 4. Sondeo periódico de 5s conservado en ControladorPrincipal
         planificadorConectividad = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "hilo-monitoreo-conectividad");
             t.setDaemon(true);
@@ -183,16 +219,65 @@ public class ControladorPrincipal {
 
         planificadorConectividad.scheduleAtFixedRate(() -> {
             boolean online = estadoConexionPort.verificarConectividad();
-            Platform.runLater(() -> {
-                if (online) {
-                    circuloConexion.setFill(Color.web("#10B981"));
-                    lblEstadoConexion.setText("En línea");
-                } else {
-                    circuloConexion.setFill(Color.web("#E30613"));
-                    lblEstadoConexion.setText("Sin conexión");
+            if (online) {
+                boolean eraOffline = !servicioConexion.estaEnLinea();
+                servicioConexion.reportarExitoConexion();
+                if (eraOffline) {
+                    int p = colaLocalPort.contarPendientes();
+                    servicioConexion.actualizarPendientes(p);
+                    if (p > 0) {
+                        LOGGER.info("Reconexión detectada con " + p + " pendientes. Disparando sincronización automática...");
+                        sincronizadorOffline.sincronizarAhora();
+                    }
                 }
-            });
+            } else {
+                servicioConexion.reportarFalloConexion("Fallo en verificación periódica de salud");
+            }
         }, 0, 5, TimeUnit.SECONDS);
+    }
+
+    private void actualizarIndicadorUI(EstadoConexionUI estado, int pendientes, String notificacion) {
+        if (circuloConexion != null && lblEstadoConexion != null) {
+            if (estado == EstadoConexionUI.SINCRONIZANDO) {
+                circuloConexion.setFill(Color.web("#3B82F6"));
+                lblEstadoConexion.setText("Sincronizando…");
+            } else if (estado == EstadoConexionUI.SIN_CONEXION) {
+                circuloConexion.setFill(Color.web("#E30613"));
+                lblEstadoConexion.setText("Sin conexión");
+            } else {
+                circuloConexion.setFill(Color.web("#10B981"));
+                if (notificacion != null && !notificacion.isBlank()) {
+                    lblEstadoConexion.setText(notificacion);
+                    if (pausaNotificacionSync != null) {
+                        pausaNotificacionSync.stop();
+                    }
+                    try {
+                        pausaNotificacionSync = new PauseTransition(Duration.seconds(5));
+                        pausaNotificacionSync.setOnFinished(e -> {
+                            if (servicioConexion.estaEnLinea()) {
+                                lblEstadoConexion.setText("En línea");
+                            }
+                            servicioConexion.limpiarNotificacion();
+                        });
+                        pausaNotificacionSync.play();
+                    } catch (Exception ignored) {
+                    }
+                } else {
+                    lblEstadoConexion.setText("En línea");
+                }
+            }
+        }
+
+        if (lblPendientes != null) {
+            if (pendientes > 0) {
+                lblPendientes.setText("Pendientes: " + pendientes);
+                lblPendientes.setVisible(true);
+                lblPendientes.setManaged(true);
+            } else {
+                lblPendientes.setVisible(false);
+                lblPendientes.setManaged(false);
+            }
+        }
     }
 
     @FXML
@@ -217,6 +302,18 @@ public class ControladorPrincipal {
     public void mostrarContingencia() {
         marcarBotonActivo(btnMenuContingencia);
         cargarVistaAlmacen("CONTINGENCIA");
+    }
+
+    @FXML
+    public void mostrarColaLocal() {
+        marcarBotonActivo(btnMenuColaLocal);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/ColaLocalView.fxml"));
+            Node vista = loader.load();
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar ColaLocalView.fxml: " + e.getMessage(), e);
+        }
     }
 
     private void cargarVistaAlmacen(String pestana) {
@@ -253,6 +350,12 @@ public class ControladorPrincipal {
     public void detenerTareasFondo() {
         if (planificadorConectividad != null && !planificadorConectividad.isShutdown()) {
             planificadorConectividad.shutdownNow();
+        }
+        if (sincronizadorOffline != null) {
+            sincronizadorOffline.detener();
+        }
+        if (pausaNotificacionSync != null) {
+            pausaNotificacionSync.stop();
         }
     }
 }
