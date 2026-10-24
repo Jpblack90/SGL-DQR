@@ -16,6 +16,13 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Portal Web (`portal-web`)**: Incorporación de la función `descargarComprobantePdf` en `cliente.ts` y botón interactivo «Descargar comprobante (PDF)» en el resultado de `Rastreo.tsx` mediante descarga con Blob y URL temporal revocable (`URL.revokeObjectURL`). Manejo robusto de 404, 429 con `Retry-After` y errores de red preservando los campos del formulario y sin almacenamiento de datos personales en el cliente.
   - **Pruebas Automatizadas**: Suite unitaria `ComprobantePdfGeneradorTest` (PDFBox, cabecera `%PDF`, validación de texto y privacidad), pruebas de integración `ComprobantePdfIntegracionTest` (MockMvc + Testcontainers) y pruebas unitarias de cliente web en `Rastreo.test.tsx` (8 tests).
 
+### Fixed
+- [I1][B3] Corrección de configuración Testcontainers PostgreSQL y preparación de datos en `ComprobantePdfIntegracionTest`:
+  - **Inyección dinámica de DataSource**: Adición del método estático `@DynamicPropertySource` conectando `spring.datasource.url/username/password`, driver PostgreSQL y dialecto Hibernate al contenedor `postgres:16-alpine`, evitando que Spring Boot caiga a la base H2 en memoria de `application-test.properties`.
+  - **Longitud estricta de UUID**: Corrección de `id_encomienda` a `UUID.randomUUID().toString()` (36 caracteres exactos), eliminando desbordamiento de columna `VARCHAR(36)` provocado por prefijo `'ENC-TEST-'`.
+  - **Unicidad e idempotencia de datos de prueba**: Generación de DNIs únicos de 8 dígitos para clientes, códigos de comprobante únicos (`COMP-xxxxxx`) y limpieza previa en `@BeforeEach` en orden seguro de claves foráneas (`archivos_pdf_comprobante` $\rightarrow$ `comprobantes_pago` $\rightarrow$ `parejas_doble_qr` $\rightarrow$ `encomiendas` $\rightarrow$ `clientes`), garantizando independencia estricta del orden de ejecución.
+  - **Inserción segura de personal de prueba**: Implementación de `guardarEmpleadoSiNoExiste` para Chofer (TN4) y Recepcionista (TN1), previniendo colisiones de restricción única sobre `dni` y `correo`.
+
 ---
 
 ## [0.2.1] - 2026-10-23

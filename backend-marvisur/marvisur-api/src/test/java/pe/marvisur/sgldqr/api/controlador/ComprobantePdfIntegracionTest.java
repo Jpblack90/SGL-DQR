@@ -12,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -31,25 +33,23 @@ import pe.marvisur.sgldqr.api.persistencia.repositorio.ParDobleQrSpringDataRepos
 import pe.marvisur.sgldqr.api.persistencia.repositorio.SucursalSpringDataRepository;
 import pe.marvisur.sgldqr.api.seguridad.ConstantesSeguridad;
 import pe.marvisur.sgldqr.api.seguridad.JwtServicio;
-import pe.marvisur.sgldqr.api.seguridad.UsuarioAutenticado;
 import pe.marvisur.sgldqr.api.seguridad.dto.EmpleadoAutenticadoDto;
 
 import java.math.BigDecimal;
 import java.security.MessageDigest;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Prueba de integración de Comprobante PDF (RF-11) con MockMvc y Testcontainers.
+ * Prueba de integración de Comprobante PDF (RF-11) con MockMvc y Testcontainers PostgreSQL.
  * <p>
  * <strong>Casos evaluados:</strong>
  * <ul>
@@ -60,18 +60,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * </ul>
  * </p>
  */
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers(disabledWithoutDocker = true)
 @ActiveProfiles("test")
-@DisplayName("Prueba de Integración: Comprobante PDF (MockMvc + Testcontainers)")
+@DisplayName("Prueba de Integración: Comprobante PDF (MockMvc + Testcontainers PostgreSQL)")
 class ComprobantePdfIntegracionTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("marvisur_test")
-            .withUsername("marvisur_user")
-            .withPassword("marvisur_pass");
+            .withUsername("test_user")
+            .withPassword("test_pass");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -110,11 +120,19 @@ class ComprobantePdfIntegracionTest {
 
     @BeforeEach
     void setUp() {
-        codigoComprobanteTest = "BOL-TEST-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        idEncomiendaTest = "ENC-TEST-" + UUID.randomUUID().toString();
-        dniRemitenteTest = "70112233";
-        dniDestinatarioTest = "40998877";
-        qr2TokenSecretoTest = "TOKEN-SECRETO-QR2-ABCD-1234-EFGH-5678";
+        // Limpieza previa en orden seguro de claves foráneas
+        archivoPdfRepository.deleteAllInBatch();
+        comprobantePagoRepository.deleteAllInBatch();
+        parDobleQrRepository.deleteAllInBatch();
+        encomiendaRepository.deleteAllInBatch();
+        clienteRepository.deleteAllInBatch();
+
+        // Identificadores únicos por ejecución de prueba
+        codigoComprobanteTest = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
+        idEncomiendaTest = UUID.randomUUID().toString();
+        dniRemitenteTest = String.format("7%07d", ThreadLocalRandom.current().nextInt(10_000_000));
+        dniDestinatarioTest = String.format("4%07d", ThreadLocalRandom.current().nextInt(10_000_000));
+        qr2TokenSecretoTest = "TOKEN-SECRETO-QR2-" + UUID.randomUUID();
 
         // Sucursales
         SucursalJpaEntity sucOrigen = sucursalRepository.findById("SUC-001").orElseGet(() ->
@@ -122,15 +140,27 @@ class ComprobantePdfIntegracionTest {
         SucursalJpaEntity sucDestino = sucursalRepository.findById("SUC-002").orElseGet(() ->
                 sucursalRepository.save(new SucursalJpaEntity("SUC-002", "Agencia Arequipa Terminal", "Av. Industrial 456", "Arequipa")));
 
-        // Clientes
-        ClienteJpaEntity remitente = new ClienteJpaEntity("CLI-REM-" + UUID.randomUUID().toString().substring(0, 8),
-                "DNI", dniRemitenteTest, "Carlos Ramirez Perez", "999111222", "carlos@test.com");
-        ClienteJpaEntity destinatario = new ClienteJpaEntity("CLI-DEST-" + UUID.randomUUID().toString().substring(0, 8),
-                "DNI", dniDestinatarioTest, "Ana Torres Mendoza", "999333444", "ana@test.com");
+        // Clientes con número de documento y UUID únicos
+        ClienteJpaEntity remitente = new ClienteJpaEntity(
+                UUID.randomUUID().toString(),
+                "DNI",
+                dniRemitenteTest,
+                "Carlos Ramirez Perez",
+                "999111222",
+                "carlos@test.com"
+        );
+        ClienteJpaEntity destinatario = new ClienteJpaEntity(
+                UUID.randomUUID().toString(),
+                "DNI",
+                dniDestinatarioTest,
+                "Ana Torres Mendoza",
+                "999333444",
+                "ana@test.com"
+        );
         clienteRepository.save(remitente);
         clienteRepository.save(destinatario);
 
-        // Encomienda
+        // Encomienda con UUID de 36 caracteres exactos y código único
         EncomiendaJpaEntity enc = new EncomiendaJpaEntity(
                 idEncomiendaTest,
                 codigoComprobanteTest,
@@ -148,10 +178,10 @@ class ComprobantePdfIntegracionTest {
         );
         encomiendaRepository.save(enc);
 
-        // Par Doble QR (QR1 operativo y hash de QR2)
+        // Par Doble QR con UUID de 36 caracteres (QR1 operativo y hash de QR2)
         String hashQr2 = calcularSha256(qr2TokenSecretoTest.getBytes());
         ParDobleQrJpaEntity par = new ParDobleQrJpaEntity(
-                "PAR-" + UUID.randomUUID().toString().substring(0, 8),
+                UUID.randomUUID().toString(),
                 idEncomiendaTest,
                 "MARVISUR:QR1:" + idEncomiendaTest,
                 hashQr2,
@@ -159,19 +189,25 @@ class ComprobantePdfIntegracionTest {
         );
         parDobleQrRepository.save(par);
 
-        // Empleado Chofer (TN4) y Recepcionista (TN1)
-        EmpleadoJpaEntity chofer = new EmpleadoJpaEntity(
-                "EMP-TN4-TEST-" + UUID.randomUUID().toString().substring(0, 6),
+        // Empleado Chofer (TN4) y Recepcionista (TN1) usando inserción segura si no existen
+        EmpleadoJpaEntity chofer = guardarEmpleadoSiNoExiste(
+                "EMP-TN4-TEST",
                 "ROL-TN4-CHOFER",
                 sucOrigen.getIdSucursal(),
                 "88776655",
                 "Pedro",
                 "Chofer Test",
-                "chofer.test@marvisur.pe",
-                "$2a$10$xyz",
-                true
+                "chofer.test@marvisur.pe"
         );
-        empleadoRepository.save(chofer);
+        EmpleadoJpaEntity recepcionista = guardarEmpleadoSiNoExiste(
+                "EMP-TN1-TEST",
+                "ROL-TN1-RECEPCION",
+                sucOrigen.getIdSucursal(),
+                "88776656",
+                "Rosa",
+                "Recepcion Test",
+                "rosa.test@marvisur.pe"
+        );
 
         EmpleadoAutenticadoDto dtoChofer = new EmpleadoAutenticadoDto(
                 chofer.getIdEmpleado(),
@@ -184,14 +220,23 @@ class ComprobantePdfIntegracionTest {
         tokenJwtChofer = jwtServicio.generarToken(dtoChofer);
 
         EmpleadoAutenticadoDto dtoRecepcionista = new EmpleadoAutenticadoDto(
-                "EMP-TN1-TEST",
-                "Rosa",
-                "Recepcion Test",
-                "rosa.test@marvisur.pe",
+                recepcionista.getIdEmpleado(),
+                recepcionista.getNombres(),
+                recepcionista.getApellidos(),
+                recepcionista.getCorreo(),
                 ConstantesSeguridad.AUTH_RECEPCIONISTA,
                 sucOrigen.getIdSucursal()
         );
         tokenJwtRecepcionista = jwtServicio.generarToken(dtoRecepcionista);
+    }
+
+    private EmpleadoJpaEntity guardarEmpleadoSiNoExiste(String id, String idRol, String idSucursal, String dni, String nombres, String apellidos, String correo) {
+        return empleadoRepository.findById(id).orElseGet(() ->
+                empleadoRepository.save(new EmpleadoJpaEntity(
+                        id, idRol, idSucursal, dni, nombres, apellidos, correo,
+                        "$2b$12$goz1tdfrnGCvrV/InZEN3OZS.xvzWnlozTQf2LUs8LoZx9uvYjzEW", true
+                ))
+        );
     }
 
     @Test
