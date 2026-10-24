@@ -144,6 +144,7 @@ public class ControladorAlmacen {
     @FXML
     public void initialize() {
         configurarPermisosPestanas();
+        configurarBloqueoOfflinePestanas();
         inicializarPestanaEntrega();
         inicializarPestanaLotes();
         inicializarPestanaContingencia();
@@ -157,6 +158,40 @@ public class ControladorAlmacen {
             tabPaneAlmacen.getTabs().remove(tabEntrega);
             tabPaneAlmacen.getTabs().remove(tabLotes);
         }
+    }
+
+    private void configurarBloqueoOfflinePestanas() {
+        if (tabPaneAlmacen != null) {
+            tabPaneAlmacen.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab != null && !ServicioConexion.getInstancia().estaEnLinea()) {
+                    NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                            PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+                }
+            });
+        }
+    }
+
+    public static String obtenerMensajeErrorClaro(Throwable error) {
+        if (error == null) {
+            return "Sin conexión con el servidor.";
+        }
+        Throwable causa = error;
+        while (causa != null) {
+            if (causa instanceof java.net.ConnectException
+                    || causa instanceof java.net.http.HttpConnectTimeoutException
+                    || causa instanceof java.net.http.HttpTimeoutException
+                    || causa instanceof java.util.concurrent.TimeoutException
+                    || causa instanceof java.net.SocketTimeoutException) {
+                return "Sin conexión con el servidor.";
+            }
+            if (causa.getCause() == causa) break;
+            causa = causa.getCause();
+        }
+        String msg = error.getMessage();
+        if (msg == null || msg.isBlank() || "null".equalsIgnoreCase(msg.trim())) {
+            return "Sin conexión con el servidor.";
+        }
+        return msg.trim();
     }
 
     // =========================================================================
@@ -183,6 +218,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarValidarEntrega() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         String qr1 = (this.idEncomiendaBloqueada != null && this.qr1EnMemoria != null && !this.qr1EnMemoria.isBlank())
                 ? this.qr1EnMemoria : txtQr1Entrega.getText().trim();
         String qr2 = (this.idEncomiendaBloqueada != null && this.qr2EnMemoria != null && !this.qr2EnMemoria.isBlank())
@@ -215,7 +256,7 @@ public class ControladorAlmacen {
         tarea.setOnFailed(e -> {
             btnValidarEntrega.setDisable(false);
             Throwable err = tarea.getException();
-            String msg = err != null && err.getMessage() != null ? err.getMessage() : "Error al validar entrega.";
+            String msg = obtenerMensajeErrorClaro(err);
             NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Error de Red / Servidor", "Fallo al validar", msg);
         });
 
@@ -309,6 +350,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarCobroContraEntrega() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         if (idEncomiendaBloqueada == null || idEncomiendaBloqueada.isBlank()) {
             NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Cobro", "Sin encomienda", "No hay encomienda pendiente de cobro.");
             return;
@@ -336,7 +383,7 @@ public class ControladorAlmacen {
         tarea.setOnFailed(e -> {
             btnCobrarEntrega.setDisable(false);
             NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Fallo al Cobrar", "No se pudo registrar el cobro",
-                    tarea.getException().getMessage());
+                    obtenerMensajeErrorClaro(tarea.getException()));
         });
 
         Thread hilo = new Thread(tarea, "hilo-cobro-entrega");
@@ -442,7 +489,7 @@ public class ControladorAlmacen {
         };
 
         tarea.setOnSucceeded(e -> cmbViajeLote.setItems(FXCollections.observableArrayList(tarea.getValue())));
-        tarea.setOnFailed(e -> LOGGER.warning("No se pudieron cargar viajes: " + tarea.getException().getMessage()));
+        tarea.setOnFailed(e -> LOGGER.warning("No se pudieron cargar viajes: " + obtenerMensajeErrorClaro(tarea.getException())));
 
         Thread hilo = new Thread(tarea, "hilo-viajes-lote");
         hilo.setDaemon(true);
@@ -470,6 +517,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarProcesarLote() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         if (itemsEscaneadosLote.isEmpty()) {
             NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Lista Vacía", "Debe escanear al menos un código QR1.");
             return;
@@ -508,7 +561,7 @@ public class ControladorAlmacen {
         tarea.setOnFailed(e -> {
             btnProcesarLote.setDisable(false);
             NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Lote de Escaneo", "Error al procesar lote",
-                    tarea.getException().getMessage());
+                    obtenerMensajeErrorClaro(tarea.getException()));
         });
 
         Thread hilo = new Thread(tarea, "hilo-procesar-lote");
@@ -617,6 +670,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarBuscarPorDocumento() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         String doc = txtBusquedaDoc.getText() != null ? txtBusquedaDoc.getText().trim() : "";
         if (doc.isBlank()) {
             NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Búsqueda de Contingencia", "Documento Requerido",
@@ -644,7 +703,8 @@ public class ControladorAlmacen {
 
         tarea.setOnFailed(e -> {
             btnBuscarDoc.setDisable(false);
-            NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Búsqueda", "Error en búsqueda", tarea.getException().getMessage());
+            NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Búsqueda", "Error en búsqueda",
+                    obtenerMensajeErrorClaro(tarea.getException()));
         });
 
         Thread hilo = new Thread(tarea, "hilo-buscar-doc");
@@ -654,6 +714,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarCobroContingencia() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         if (encomiendaSeleccionadaContingencia == null) return;
 
         Task<RespuestaCobroDto> tarea = new Task<>() {
@@ -669,7 +735,8 @@ public class ControladorAlmacen {
             manejarBuscarPorDocumento();
         });
 
-        tarea.setOnFailed(e -> NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Cobro", "Error al cobrar", tarea.getException().getMessage()));
+        tarea.setOnFailed(e -> NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Cobro", "Error al cobrar",
+                obtenerMensajeErrorClaro(tarea.getException())));
 
         Thread hilo = new Thread(tarea, "hilo-cobro-contingencia");
         hilo.setDaemon(true);
@@ -696,6 +763,12 @@ public class ControladorAlmacen {
 
     @FXML
     public void manejarRegistrarIncidencia() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+            return;
+        }
+
         if (encomiendaSeleccionadaContingencia == null) return;
 
         String tipo = cmbTipoIncidencia.getValue();
@@ -741,7 +814,8 @@ public class ControladorAlmacen {
 
         tarea.setOnFailed(e -> {
             btnConfirmarIncidencia.setDisable(false);
-            NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Incidencia", "Error al reportar", tarea.getException().getMessage());
+            NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Incidencia", "Error al reportar",
+                    obtenerMensajeErrorClaro(tarea.getException()));
         });
 
         Thread hilo = new Thread(tarea, "hilo-reportar-incidencia");
@@ -758,7 +832,7 @@ public class ControladorAlmacen {
         };
 
         tarea.setOnSucceeded(e -> listaHistorialIncidencias.setAll(tarea.getValue()));
-        tarea.setOnFailed(e -> LOGGER.warning("Error al cargar historial incidencias: " + tarea.getException().getMessage()));
+        tarea.setOnFailed(e -> LOGGER.warning("Error al cargar historial incidencias: " + obtenerMensajeErrorClaro(tarea.getException())));
 
         Thread hilo = new Thread(tarea, "hilo-historial-incidencias");
         hilo.setDaemon(true);
