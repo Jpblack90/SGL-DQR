@@ -70,6 +70,9 @@ public class SQLiteColaAdapter implements ColaLocalPort {
             }
         } catch (Exception ignored) {
         }
+        if (Files.exists(Paths.get("frontend-marvisur/escritorio/datos-locales/marvisur-local.db"))) {
+            return "frontend-marvisur/escritorio/datos-locales/marvisur-local.db";
+        }
         return "datos-locales/marvisur-local.db";
     }
 

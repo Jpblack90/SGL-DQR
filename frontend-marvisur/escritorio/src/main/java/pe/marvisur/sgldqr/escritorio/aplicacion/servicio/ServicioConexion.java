@@ -1,5 +1,6 @@
 package pe.marvisur.sgldqr.escritorio.aplicacion.servicio;
 
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EstadoConexionUI;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.ConfiguracionApi;
 
@@ -13,21 +14,14 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Servicio centralizado de monitoreo y detección de conectividad con conmutación en &le; 2 segundos (RNF-02, O1).
- *
- * <p><strong>Reglas de Conmutación:</strong>
- * <ul>
- *   <li>Timeouts estrictos de 2 segundos en conexiones HTTP y lecturas.</li>
- *   <li>Transición inmediata a <em>SIN CONEXIÓN</em> ante el primer fallo de red, timeout o respuesta no saludable.</li>
- *   <li>Transición a <em>EN LÍNEA</em> cuando el endpoint {@code /actuator/health} responde 200 OK con estado UP.</li>
- *   <li>Medición y registro de la latencia de detección (sin datos personales ni sensibles).</li>
- * </ul>
- * </p>
+ * Es la fuente única de verdad para el estado de conexión de la UI (EN_LINEA, SIN_CONEXION, SINCRONIZANDO).
  */
 public class ServicioConexion implements EstadoConexionPort {
 
@@ -41,10 +35,20 @@ public class ServicioConexion implements EstadoConexionPort {
     private final HttpClient httpClient;
     private final AtomicBoolean enLinea = new AtomicBoolean(true);
     private final AtomicLong tiempoUltimaDeteccionMs = new AtomicLong(0);
+
     private final List<ListenerEstadoConexion> listeners = new CopyOnWriteArrayList<>();
+    private final List<ListenerEstadoConexionUI> listenersUI = new CopyOnWriteArrayList<>();
+    private volatile EstadoConexionUI estadoUI = EstadoConexionUI.EN_LINEA;
+    private final AtomicInteger totalPendientes = new AtomicInteger(0);
+    private volatile String mensajeNotificacion = "";
 
     public interface ListenerEstadoConexion {
         void onCambioEstado(boolean enLinea);
+    }
+
+    @FunctionalInterface
+    public interface ListenerEstadoConexionUI {
+        void onCambioEstadoUI(EstadoConexionUI estado, int pendientes, String notificacion);
     }
 
     public static synchronized ServicioConexion getInstancia() {
@@ -95,8 +99,30 @@ public class ServicioConexion implements EstadoConexionPort {
         listeners.remove(listener);
     }
 
+    public void agregarListenerUI(ListenerEstadoConexionUI listener) {
+        if (listener != null && !listenersUI.contains(listener)) {
+            listenersUI.add(listener);
+        }
+    }
+
+    public void removerListenerUI(ListenerEstadoConexionUI listener) {
+        listenersUI.remove(listener);
+    }
+
     public boolean estaEnLinea() {
         return enLinea.get();
+    }
+
+    public EstadoConexionUI getEstadoUI() {
+        return estadoUI;
+    }
+
+    public int getPendientes() {
+        return totalPendientes.get();
+    }
+
+    public String getMensajeNotificacion() {
+        return mensajeNotificacion;
     }
 
     public long getTiempoUltimaDeteccionMs() {
@@ -107,16 +133,45 @@ public class ServicioConexion implements EstadoConexionPort {
         return timeout;
     }
 
+    public void actualizarPendientes(int pendientes) {
+        totalPendientes.set(Math.max(0, pendientes));
+        notificarListenersUI();
+    }
+
+    public void reportarInicioSincronizacion(int pendientes) {
+        this.totalPendientes.set(Math.max(0, pendientes));
+        this.estadoUI = EstadoConexionUI.SINCRONIZANDO;
+        notificarListenersUI();
+    }
+
+    public void reportarFinSincronizacion(int sincronizados, int pendientesRestantes) {
+        this.totalPendientes.set(Math.max(0, pendientesRestantes));
+        this.estadoUI = enLinea.get() ? EstadoConexionUI.EN_LINEA : EstadoConexionUI.SIN_CONEXION;
+        if (sincronizados > 0) {
+            this.mensajeNotificacion = "Sincronizado";
+        }
+        notificarListenersUI();
+    }
+
+    public void limpiarNotificacion() {
+        this.mensajeNotificacion = "";
+        notificarListenersUI();
+    }
+
     /**
-     * Reporta de forma inmediata una caída de red o timeout provocada por cualquier operación HTTP.
+     * Reporta de forma inmediata una caída de red o timeout provocada por cualquier operación HTTP o sondeo.
      */
     public void reportarFalloConexion(String motivo, long duracionMs) {
         tiempoUltimaDeteccionMs.set(duracionMs);
         boolean estabaEnLinea = enLinea.getAndSet(false);
+        if (estadoUI != EstadoConexionUI.SINCRONIZANDO) {
+            estadoUI = EstadoConexionUI.SIN_CONEXION;
+        }
         if (estabaEnLinea) {
             LOGGER.log(Level.WARNING, "Transición a SIN CONEXIÓN detectada en " + duracionMs + " ms. Motivo: " + motivo);
             notificarListeners(false);
         }
+        notificarListenersUI();
     }
 
     public void reportarFalloConexion(String motivo) {
@@ -128,10 +183,14 @@ public class ServicioConexion implements EstadoConexionPort {
      */
     public void reportarExitoConexion() {
         boolean estabaOffline = !enLinea.getAndSet(true);
+        if (estadoUI != EstadoConexionUI.SINCRONIZANDO) {
+            estadoUI = EstadoConexionUI.EN_LINEA;
+        }
         if (estabaOffline) {
             LOGGER.info("Comunicación restablecida con el servidor central: EN LÍNEA.");
             notificarListeners(true);
         }
+        notificarListenersUI();
     }
 
     @Override
@@ -169,6 +228,19 @@ public class ServicioConexion implements EstadoConexionPort {
                 listener.onCambioEstado(online);
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Error al notificar listener de conectividad: " + e.getMessage());
+            }
+        }
+    }
+
+    private void notificarListenersUI() {
+        EstadoConexionUI est = this.estadoUI;
+        int pend = this.totalPendientes.get();
+        String notif = this.mensajeNotificacion;
+        for (ListenerEstadoConexionUI listener : listenersUI) {
+            try {
+                listener.onCambioEstadoUI(est, pend, notif);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error al notificar listener de estado UI: " + e.getMessage());
             }
         }
     }
