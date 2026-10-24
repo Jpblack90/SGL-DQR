@@ -160,6 +160,7 @@ export const MAPA_ESTADOS_TRACKING: Record<string, string> = {
   EN_TRANSITO: 'En tránsito',
   LISTO_PARA_RETIRO: 'Listo para retiro',
   EN_ALMACEN_DESTINO: 'Listo para retiro', // Alias tolerado
+  PAGO_REGISTRADO: 'Pago registrado en agencia',
   ENTREGADO: 'Entregado',
 };
 

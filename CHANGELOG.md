@@ -7,7 +7,15 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+---
+
+## [0.2.1] - 2026-10-23
+
 ### Fixed
+- [I2][I1][I3][UX-SYNC] Corrección de badge de pendientes, sincronización de zonas horarias en tracking y unicidad de evento de cobro:
+  - **Escritorio («Pendientes: N» reactivo)**: Creación de `EncabezadoConexionViewModel` con cálculo desacoplado del estado del encabezado (`colorCirculoHex`, `textoEstado`, `mostrarBadgePendientes`, `textoBadgePendientes`). Actualización reactiva inmediata de `servicioConexion.actualizarPendientes(...)` al encolar encomiendas offline en `VentanillaOfflineServicio` y al restablecer reintentos en `ControladorColaLocal`, garantizando visibilidad del badge en cualquier pantalla (Ventanilla incluida). Suite de 6 pruebas unitarias en `EncabezadoConexionViewModelTest`.
+  - **Backend API (Zonas horarias y serialización de tracking)**: Migración de `fechaHora` en `EventoTrackingPublicoDto` a `OffsetDateTime` en UTC (con indicador 'Z' ISO-8601), evitando que `new Date()` en navegadores web interprete la fecha UTC como hora local y genere un desfase horario de 5 horas. Preservación intacta de `LocalDateTime` en `fechaExpiracion` de `RespuestaPreRegistroPublicoDto` para vigencia de pre-registro web. Suite de pruebas unitarias de serialización Jackson en `TrackingSerializacionTest`.
+  - **Tracking de Cobro y Portal Web (Evento PAGO_REGISTRADO)**: Eliminación del evento duplicado «Listo para retiro» al cobrar una encomienda contra entrega en `EntregaApiServicio`, registrando en su lugar el evento de tracking propio `PAGO_REGISTRADO` (observación «Cobro registrado»). Incorporación en `frontend-marvisur/portal-web` de la etiqueta amigable «Pago registrado en agencia» en `MAPA_ESTADOS_TRACKING` y normalización de fecha en `LineaTiempo.tsx` con zona local del navegador, respaldado por 5 pruebas unitarias en `LineaTiempo.test.tsx`.
 - [I2][O1-O2] Corrección del cableado de sincronización offline, estado de conexión en UI y mensajes de error en escritorio:
   - Integración de `ServicioConexion` como fuente única de verdad para el estado de conectividad (`EN_LINEA`, `SIN_CONEXION`, `SINCRONIZANDO`), contador de pendientes y notificaciones temporales de sincronización.
   - Activación automática de `SincronizadorOffline` en segundo plano (hilo daemon) al abrir la ventana principal con sesión en `ControladorPrincipal`, con detención limpia al cerrar sesión o salir (`detenerTareasFondo` y `App.stop()`).

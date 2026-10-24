@@ -1,22 +1,22 @@
 # Matriz de Estado de Implementación — SGL-DQR (Expreso Marvisur)
 
 Fecha de corte: **23 de octubre de 2026**  
-Versión del sistema: **v0.2.0 (Fase B — Pre-registro y Cotización Operativos)**  
+Versión del sistema: **v0.2.1 (Fase B — Pre-registro y Cotización Operativos)**  
 Metodología: **Auditoría técnica honesta basada en código fuente real, endpoints existentes, pantallas UI y pruebas automatizadas.**
 
 ---
 
 ## 1. Resumen de Pruebas Automatizadas
 
-El sistema cuenta con un total de **246 pruebas automatizadas**, todas en estado **VERDE (0 fallos, 0 errores, 0 omitidas)**:
+El sistema cuenta con un total de **263 pruebas automatizadas**, todas en estado **VERDE (0 fallos, 0 errores, 0 omitidas)**:
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Estado |
 |---|---|:---:|:---:|
 | `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **Verde** |
-| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **100** | **Verde** |
-| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **64** | **Verde** |
-| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **32** | **Verde** |
-| **TOTAL** | **Multiplataforma** | **246** | **100% VERDE** |
+| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **104** | **Verde** |
+| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **76** | **Verde** |
+| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **33** | **Verde** |
+| **TOTAL** | **Multiplataforma** | **263** | **100% VERDE** |
 
 ---
 

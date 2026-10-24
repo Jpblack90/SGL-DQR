@@ -8,7 +8,9 @@ interface LineaTiempoProps {
 
 function formatearFecha(isoString: string): string {
   try {
-    const fecha = new Date(isoString);
+    const tieneZona = isoString.endsWith('Z') || /[+-]\d{2}(:\d{2})?$/.test(isoString);
+    const cadenaParseable = (!tieneZona && isoString.includes('T')) ? `${isoString}Z` : isoString;
+    const fecha = new Date(cadenaParseable);
     if (isNaN(fecha.getTime())) return isoString;
     return new Intl.DateTimeFormat('es-PE', {
       dateStyle: 'medium',

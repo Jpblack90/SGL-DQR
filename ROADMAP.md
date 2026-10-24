@@ -1,20 +1,20 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 > Leyenda: [x] hecho · [~] en curso · [ ] pendiente  
-> Estado: **Fase B CONGELADA para Entrega · Versión 0.2.0**
+> Estado: **Fase B CONGELADA para Entrega · Versión 0.2.1**
 
 ---
 
 ## Estado general
 
 - **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
-- **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.0)**.
-  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 247 pruebas automatizadas en verde.
+- **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.1)**.
+  - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 263 pruebas automatizadas en verde.
   - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
 
 ---
 
-## Decisiones vigentes (Congeladas para v0.2.0)
+## Decisiones vigentes (Congeladas para v0.2.1)
 
 - **Arquitectura hexagonal**: `marvisur-core` es Java 21 puro (sin Spring, JavaFX ni JPA); ArchUnit lo verifica en cada compilación.
 - **Identificadores**: Todas las llaves primarias son UUID (VARCHAR(36)), generadas en el cliente para soporte offline total.
@@ -41,7 +41,7 @@
 
 ---
 
-## FASE B — Ecosistema y Estabilización (CONGELADA PARA ENTREGA - v0.2.0)
+## FASE B — Ecosistema y Estabilización (CONGELADA PARA ENTREGA - v0.2.1)
 
 - [x] **P12 Congelamiento de funciones y kit de demo**:
   - Scripts de demostración multiplataforma (`demo-reset`, `demo-api`, `demo-portal`, `demo-escritorio`, `demo-parar-api`, `demo-iniciar-api`).
@@ -82,7 +82,7 @@
 - [x] **W4** Billetera Digital con lectura segura del token en fragmento hash `#` (RF-09)
 - [x] **W3** Cotización en línea y pre-registro web «Código Express» con generación QR en cliente (RF-10)
 - [ ] **W5** *[Pendiente / Backlog]* Descarga de comprobante PDF en portal (RF-11; requiere B3)
-- [x] **Q1** Suite de pruebas unitarias e integración en Vitest (32 tests) y manual UAT documentada
+- [x] **Q1** Suite de pruebas unitarias e integración en Vitest (33 tests) y manual UAT documentada
 
 #### I4 — Hardware, Offline e Infraestructura
 - [x] **O1** Esquema SQLite local, adaptador `SQLiteColaAdapter` y conmutación offline $\le 2$ s (RNF-02, RNF-05)
@@ -94,7 +94,7 @@
 
 ---
 
-## Resumen de Tareas Pendientes Post-v0.2.0
+## Resumen de Tareas Pendientes Post-v0.2.1
 
 Para auditoría docente y técnica, se explicitan los 8 ítems que quedan fuera del congelamiento v0.2.0:
 1. `B1` — Dashboard analítico de KPIs y módulo visual de empleados.

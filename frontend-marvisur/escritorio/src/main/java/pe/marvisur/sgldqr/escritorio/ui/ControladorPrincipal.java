@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EncabezadoConexionViewModel;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ModeloMenuRol;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
@@ -237,45 +238,37 @@ public class ControladorPrincipal {
     }
 
     private void actualizarIndicadorUI(EstadoConexionUI estado, int pendientes, String notificacion) {
-        if (circuloConexion != null && lblEstadoConexion != null) {
-            if (estado == EstadoConexionUI.SINCRONIZANDO) {
-                circuloConexion.setFill(Color.web("#3B82F6"));
-                lblEstadoConexion.setText("Sincronizando…");
-            } else if (estado == EstadoConexionUI.SIN_CONEXION) {
-                circuloConexion.setFill(Color.web("#E30613"));
-                lblEstadoConexion.setText("Sin conexión");
-            } else {
-                circuloConexion.setFill(Color.web("#10B981"));
-                if (notificacion != null && !notificacion.isBlank()) {
-                    lblEstadoConexion.setText(notificacion);
-                    if (pausaNotificacionSync != null) {
-                        pausaNotificacionSync.stop();
-                    }
-                    try {
-                        pausaNotificacionSync = new PauseTransition(Duration.seconds(5));
-                        pausaNotificacionSync.setOnFinished(e -> {
-                            if (servicioConexion.estaEnLinea()) {
-                                lblEstadoConexion.setText("En línea");
-                            }
-                            servicioConexion.limpiarNotificacion();
-                        });
-                        pausaNotificacionSync.play();
-                    } catch (Exception ignored) {
-                    }
-                } else {
-                    lblEstadoConexion.setText("En línea");
+        EncabezadoConexionViewModel vm = EncabezadoConexionViewModel.calcular(estado, pendientes, notificacion);
+
+        if (circuloConexion != null) {
+            circuloConexion.setFill(Color.web(vm.colorCirculoHex()));
+        }
+
+        if (lblEstadoConexion != null) {
+            lblEstadoConexion.setText(vm.textoEstado());
+            if (estado == EstadoConexionUI.EN_LINEA && notificacion != null && !notificacion.isBlank()) {
+                if (pausaNotificacionSync != null) {
+                    pausaNotificacionSync.stop();
+                }
+                try {
+                    pausaNotificacionSync = new PauseTransition(Duration.seconds(5));
+                    pausaNotificacionSync.setOnFinished(e -> {
+                        if (servicioConexion.estaEnLinea()) {
+                            lblEstadoConexion.setText("En línea");
+                        }
+                        servicioConexion.limpiarNotificacion();
+                    });
+                    pausaNotificacionSync.play();
+                } catch (Exception ignored) {
                 }
             }
         }
 
         if (lblPendientes != null) {
-            if (pendientes > 0) {
-                lblPendientes.setText("Pendientes: " + pendientes);
-                lblPendientes.setVisible(true);
-                lblPendientes.setManaged(true);
-            } else {
-                lblPendientes.setVisible(false);
-                lblPendientes.setManaged(false);
+            lblPendientes.setVisible(vm.mostrarBadgePendientes());
+            lblPendientes.setManaged(vm.mostrarBadgePendientes());
+            if (vm.mostrarBadgePendientes()) {
+                lblPendientes.setText(vm.textoBadgePendientes());
             }
         }
     }
