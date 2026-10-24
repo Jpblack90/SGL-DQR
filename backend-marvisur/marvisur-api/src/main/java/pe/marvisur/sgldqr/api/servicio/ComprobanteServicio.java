@@ -2,6 +2,7 @@ package pe.marvisur.sgldqr.api.servicio;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -76,10 +77,11 @@ public class ComprobanteServicio {
     private final ImagenQRPort imagenQRPort;
 
     @Value("${app.comprobantes.directorio:./comprobantes}")
-    private String directorioComprobantes;
+    private String directorioComprobantes = "./comprobantes";
 
     public record ResultadoPdfComprobante(String nombreArchivo, byte[] contenidoPdf) {}
 
+    @Autowired
     public ComprobanteServicio(EncomiendaSpringDataRepository encomiendaRepository,
                                ClienteSpringDataRepository clienteRepository,
                                RepositorioSucursalPort sucursalPort,
@@ -100,16 +102,12 @@ public class ComprobanteServicio {
         this.imagenQRPort = Objects.requireNonNull(imagenQRPort, "El imagenQRPort no puede ser nulo");
     }
 
-    public ComprobanteServicio(EncomiendaSpringDataRepository encomiendaRepository,
-                               ClienteSpringDataRepository clienteRepository,
-                               RepositorioSucursalPort sucursalPort,
-                               ParDobleQrSpringDataRepository parDobleQrRepository,
-                               ComprobantePagoSpringDataRepository comprobantePagoRepository,
-                               ArchivoPdfComprobanteSpringDataRepository archivoPdfRepository,
-                               GeneradorComprobantePort generadorComprobantePort,
-                               ImagenQRPort imagenQRPort) {
-        this(encomiendaRepository, clienteRepository, sucursalPort, parDobleQrRepository,
-             comprobantePagoRepository, archivoPdfRepository, null, generadorComprobantePort, imagenQRPort);
+    public String getDirectorioComprobantes() {
+        return directorioComprobantes;
+    }
+
+    public void setDirectorioComprobantes(String directorioComprobantes) {
+        this.directorioComprobantes = directorioComprobantes;
     }
 
     /**
@@ -207,23 +205,23 @@ public class ComprobanteServicio {
                     && archivoEntity.getNombreArchivo().endsWith("-" + estadoPagoActual + ".pdf");
             if (estadoCoincide) {
                 Path pathExistente = Paths.get(archivoEntity.getRutaAlmacenamientoVps());
-            if (Files.isRegularFile(pathExistente)) {
-                try {
-                    byte[] bytesExistentes = Files.readAllBytes(pathExistente);
-                    String hashActual = calcularSha256(bytesExistentes);
-                    if (hashActual.equalsIgnoreCase(archivoEntity.getHashSha256Archivo())) {
-                        log.debug("Comprobante {} recuperado de disco con hash íntegro", comprobante.getSerieCorrelativo());
-                        return new ResultadoPdfComprobante(nombreDescarga, bytesExistentes);
+                if (Files.isRegularFile(pathExistente)) {
+                    try {
+                        byte[] bytesExistentes = Files.readAllBytes(pathExistente);
+                        String hashActual = calcularSha256(bytesExistentes);
+                        if (hashActual.equalsIgnoreCase(archivoEntity.getHashSha256Archivo())) {
+                            log.debug("Comprobante {} recuperado de disco con hash íntegro", comprobante.getSerieCorrelativo());
+                            return new ResultadoPdfComprobante(nombreDescarga, bytesExistentes);
+                        }
+                        log.warn("Comprobante {} en disco tiene hash discrepante; se regenerará", comprobante.getSerieCorrelativo());
+                    } catch (IOException e) {
+                        log.warn("Error leyendo archivo de comprobante en disco: {}; se regenerará", e.getMessage());
                     }
-                    log.warn("Comprobante {} en disco tiene hash discrepante; se regenerará", comprobante.getSerieCorrelativo());
-                } catch (IOException e) {
-                    log.warn("Error leyendo archivo de comprobante en disco: {}; se regenerará", e.getMessage());
+                } else {
+                    log.info("Archivo de comprobante {} no encontrado en disco; se regenerará", pathExistente);
                 }
             } else {
-                log.info("Archivo de comprobante {} no encontrado en disco; se regenerará", pathExistente);
-            }
-        } else {
-            log.info("Estado de pago de comprobante {} difiere (actual: {}); se regenerará el archivo", comprobante.getSerieCorrelativo(), estadoPagoActual);
+                log.info("Estado de pago de comprobante {} difiere (actual: {}); se regenerará el archivo", comprobante.getSerieCorrelativo(), estadoPagoActual);
             }
         }
 
