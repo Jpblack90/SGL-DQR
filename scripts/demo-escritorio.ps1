@@ -16,6 +16,25 @@ $ErrorActionPreference = "Stop"
 $Raiz = Split-Path -Parent $PSScriptRoot
 Set-Location $Raiz
 
+# Resolver ruta de Maven si no esta en PATH
+if (-not (Get-Command "mvn" -ErrorAction SilentlyContinue)) {
+    $candidatosMvn = @(
+        $env:MAVEN_HOME,
+        $env:M2_HOME,
+        "C:\tools\apache-maven-3.9.9\bin",
+        "C:\ProgramData\chocolatey\bin"
+    )
+    foreach ($cand in $candidatosMvn) {
+        if (-not [string]::IsNullOrWhiteSpace($cand)) {
+            $binPath = if (Test-Path (Join-Path $cand "bin\mvn.cmd")) { Join-Path $cand "bin" } elseif (Test-Path (Join-Path $cand "mvn.cmd")) { $cand } else { $null }
+            if ($binPath) {
+                $env:Path = "$binPath;$env:Path"
+                break
+            }
+        }
+    }
+}
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " [DEMO-ESCRITORIO] Ejecutando Aplicacion JavaFX (SGL-DQR)" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan

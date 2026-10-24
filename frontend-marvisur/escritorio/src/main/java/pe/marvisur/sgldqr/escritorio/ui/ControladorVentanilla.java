@@ -154,6 +154,12 @@ public class ControladorVentanilla {
 
     @FXML
     public void manejarCargarCodigoExpress() {
+        if (!ServicioConexion.getInstancia().estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
+                    PestanasBloqueadasOfflineViewModel.MENSAJE_EXPRESS_REQUIERE_CONEXION);
+            return;
+        }
+
         String codigo = txtCodigoExpress.getText() != null ? txtCodigoExpress.getText().trim() : "";
         if (codigo.isBlank()) {
             NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Código Express", "Código Requerido", "Ingrese el código express legible (ej. CEX-481920).");
@@ -180,7 +186,8 @@ public class ControladorVentanilla {
         tarea.setOnFailed(e -> {
             btnCargarExpress.setDisable(false);
             Throwable err = tarea.getException();
-            String msg = err != null && err.getMessage() != null ? err.getMessage() : "Error al consultar código express.";
+            String msg = err != null && err.getMessage() != null && !err.getMessage().isBlank() && !"null".equalsIgnoreCase(err.getMessage())
+                    ? err.getMessage() : "Sin conexión con el servidor.";
             NavegadorUI.mostrarAlerta(Alert.AlertType.ERROR, "Código Express", "No encontrado", msg);
         });
 

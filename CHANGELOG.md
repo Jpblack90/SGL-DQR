@@ -8,6 +8,23 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Fixed
+- [I2][O1-O2] Corrección del cableado de sincronización offline, estado de conexión en UI y mensajes de error en escritorio:
+  - Integración de `ServicioConexion` como fuente única de verdad para el estado de conectividad (`EN_LINEA`, `SIN_CONEXION`, `SINCRONIZANDO`), contador de pendientes y notificaciones temporales de sincronización.
+  - Activación automática de `SincronizadorOffline` en segundo plano (hilo daemon) al abrir la ventana principal con sesión en `ControladorPrincipal`, con detención limpia al cerrar sesión o salir (`detenerTareasFondo` y `App.stop()`).
+  - Disparo de sincronización automática ante conmutación de `SIN_CONEXION` a `EN_LINEA` con pendientes y al iniciar sesión con registros locales en cola.
+  - Prevención de ejecuciones concurrentes o envíos duplicados mediante `AtomicBoolean` en `SincronizadorOffline`, procesamiento en lotes de hasta 50 registros y registro `INFO` detallado de inicio, envío y finalización sin datos sensibles.
+  - Indicador unificado en cabecera de `PrincipalView`: «Sin conexión» (rojo), «Sincronizando…» (azul), «Sincronizado» (verde durante $\ge 5$ s), y etiqueta reactiva «Pendientes: N».
+  - Habilitación del botón de menú «Cola Local» (`btnMenuColaLocal`) para roles TN1 y TN3 según `ModeloMenuRol` con navegación hacia `ColaLocalView.fxml`.
+  - Método auxiliar `obtenerMensajeErrorClaro(Throwable)` en `ControladorAlmacen` para transformar excepciones de red (`ConnectException`, timeout) o mensajes `null` en textos descriptivos amigables («Sin conexión con el servidor»).
+  - Bloqueo preventivo de operaciones que requieren conexión activa (`Validar Entrega`, `Cobro`, `Lotes`, `Contingencia`, `Incidencias` y `Código Express`) mostrando «Requiere conexión» si no se encuentra en línea.
+  - Resolución inteligente de la ruta de la base de datos SQLite `marvisur-local.db` en `SQLiteColaAdapter` para compatibilidad de ejecución desde la raíz o desde el módulo de escritorio.
+  - Verificación formal de esquema contra `SyncEncomiendaItemDto` y suite de 5 pruebas unitarias con servidor simulado ligero en `SincronizacionCableadoUITest`.
+- [I4][P12] Resolución de ejecutables y sintaxis de Maven en scripts de demostración:
+  - Detección dinámica de `mvn` en `PATH`, `MAVEN_HOME`, `M2_HOME`, `C:\tools\apache-maven-3.9.9\bin` o Chocolatey en `demo-api.ps1`, `demo-iniciar-api.ps1` y `demo-escritorio.ps1`.
+  - Inclusión del flag `-NoExit` en `demo-iniciar-api.ps1` para mantener abierta la consola secundaria y permitir la visualización de errores de compilación o arranque.
+  - Entrecomillado de argumentos `-D` de Maven y verificación de sintaxis válida mediante el parser abstracto de PowerShell.
+
+### Fixed
 - [P11b][SEED-QR] Corrección y normalización de parejas Doble QR de demostración y resolución bidireccional en entrega:
   - Normalización en `database/postgres/dev-seed/V100__datos_demo.sql` de la columna `uuid_qr1_operativo` al estándar oficial canónico `MARVISUR:QR1:<id_encomienda>` para encomiendas demo `MV-DEMO-001`, `MV-DEMO-002` y `MV-DEMO-003`.
   - Soporte bidireccional en `EntregaApiServicio` al validar entrega: despojo del prefijo `MARVISUR:QR1:` al buscar por `uuid_qr1_operativo` e `id_encomienda`, admitiendo tanto el código escaneado con prefijo oficial como identificadores directos legados.
