@@ -299,6 +299,7 @@ public class VentanillaOfflineServicio implements VentanillaPort {
 
         // 3. Persistir en la cola SQLite
         colaLocalPort.guardarEnCola(idEncomienda, jsonPayload);
+        servicioConexion.actualizarPendientes(colaLocalPort.contarPendientes());
 
         // 4. Renderizado visual del QR1 físico para impresión y previsualización
         String qr1Base64 = null;
