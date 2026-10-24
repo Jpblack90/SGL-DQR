@@ -40,6 +40,8 @@ import pe.marvisur.sgldqr.puertos.TarifarioPort;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
@@ -170,7 +172,7 @@ public class PublicoServicio {
                 .map(ev -> new EventoTrackingPublicoDto(
                         ev.getEstadoEvento(),
                         obtenerNombreSucursal(ev.getIdSucursalActual()),
-                        ev.getFechaHoraEvento()
+                        ev.getFechaHoraEvento() != null ? ev.getFechaHoraEvento().atOffset(ZoneOffset.UTC) : null
                 ))
                 .toList();
 

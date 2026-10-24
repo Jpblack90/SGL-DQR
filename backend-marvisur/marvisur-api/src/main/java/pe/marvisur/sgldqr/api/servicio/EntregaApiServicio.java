@@ -268,7 +268,7 @@ public class EntregaApiServicio {
         HistorialTracking tracking = HistorialTracking.crear(
                 encomiendaEntidad.getIdEncomienda(),
                 usuario.getIdSucursal(),
-                MapeadorEventoTracking.aEventoTracking(EstadoLogistico.valueOf(encomiendaEntidad.getEstadoLogistico())),
+                "PAGO_REGISTRADO",
                 "Cobro registrado",
                 ahora
         );
