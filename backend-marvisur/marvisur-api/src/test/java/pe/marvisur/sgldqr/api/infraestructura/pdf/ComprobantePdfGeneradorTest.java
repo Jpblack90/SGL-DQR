@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ComprobantePdfGeneradorTest {
 
     @Test
-    @DisplayName("Debe generar PDF valido con encabezado %PDF, montos, codigo y sin datos confidenciales")
-    void debeGenerarPdfValidoConDatosRequeridosYSinDatosConfidenciales() throws IOException {
+    @DisplayName("Debe generar comprobante de envio para Boleta al contado sin la palabra venta y con QR1")
+    void debeGenerarComprobanteEnvioBoletaContadoValido() throws IOException {
         // GIVEN
         PdfBoxGeneradorComprobanteAdapter generador = new PdfBoxGeneradorComprobanteAdapter();
         ZXingAdapter zxingAdapter = new ZXingAdapter();
@@ -44,7 +44,7 @@ class ComprobantePdfGeneradorTest {
                 "Maria Gomez Prado",
                 "*****123",
                 new BigDecimal("12.50"),
-                "Documentos legales y repuestos",
+                "Documentos legales y repuestos mecánicos urgentes",
                 "CONTADO",
                 "PAGADO",
                 new BigDecimal("42.37"),
@@ -60,18 +60,27 @@ class ComprobantePdfGeneradorTest {
         assertThat(pdfBytes).isNotNull();
         assertThat(pdfBytes.length).isGreaterThan(100);
 
-        // 1. Debe empezar con la firma estándar %PDF
+        // 1. Cabecera estándar %PDF
         String cabeceraPdf = new String(pdfBytes, 0, 4, StandardCharsets.US_ASCII);
         assertThat(cabeceraPdf).isEqualTo("%PDF");
 
-        // 2. Extraer texto con PDFBox y verificar contenido obligatorio y confidencialidad
+        // 2. Extraer texto con PDFBox y verificar presentación y privacidad
         try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
             assertThat(doc.getNumberOfPages()).isEqualTo(1);
 
             PDFTextStripper stripper = new PDFTextStripper();
             String textoExtraido = stripper.getText(doc);
 
-            // Verificaciones de contenido requerido
+            // Nuevos títulos y etiquetas
+            assertThat(textoExtraido).contains("COMPROBANTE DE ENVÍO");
+            assertThat(textoExtraido).contains("Tipo: Boleta (referencial)");
+            assertThat(textoExtraido).contains("Fecha de registro:");
+            assertThat(textoExtraido).contains("hora de Lima");
+            assertThat(textoExtraido).contains("Modalidad de pago:");
+            assertThat(textoExtraido).contains("Contado (pagado)");
+            assertThat(textoExtraido).contains("Código QR del bulto (QR1)");
+
+            // Contenido operativo
             assertThat(textoExtraido).contains(codigoComprobante);
             assertThat(textoExtraido).contains("50.00");
             assertThat(textoExtraido).contains("EXPRESO MARVISUR");
@@ -81,13 +90,70 @@ class ComprobantePdfGeneradorTest {
             assertThat(textoExtraido).contains("*****678");
             assertThat(textoExtraido).contains("*****123");
 
+            // Ausencia de la palabra "venta"
+            assertThat(textoExtraido.toLowerCase()).doesNotContain("venta");
+
             // Verificaciones estrictas de privacidad (RF-11 / RNF-01)
             assertThat(textoExtraido).doesNotContain(dniRemitenteCompleto);
             assertThat(textoExtraido).doesNotContain(dniDestinatarioCompleto);
             assertThat(textoExtraido).doesNotContain(telefonoPrivado);
             assertThat(textoExtraido).doesNotContain(correoPrivado);
-            // El token QR2 nunca debe estar presente
             assertThat(textoExtraido).doesNotContain("QR2");
+        }
+    }
+
+    @Test
+    @DisplayName("Debe generar comprobante para Factura contra entrega con descripcion multilinea y recorte")
+    void debeGenerarComprobanteFacturaContraEntregaConDescripcionMultilinea() throws IOException {
+        // GIVEN
+        PdfBoxGeneradorComprobanteAdapter generador = new PdfBoxGeneradorComprobanteAdapter();
+        ZXingAdapter zxingAdapter = new ZXingAdapter();
+
+        String codigoComprobante = "FAC-2026-00012";
+        byte[] qr1Png = zxingAdapter.generarPNG("MARVISUR:QR1:ENC-TEST-UUID-FAC", 150);
+
+        String descripcionLarga = "Caja pesada conteniendo partes electrónicas para servidores industriales de alta precisión, tarjetas madre, procesadores, fuentes de poder modulares, cableado estructurado y manuales técnicos de instalación.";
+
+        ComprobantePdfDatos datos = new ComprobantePdfDatos(
+                "FACTURA",
+                codigoComprobante,
+                LocalDateTime.of(2026, 10, 24, 18, 0, 0),
+                "Agencia Chiclayo",
+                "Agencia Piura",
+                "Tech Solutions SAC",
+                "*****789",
+                "Servicios del Norte EIRL",
+                "*****456",
+                new BigDecimal("25.00"),
+                descripcionLarga,
+                "CONTRA_ENTREGA",
+                "PENDIENTE",
+                new BigDecimal("84.75"),
+                new BigDecimal("15.25"),
+                new BigDecimal("100.00"),
+                qr1Png
+        );
+
+        // WHEN
+        byte[] pdfBytes = generador.generarComprobantePdf(datos);
+
+        // THEN
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String textoExtraido = stripper.getText(doc);
+
+            assertThat(textoExtraido).contains("COMPROBANTE DE ENVÍO");
+            assertThat(textoExtraido).contains("Tipo: Factura (referencial)");
+            assertThat(textoExtraido).contains("Contra entrega (pendiente de cobro)");
+            assertThat(textoExtraido).contains("Código QR del bulto (QR1)");
+            assertThat(textoExtraido).contains("100.00");
+
+            // Ausencia de "venta"
+            assertThat(textoExtraido.toLowerCase()).doesNotContain("venta");
+
+            // Descripción ajustada con recorte
+            assertThat(textoExtraido).contains("partes");
+            assertThat(textoExtraido).contains("...");
         }
     }
 }

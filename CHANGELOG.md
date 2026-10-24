@@ -16,6 +16,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Portal Web (`portal-web`)**: Incorporación de la función `descargarComprobantePdf` en `cliente.ts` y botón interactivo «Descargar comprobante (PDF)» en el resultado de `Rastreo.tsx` mediante descarga con Blob y URL temporal revocable (`URL.revokeObjectURL`). Manejo robusto de 404, 429 con `Retry-After` y errores de red preservando los campos del formulario y sin almacenamiento de datos personales en el cliente.
   - **Pruebas Automatizadas**: Suite unitaria `ComprobantePdfGeneradorTest` (PDFBox, cabecera `%PDF`, validación de texto y privacidad), pruebas de integración `ComprobantePdfIntegracionTest` (MockMvc + Testcontainers) y pruebas unitarias de cliente web en `Rastreo.test.tsx` (8 tests).
 
+### Changed
+- [I1][B3] Presentación y estética de comprobante de envío PDF en `PdfBoxGeneradorComprobanteAdapter`:
+  - **Títulos y tipos referenciales**: Sustitución de «BOLETA DE VENTA» / «FACTURA DE VENTA» por «COMPROBANTE DE ENVÍO» y subtítulo «Tipo: Boleta (referencial)» o «Tipo: Factura (referencial)», erradicando la palabra «venta» en todo el documento.
+  - **Etiquetas de fecha y modalidad amigables**: Modificación de etiqueta a «Fecha de registro:» con zona horaria legible «(hora de Lima)» dentro de márgenes, y modalidad como «Contado (pagado)» o «Contra entrega (pendiente de cobro)».
+  - **Descripción multilínea con recorte elíptico**: Soporte para hasta 2 líneas de descripción del contenido tasado en lugar de truncado unilínea, recortando con «...» al final de la segunda línea solo si excede el espacio útil.
+  - **Etiqueta identificadora de QR1**: Rotulación formal inferior como «Código QR del bulto (QR1)» centrada bajo la imagen.
+  - **Pruebas unitarias de presentación**: Ampliación de `ComprobantePdfGeneradorTest` verificando títulos, tipos referenciales, ausencia estricta de «venta» y ajuste multilínea de descripción.
+
 ### Fixed
 - [I1][B3] Corrección de configuración Testcontainers PostgreSQL y preparación de datos en `ComprobantePdfIntegracionTest`:
   - **Inyección dinámica de DataSource**: Adición del método estático `@DynamicPropertySource` conectando `spring.datasource.url/username/password`, driver PostgreSQL y dialecto Hibernate al contenedor `postgres:16-alpine`, evitando que Spring Boot caiga a la base H2 en memoria de `application-test.properties`.
