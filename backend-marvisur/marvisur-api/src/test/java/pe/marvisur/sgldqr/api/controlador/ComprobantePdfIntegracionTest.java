@@ -349,6 +349,75 @@ class ComprobantePdfIntegracionTest {
         }
     }
 
+    @Test
+    @DisplayName("Regeneración de comprobante al actualizar estado de pago de PENDIENTE a PAGADO manteniendo fila única")
+    void regeneracionComprobanteAlActualizarEstadoPagoManteniendoFilaUnica() throws Exception {
+        // Preparar encomienda con estado PENDIENTE (Contra Entrega)
+        EncomiendaJpaEntity enc = encomiendaRepository.findById(idEncomiendaTest).orElseThrow();
+        enc.setEstadoPago("PENDIENTE");
+        encomiendaRepository.save(enc);
+
+        // 1. Descarga inicial con pago PENDIENTE
+        MvcResult res1 = mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
+                        .param("comprobante", codigoComprobanteTest)
+                        .param("documento", dniRemitenteTest))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        byte[] pdf1 = res1.getResponse().getContentAsByteArray();
+        String hash1 = calcularSha256(pdf1);
+
+        try (PDDocument doc1 = Loader.loadPDF(pdf1)) {
+            String texto1 = new PDFTextStripper().getText(doc1);
+            assertThat(texto1).contains("TOTAL A PAGAR");
+            assertThat(texto1).contains("Contra entrega (pendiente de cobro)");
+            assertThat(texto1).doesNotContain("TOTAL PAGADO");
+        }
+
+        assertThat(archivoPdfRepository.count()).isEqualTo(1);
+
+        // 2. Transición de estado a PAGADO
+        enc.setEstadoPago("PAGADO");
+        encomiendaRepository.save(enc);
+
+        // 3. Segunda descarga: debe regenerar con estado vigente y hash distinto
+        MvcResult res2 = mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
+                        .param("comprobante", codigoComprobanteTest)
+                        .param("documento", dniRemitenteTest))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        byte[] pdf2 = res2.getResponse().getContentAsByteArray();
+        String hash2 = calcularSha256(pdf2);
+
+        assertThat(hash2).isNotEqualTo(hash1);
+
+        try (PDDocument doc2 = Loader.loadPDF(pdf2)) {
+            String texto2 = new PDFTextStripper().getText(doc2);
+            assertThat(texto2).contains("TOTAL PAGADO");
+            assertThat(texto2).contains("Contra entrega (pagado)");
+            assertThat(texto2).contains("(pagado)");
+            assertThat(texto2).doesNotContain("TOTAL A PAGAR");
+            assertThat(texto2).doesNotContain("pendiente de cobro");
+        }
+
+        // Sigue habiendo una sola fila en archivos_pdf_comprobante
+        assertThat(archivoPdfRepository.count()).isEqualTo(1);
+
+        // 4. Tercera descarga: idempotente, devuelve el mismo hash que la segunda
+        MvcResult res3 = mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
+                        .param("comprobante", codigoComprobanteTest)
+                        .param("documento", dniRemitenteTest))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        byte[] pdf3 = res3.getResponse().getContentAsByteArray();
+        String hash3 = calcularSha256(pdf3);
+
+        assertThat(hash3).isEqualTo(hash2);
+        assertThat(archivoPdfRepository.count()).isEqualTo(1);
+    }
+
     private static String calcularSha256(byte[] data) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

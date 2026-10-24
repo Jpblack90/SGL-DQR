@@ -16,6 +16,7 @@ import pe.marvisur.sgldqr.api.persistencia.repositorio.ArchivoPdfComprobanteSpri
 import pe.marvisur.sgldqr.api.persistencia.repositorio.ClienteSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.ComprobantePagoSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.EncomiendaSpringDataRepository;
+import pe.marvisur.sgldqr.api.persistencia.repositorio.HistorialTrackingSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.ParDobleQrSpringDataRepository;
 import pe.marvisur.sgldqr.api.seguridad.ConstantesSeguridad;
 import pe.marvisur.sgldqr.api.seguridad.UsuarioAutenticado;
@@ -70,6 +71,7 @@ public class ComprobanteServicio {
     private final ParDobleQrSpringDataRepository parDobleQrRepository;
     private final ComprobantePagoSpringDataRepository comprobantePagoRepository;
     private final ArchivoPdfComprobanteSpringDataRepository archivoPdfRepository;
+    private final HistorialTrackingSpringDataRepository historialTrackingRepository;
     private final GeneradorComprobantePort generadorComprobantePort;
     private final ImagenQRPort imagenQRPort;
 
@@ -84,6 +86,7 @@ public class ComprobanteServicio {
                                ParDobleQrSpringDataRepository parDobleQrRepository,
                                ComprobantePagoSpringDataRepository comprobantePagoRepository,
                                ArchivoPdfComprobanteSpringDataRepository archivoPdfRepository,
+                               HistorialTrackingSpringDataRepository historialTrackingRepository,
                                GeneradorComprobantePort generadorComprobantePort,
                                ImagenQRPort imagenQRPort) {
         this.encomiendaRepository = Objects.requireNonNull(encomiendaRepository, "El encomiendaRepository no puede ser nulo");
@@ -92,8 +95,21 @@ public class ComprobanteServicio {
         this.parDobleQrRepository = Objects.requireNonNull(parDobleQrRepository, "El parDobleQrRepository no puede ser nulo");
         this.comprobantePagoRepository = Objects.requireNonNull(comprobantePagoRepository, "El comprobantePagoRepository no puede ser nulo");
         this.archivoPdfRepository = Objects.requireNonNull(archivoPdfRepository, "El archivoPdfRepository no puede ser nulo");
+        this.historialTrackingRepository = historialTrackingRepository;
         this.generadorComprobantePort = Objects.requireNonNull(generadorComprobantePort, "El generadorComprobantePort no puede ser nulo");
         this.imagenQRPort = Objects.requireNonNull(imagenQRPort, "El imagenQRPort no puede ser nulo");
+    }
+
+    public ComprobanteServicio(EncomiendaSpringDataRepository encomiendaRepository,
+                               ClienteSpringDataRepository clienteRepository,
+                               RepositorioSucursalPort sucursalPort,
+                               ParDobleQrSpringDataRepository parDobleQrRepository,
+                               ComprobantePagoSpringDataRepository comprobantePagoRepository,
+                               ArchivoPdfComprobanteSpringDataRepository archivoPdfRepository,
+                               GeneradorComprobantePort generadorComprobantePort,
+                               ImagenQRPort imagenQRPort) {
+        this(encomiendaRepository, clienteRepository, sucursalPort, parDobleQrRepository,
+             comprobantePagoRepository, archivoPdfRepository, null, generadorComprobantePort, imagenQRPort);
     }
 
     /**
@@ -177,22 +193,27 @@ public class ComprobanteServicio {
         ComprobantePagoJpaEntity comprobante = comprobantePagoRepository.findByIdEncomienda(enc.getIdEncomienda())
                 .orElseGet(() -> crearComprobantePago(enc, remitente));
 
-        String nombreArchivo = "comprobante-" + comprobante.getSerieCorrelativo() + ".pdf";
+        String estadoPagoActual = enc.getEstadoPago() != null ? enc.getEstadoPago().trim().toUpperCase() : "PAGADO";
+        String nombreDescarga = "comprobante-" + comprobante.getSerieCorrelativo() + ".pdf";
+        String nombreArchivoFisico = "comprobante-" + comprobante.getSerieCorrelativo() + "-" + estadoPagoActual + ".pdf";
         Path rutaDirectorio = Paths.get(directorioComprobantes).toAbsolutePath().normalize();
-        Path rutaArchivo = rutaDirectorio.resolve(nombreArchivo);
+        Path rutaArchivo = rutaDirectorio.resolve(nombreArchivoFisico);
 
         // 2. Comprobar si ya existe archivo registrado e íntegro en disco
         Optional<ArchivoPdfComprobanteJpaEntity> archivoOpt = archivoPdfRepository.findByIdComprobante(comprobante.getIdComprobante());
         if (archivoOpt.isPresent()) {
             ArchivoPdfComprobanteJpaEntity archivoEntity = archivoOpt.get();
-            Path pathExistente = Paths.get(archivoEntity.getRutaAlmacenamientoVps());
+            boolean estadoCoincide = archivoEntity.getNombreArchivo() != null
+                    && archivoEntity.getNombreArchivo().endsWith("-" + estadoPagoActual + ".pdf");
+            if (estadoCoincide) {
+                Path pathExistente = Paths.get(archivoEntity.getRutaAlmacenamientoVps());
             if (Files.isRegularFile(pathExistente)) {
                 try {
                     byte[] bytesExistentes = Files.readAllBytes(pathExistente);
                     String hashActual = calcularSha256(bytesExistentes);
                     if (hashActual.equalsIgnoreCase(archivoEntity.getHashSha256Archivo())) {
                         log.debug("Comprobante {} recuperado de disco con hash íntegro", comprobante.getSerieCorrelativo());
-                        return new ResultadoPdfComprobante(nombreArchivo, bytesExistentes);
+                        return new ResultadoPdfComprobante(nombreDescarga, bytesExistentes);
                     }
                     log.warn("Comprobante {} en disco tiene hash discrepante; se regenerará", comprobante.getSerieCorrelativo());
                 } catch (IOException e) {
@@ -201,15 +222,28 @@ public class ComprobanteServicio {
             } else {
                 log.info("Archivo de comprobante {} no encontrado en disco; se regenerará", pathExistente);
             }
+        } else {
+            log.info("Estado de pago de comprobante {} difiere (actual: {}); se regenerará el archivo", comprobante.getSerieCorrelativo(), estadoPagoActual);
+            }
         }
 
         // 3. Generar el PDF físicamente
-        byte[] pdfBytes = generarBytesPdf(enc, comprobante, remitente, destinatario);
+        byte[] pdfBytes = generarBytesPdf(enc, comprobante, remitente, destinatario, archivoOpt);
         String hashSha256 = calcularSha256(pdfBytes);
 
         // 4. Guardar archivo en disco
         try {
             Files.createDirectories(rutaDirectorio);
+            if (archivoOpt.isPresent()) {
+                try {
+                    Path pathAnterior = Paths.get(archivoOpt.get().getRutaAlmacenamientoVps());
+                    if (!pathAnterior.equals(rutaArchivo)) {
+                        Files.deleteIfExists(pathAnterior);
+                    }
+                } catch (Exception ex) {
+                    log.debug("No se pudo eliminar archivo previo de comprobante: {}", ex.getMessage());
+                }
+            }
             Files.write(rutaArchivo, pdfBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             log.error("Error al persistir comprobante PDF en disco: {}", rutaArchivo, e);
@@ -220,7 +254,7 @@ public class ComprobanteServicio {
         OffsetDateTime ahora = OffsetDateTime.now();
         if (archivoOpt.isPresent()) {
             ArchivoPdfComprobanteJpaEntity entity = archivoOpt.get();
-            entity.setNombreArchivo(nombreArchivo);
+            entity.setNombreArchivo(nombreArchivoFisico);
             entity.setRutaAlmacenamientoVps(rutaArchivo.toString());
             entity.setHashSha256Archivo(hashSha256);
             entity.setFechaGeneracion(ahora);
@@ -229,7 +263,7 @@ public class ComprobanteServicio {
             ArchivoPdfComprobanteJpaEntity nuevo = new ArchivoPdfComprobanteJpaEntity(
                     UUID.randomUUID().toString(),
                     comprobante.getIdComprobante(),
-                    nombreArchivo,
+                    nombreArchivoFisico,
                     rutaArchivo.toString(),
                     hashSha256,
                     ahora
@@ -237,7 +271,7 @@ public class ComprobanteServicio {
             archivoPdfRepository.save(nuevo);
         }
 
-        return new ResultadoPdfComprobante(nombreArchivo, pdfBytes);
+        return new ResultadoPdfComprobante(nombreDescarga, pdfBytes);
     }
 
     private ComprobantePagoJpaEntity crearComprobantePago(EncomiendaJpaEntity enc, ClienteJpaEntity remitente) {
@@ -273,7 +307,8 @@ public class ComprobanteServicio {
     }
 
     private byte[] generarBytesPdf(EncomiendaJpaEntity enc, ComprobantePagoJpaEntity comprobante,
-                                   ClienteJpaEntity remitente, ClienteJpaEntity destinatario) {
+                                   ClienteJpaEntity remitente, ClienteJpaEntity destinatario,
+                                   Optional<ArchivoPdfComprobanteJpaEntity> archivoOpt) {
         // Nombres de agencias
         Sucursal origen = sucursalPort.buscarPorId(enc.getIdSucursalOrigen()).orElse(null);
         Sucursal destino = sucursalPort.buscarPorId(enc.getIdSucursalDestino()).orElse(null);
@@ -302,7 +337,17 @@ public class ComprobanteServicio {
 
         // Modalidad y estado de pago
         String estadoPago = enc.getEstadoPago() != null ? enc.getEstadoPago() : "PAGADO";
-        String modalidad = "PENDIENTE".equalsIgnoreCase(estadoPago) ? "CONTRA_ENTREGA" : "CONTADO";
+        String modalidad;
+        if ("PENDIENTE".equalsIgnoreCase(estadoPago)) {
+            modalidad = "CONTRA_ENTREGA";
+        } else {
+            boolean fueContraEntrega = (archivoOpt != null && archivoOpt.isPresent() && archivoOpt.get().getNombreArchivo().contains("PENDIENTE"))
+                    || (historialTrackingRepository != null && historialTrackingRepository.findByIdEncomiendaOrderByFechaHoraEventoAsc(enc.getIdEncomienda())
+                            .stream()
+                            .anyMatch(h -> "PAGO_REGISTRADO".equalsIgnoreCase(h.getEstadoEvento())
+                                    || (h.getObservacion() != null && h.getObservacion().toLowerCase().contains("cobro"))));
+            modalidad = fueContraEntrega ? "CONTRA_ENTREGA" : "CONTADO";
+        }
 
         ComprobantePdfDatos datos = new ComprobantePdfDatos(
                 comprobante.getTipoComprobante(),

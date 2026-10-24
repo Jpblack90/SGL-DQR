@@ -1,6 +1,9 @@
 package pe.marvisur.sgldqr.api.infraestructura.pdf;
 
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -26,6 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Adaptador de infraestructura que implementa {@link GeneradorComprobantePort}
@@ -64,6 +72,31 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
         Objects.requireNonNull(datos, "Los datos para generar el comprobante PDF no pueden ser nulos");
 
         try (PDDocument doc = new PDDocument()) {
+            // Fijar metadatos del PDF de manera determinista (RF-11 / RNF-01)
+            PDDocumentInformation info = new PDDocumentInformation();
+            info.setTitle("Comprobante de Envío - " + datos.serieCorrelativo());
+            info.setAuthor("Expreso Marvisur S.A.");
+            info.setSubject("ESTADO_PAGO:" + datos.estadoPago());
+            info.setCustomMetadataValue("EstadoPago", datos.estadoPago());
+
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"));
+            cal.setTimeInMillis(datos.fechaEmision().atZone(ZoneId.of("America/Lima")).toInstant().toEpochMilli());
+            info.setCreationDate(cal);
+            info.setModificationDate(cal);
+            doc.setDocumentInformation(info);
+
+            // Fijar identificador de documento determinista para garantizar bytes idénticos ante mismo contenido
+            try {
+                byte[] hashId = MessageDigest.getInstance("MD5").digest(
+                        (datos.serieCorrelativo() + ":" + datos.estadoPago() + ":" + datos.fechaEmision()).getBytes(StandardCharsets.UTF_8)
+                );
+                COSArray idArray = new COSArray();
+                idArray.add(new COSString(hashId));
+                idArray.add(new COSString(hashId));
+                doc.getDocument().setDocumentID(idArray);
+            } catch (Exception e) {
+                log.debug("No se pudo asignar DocumentID fijo en PDF: {}", e.getMessage());
+            }
             PDPage page = new PDPage(PDRectangle.A4);
             doc.addPage(page);
 
@@ -208,7 +241,10 @@ public class PdfBoxGeneradorComprobanteAdapter implements GeneradorComprobantePo
                 cs.stroke();
 
                 cs.setNonStrokingColor(COLOR_TOTAL);
-                dibujarTexto(cs, fontBold, 12, margenIzquierdo + 15, yTot, "TOTAL A PAGAR:");
+                String etiquetaTotal = "PAGADO".equalsIgnoreCase(datos.estadoPago())
+                        ? "TOTAL PAGADO:"
+                        : "TOTAL A PAGAR:";
+                dibujarTexto(cs, fontBold, 12, margenIzquierdo + 15, yTot, etiquetaTotal);
                 dibujarTexto(cs, fontBold, 12, margenIzquierdo + 160, yTot, "S/ " + formatearMonto(datos.montoTotal()));
 
                 yTot -= 25;
