@@ -4,7 +4,11 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Modelo de vista para la lógica de presentación del Dashboard (RF-02) sin dependencias de JavaFX.
@@ -17,6 +21,22 @@ public class DashboardViewModel {
     public static final String COLOR_AMBAR_LATENCIA_CRITICA = "#F59E0B";
     public static final String NOTA_PIE_PAGINA = "Recaudado cuenta por fecha de registro del envío.";
     public static final int LIMITE_LATENCIA_RNF03_MS = 1000;
+
+    /**
+     * Claves exactas retornadas por la API para la distribución por estado logístico en orden estándar.
+     */
+    public static final List<String> CLAVES_ESTADOS_GRAFICO = List.of(
+            "REGISTRADO",
+            "EN_ALMACEN_ORIGEN",
+            "EN_RUTA",
+            "EN_ALMACEN_DESTINO",
+            "ENTREGADO"
+    );
+
+    /**
+     * DTO de presentación para cada barra del gráfico de estados logísticos.
+     */
+    public record ItemGraficoEstado(String clave, String etiqueta, long cantidad) {}
 
     private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("HH:mm:ss");
 
@@ -60,17 +80,17 @@ public class DashboardViewModel {
     }
 
     public static String formatearLatenciaPromedio(Double latenciaMs) {
-        if (latenciaMs == null || latenciaMs <= 0.0) {
-            return "0.0 ms";
+        if (latenciaMs == null || latenciaMs < 1.0) {
+            return "< 1 ms";
         }
         return String.format(Locale.US, "%.1f ms", latenciaMs);
     }
 
     public static String formatearLatenciaMaxima(Integer latenciaMs) {
-        if (latenciaMs == null || latenciaMs <= 0) {
-            return "0 ms";
+        if (latenciaMs == null || latenciaMs < 1) {
+            return "< 1 ms";
         }
-        return latenciaMs + " ms";
+        return String.format(Locale.US, "%.1f ms", (double) latenciaMs);
     }
 
     public static boolean esLatenciaCritica(Integer latenciaMaximaMs) {
@@ -91,6 +111,28 @@ public class DashboardViewModel {
             case "CANCELADA", "CANCELADO" -> "Cancelada";
             default -> codigoEstado;
         };
+    }
+
+    /**
+     * Extrae los datos para las 5 barras del gráfico de estados logísticos en orden garantizado,
+     * utilizando las claves exactas de la API y asignando 0 ante claves faltantes o nulas.
+     */
+    public static List<ItemGraficoEstado> extraerDatosGraficoEstados(Map<String, Long> mapaEstados) {
+        List<ItemGraficoEstado> items = new ArrayList<>(CLAVES_ESTADOS_GRAFICO.size());
+        for (String clave : CLAVES_ESTADOS_GRAFICO) {
+            long cantidad = 0L;
+            if (mapaEstados != null) {
+                if (mapaEstados.containsKey(clave) && mapaEstados.get(clave) != null) {
+                    cantidad = mapaEstados.get(clave);
+                } else if ("REGISTRADO".equals(clave) && mapaEstados.containsKey("REGISTRADA") && mapaEstados.get("REGISTRADA") != null) {
+                    cantidad = mapaEstados.get("REGISTRADA");
+                } else if ("ENTREGADO".equals(clave) && mapaEstados.containsKey("ENTREGADA") && mapaEstados.get("ENTREGADA") != null) {
+                    cantidad = mapaEstados.get("ENTREGADA");
+                }
+            }
+            items.add(new ItemGraficoEstado(clave, etiquetaEstadoLogistico(clave), cantidad));
+        }
+        return Collections.unmodifiableList(items);
     }
 
     public static String formatearHoraLocal(OffsetDateTime fechaHora) {

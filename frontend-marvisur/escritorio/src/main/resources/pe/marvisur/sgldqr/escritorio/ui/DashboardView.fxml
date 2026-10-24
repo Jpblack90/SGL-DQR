@@ -99,7 +99,7 @@
                             <CategoryAxis fx:id="ejeEstados" label="Estado" tickLabelRotation="0"/>
                         </xAxis>
                         <yAxis>
-                            <NumberAxis fx:id="ejeCantidades" label="Cantidad" autoRanging="true"/>
+                            <NumberAxis fx:id="ejeCantidades" label="Cantidad" autoRanging="true" tickUnit="1" minorTickCount="0"/>
                         </yAxis>
                     </BarChart>
                 </VBox>
@@ -156,11 +156,11 @@
 
                         <!-- Latencia promedio -->
                         <Label text="Latencia promedio:" GridPane.rowIndex="5" GridPane.columnIndex="0" styleClass="label-campo"/>
-                        <Label fx:id="lblLatenciaPromedio" text="0.0 ms" GridPane.rowIndex="5" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                        <Label fx:id="lblLatenciaPromedio" text="&lt; 1 ms" GridPane.rowIndex="5" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
 
                         <!-- Latencia máxima -->
                         <Label text="Latencia máxima (RNF-03):" GridPane.rowIndex="6" GridPane.columnIndex="0" styleClass="label-campo"/>
-                        <Label fx:id="lblLatenciaMaxima" text="0 ms" GridPane.rowIndex="6" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                        <Label fx:id="lblLatenciaMaxima" text="&lt; 1 ms" GridPane.rowIndex="6" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
                     </GridPane>
                 </VBox>
 

@@ -44,6 +44,7 @@ public class DashboardController {
             summary = "Obtener resumen de KPIs operativos del dashboard",
             description = "Retorna indicadores agregados en tiempo real para el período especificado (HOY, SIETE_DIAS, TREINTA_DIAS) " +
                     "y opcionalmente filtrados por sucursal de origen. Requiere rol Administrador (TN3).\n\n" +
+                    "Entregadas: envíos cuyo evento de entrega ocurrió en el periodo.\n\n" +
                     "LIMITACIÓN CONOCIDA: El valor 'recaudado' contabiliza el monto_total de encomiendas en estado PAGADO " +
                     "según su fecha de REGISTRO (dentro del período), debido a que el Diccionario de Datos actual no almacena " +
                     "la fecha exacta del cobro."

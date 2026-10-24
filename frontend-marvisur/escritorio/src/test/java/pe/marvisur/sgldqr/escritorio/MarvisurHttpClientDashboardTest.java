@@ -61,11 +61,11 @@ class MarvisurHttpClientDashboardTest {
                     "recaudado": 1850.50
                   },
                   "porEstadoLogistico": {
-                    "REGISTRADA": 3,
+                    "REGISTRADO": 3,
                     "EN_ALMACEN_ORIGEN": 2,
                     "EN_RUTA": 4,
                     "EN_ALMACEN_DESTINO": 2,
-                    "ENTREGADA": 35
+                    "ENTREGADO": 35
                   },
                   "recaudacionPorSucursal": [
                     {
@@ -128,8 +128,8 @@ class MarvisurHttpClientDashboardTest {
         assertThat(dto.totales().recaudado()).isEqualByComparingTo(new BigDecimal("1850.50"));
 
         // Estados
-        assertThat(dto.porEstadoLogistico()).containsEntry("REGISTRADA", 3L);
-        assertThat(dto.porEstadoLogistico()).containsEntry("ENTREGADA", 35L);
+        assertThat(dto.porEstadoLogistico()).containsEntry("REGISTRADO", 3L);
+        assertThat(dto.porEstadoLogistico()).containsEntry("ENTREGADO", 35L);
 
         // Recaudación
         assertThat(dto.recaudacionPorSucursal()).hasSize(2);

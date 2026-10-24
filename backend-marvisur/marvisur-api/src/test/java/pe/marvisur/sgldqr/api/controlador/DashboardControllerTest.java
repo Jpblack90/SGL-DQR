@@ -215,6 +215,10 @@ class DashboardControllerTest {
                 new BigDecimal("5.00"), new BigDecimal("0.0200"), "Paquete entregado",
                 new BigDecimal("100.00"), "PAGADO", "ENTREGADO", ahora.minusHours(2)
         ));
+        trackingRepository.save(new HistorialTrackingJpaEntity(
+                UUID.randomUUID().toString(), enc1Id, sucursalDestinoId, "ENTREGADO",
+                "Entrega final realizada con éxito", ahora.minusHours(2)
+        ));
 
         // 2. Encomienda pendiente de pago en almacén origen (hoy)
         String enc2Id = UUID.randomUUID().toString();
@@ -247,7 +251,8 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.periodo", is("HOY")))
                 .andExpect(jsonPath("$.idSucursal", is(sucursalOrigenId)))
                 .andExpect(jsonPath("$.totales.registradas", is(2))) // enc1 y enc2 registradas hoy
-                .andExpect(jsonPath("$.totales.entregadas", is(1)))
+                .andExpect(jsonPath("$.totales.entregadas", is(1)))  // enc1 entregada hoy vía tracking
+                .andExpect(jsonPath("$.totales.enRuta", is(0)))
                 .andExpect(jsonPath("$.totales.pendientesDePago.cantidad", is(1)))
                 .andExpect(jsonPath("$.totales.pendientesDePago.monto", is(50.0)))
                 .andExpect(jsonPath("$.totales.recaudado", is(100.0)))
@@ -259,6 +264,51 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.estancados[0].codigoComprobante", is(comp3)))
                 .andExpect(jsonPath("$.estancados[0].estadoLogistico", is("EN_RUTA")))
                 .andExpect(jsonPath("$.umbralEstancadoHoras", is(48)));
+    }
+
+    @Test
+    @DisplayName("Debe contabilizar entregadas por fecha del evento de tracking ENTREGADO y no por fecha de registro")
+    void debeContabilizarEntregadasPorEventoTrackingYNoPorFechaRegistro() throws Exception {
+        String cliRemId = UUID.randomUUID().toString();
+        String cliDestId = UUID.randomUUID().toString();
+        String dniRem = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        String dniDest = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Remitente Fecha", "911222333", "rem.fecha." + cliRemId.substring(0, 8) + "@test.com"));
+        clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", dniDest, "Destinatario Fecha", "944555666", "dest.fecha." + cliDestId.substring(0, 8) + "@test.com"));
+
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.of("-05:00"));
+
+        // Caso A: Encomienda registrada FUERA del periodo (hace 10 días), pero entregada DENTRO del periodo (hace 1 hora)
+        String encAId = UUID.randomUUID().toString();
+        String compA = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
+        encomiendaRepository.save(new EncomiendaJpaEntity(
+                encAId, compA, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
+                new BigDecimal("4.00"), new BigDecimal("0.0200"), "Paquete registrado antes",
+                new BigDecimal("60.00"), "PAGADO", "ENTREGADO", ahora.minusDays(10)
+        ));
+        trackingRepository.save(new HistorialTrackingJpaEntity(
+                UUID.randomUUID().toString(), encAId, sucursalDestinoId, "ENTREGADO",
+                "Entregado hoy", ahora.minusHours(1)
+        ));
+
+        // Caso B: Encomienda registrada DENTRO del periodo (hace 2 horas), pero aún NO entregada (en almacén origen)
+        String encBId = UUID.randomUUID().toString();
+        String compB = "COMP-" + String.format("%06d", ThreadLocalRandom.current().nextInt(1_000_000));
+        encomiendaRepository.save(new EncomiendaJpaEntity(
+                encBId, compB, cliRemId, cliDestId, sucursalOrigenId, sucursalDestinoId,
+                new BigDecimal("2.00"), new BigDecimal("0.0100"), "Paquete registrado hoy sin entregar",
+                new BigDecimal("30.00"), "PAGADO", "EN_ALMACEN_ORIGEN", ahora.minusHours(2)
+        ));
+
+        mockMvc.perform(get("/api/v1/dashboard/resumen")
+                        .param("periodo", "HOY")
+                        .param("idSucursal", sucursalOrigenId)
+                        .header("Authorization", "Bearer " + tokenAdmin)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totales.registradas", is(1))) // solo encB se registró hoy
+                .andExpect(jsonPath("$.totales.entregadas", is(1)))  // solo encA tuvo evento ENTREGADO hoy
+                .andExpect(jsonPath("$.totales.recaudado", is(30.0))); // recaudado de las registradas hoy
     }
 
     @Test
@@ -299,7 +349,7 @@ class DashboardControllerTest {
         String cliDestId = UUID.randomUUID().toString();
         String dniRem = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
         String dniDest = String.format("%08d", ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
-        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Rem Val", "911222333", "rem.val." + cliRemId.substring(0, 8) + "@test.com"));
+        clienteRepository.save(new ClienteJpaEntity(cliRemId, "DNI", dniRem, "Remitente Val", "911222333", "rem.val." + cliRemId.substring(0, 8) + "@test.com"));
         clienteRepository.save(new ClienteJpaEntity(cliDestId, "DNI", dniDest, "Dest Val", "944555666", "dest.val." + cliDestId.substring(0, 8) + "@test.com"));
 
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.of("-05:00"));

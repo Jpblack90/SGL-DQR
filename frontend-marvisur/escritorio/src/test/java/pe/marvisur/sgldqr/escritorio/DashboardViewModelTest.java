@@ -8,6 +8,8 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.DashboardViewModel;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,14 +33,17 @@ class DashboardViewModelTest {
     }
 
     @Test
-    @DisplayName("formatearLatencia: formatos de milisegundos con punto decimal")
+    @DisplayName("formatearLatencia: muestra '< 1 ms' si es 0 o menor a 1, o número con 1 decimal si es >= 1")
     void testFormatearLatencia() {
         assertThat(DashboardViewModel.formatearLatenciaPromedio(142.5)).isEqualTo("142.5 ms");
-        assertThat(DashboardViewModel.formatearLatenciaPromedio(null)).isEqualTo("0.0 ms");
-        assertThat(DashboardViewModel.formatearLatenciaPromedio(0.0)).isEqualTo("0.0 ms");
+        assertThat(DashboardViewModel.formatearLatenciaPromedio(0.4)).isEqualTo("< 1 ms");
+        assertThat(DashboardViewModel.formatearLatenciaPromedio(0.0)).isEqualTo("< 1 ms");
+        assertThat(DashboardViewModel.formatearLatenciaPromedio(null)).isEqualTo("< 1 ms");
 
-        assertThat(DashboardViewModel.formatearLatenciaMaxima(310)).isEqualTo("310 ms");
-        assertThat(DashboardViewModel.formatearLatenciaMaxima(null)).isEqualTo("0 ms");
+        assertThat(DashboardViewModel.formatearLatenciaMaxima(310)).isEqualTo("310.0 ms");
+        assertThat(DashboardViewModel.formatearLatenciaMaxima(1)).isEqualTo("1.0 ms");
+        assertThat(DashboardViewModel.formatearLatenciaMaxima(0)).isEqualTo("< 1 ms");
+        assertThat(DashboardViewModel.formatearLatenciaMaxima(null)).isEqualTo("< 1 ms");
     }
 
     @Test
@@ -50,6 +55,50 @@ class DashboardViewModelTest {
         assertThat(DashboardViewModel.esLatenciaCritica(310)).isFalse();
         assertThat(DashboardViewModel.esLatenciaCritica(0)).isFalse();
         assertThat(DashboardViewModel.esLatenciaCritica(null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("extraerDatosGraficoEstados: caso (a) fixture JSON de API construye 5 categorías en orden [1, 0, 0, 1, 1]")
+    void testExtraerDatosGraficoEstados_CasoA() {
+        // Fixture exacto del caso (a): {REGISTRADO:1, EN_ALMACEN_ORIGEN:0, EN_RUTA:0, EN_ALMACEN_DESTINO:1, ENTREGADO:1}
+        Map<String, Long> porEstadoLogistico = Map.of(
+                "REGISTRADO", 1L,
+                "EN_ALMACEN_ORIGEN", 0L,
+                "EN_RUTA", 0L,
+                "EN_ALMACEN_DESTINO", 1L,
+                "ENTREGADO", 1L
+        );
+
+        List<DashboardViewModel.ItemGraficoEstado> items = DashboardViewModel.extraerDatosGraficoEstados(porEstadoLogistico);
+
+        assertThat(items).hasSize(5);
+
+        // Claves exactas en orden estándar
+        assertThat(items.stream().map(DashboardViewModel.ItemGraficoEstado::clave).toList())
+                .containsExactly("REGISTRADO", "EN_ALMACEN_ORIGEN", "EN_RUTA", "EN_ALMACEN_DESTINO", "ENTREGADO");
+
+        // Etiquetas amigables en español
+        assertThat(items.stream().map(DashboardViewModel.ItemGraficoEstado::etiqueta).toList())
+                .containsExactly("Registrado", "Almacén origen", "En ruta", "Almacén destino", "Entregado");
+
+        // Valores exactamente en orden [1, 0, 0, 1, 1]
+        assertThat(items.stream().map(DashboardViewModel.ItemGraficoEstado::cantidad).toList())
+                .containsExactly(1L, 0L, 0L, 1L, 1L);
+    }
+
+    @Test
+    @DisplayName("extraerDatosGraficoEstados: rellena con 0 si el mapa es nulo o faltan claves")
+    void testExtraerDatosGraficoEstados_ValoresPorDefecto() {
+        List<DashboardViewModel.ItemGraficoEstado> vacio = DashboardViewModel.extraerDatosGraficoEstados(null);
+        assertThat(vacio).hasSize(5);
+        assertThat(vacio.stream().map(DashboardViewModel.ItemGraficoEstado::cantidad).toList())
+                .containsExactly(0L, 0L, 0L, 0L, 0L);
+
+        Map<String, Long> parcial = Map.of("EN_ALMACEN_DESTINO", 3L);
+        List<DashboardViewModel.ItemGraficoEstado> itemsParcial = DashboardViewModel.extraerDatosGraficoEstados(parcial);
+        assertThat(itemsParcial).hasSize(5);
+        assertThat(itemsParcial.stream().map(DashboardViewModel.ItemGraficoEstado::cantidad).toList())
+                .containsExactly(0L, 0L, 0L, 3L, 0L);
     }
 
     @Test

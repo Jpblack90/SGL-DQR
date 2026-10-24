@@ -79,7 +79,7 @@ public class ControladorDashboard {
     @FXML
     private Label lblKpiRecaudado;
 
-    // --- Gráfico de Estados ---
+    // --- Gráfico de Barras ---
     @FXML
     private BarChart<String, Number> chartEstados;
 
@@ -164,6 +164,14 @@ public class ControladorDashboard {
     public void initialize() {
         configurarFiltros();
         configurarTablas();
+        configurarGrafico();
+    }
+
+    private void configurarGrafico() {
+        if (ejeCantidades != null) {
+            ejeCantidades.setTickUnit(1);
+            ejeCantidades.setMinorTickCount(0);
+        }
     }
 
     private void configurarFiltros() {
@@ -366,18 +374,9 @@ public class ControladorDashboard {
         chartEstados.getData().clear();
         XYChart.Series<String, Number> serie = new XYChart.Series<>();
 
-        String[] estadosOrdenados = {
-                "REGISTRADA",
-                "EN_ALMACEN_ORIGEN",
-                "EN_RUTA",
-                "EN_ALMACEN_DESTINO",
-                "ENTREGADA"
-        };
-
-        for (String cod : estadosOrdenados) {
-            String etiqueta = DashboardViewModel.etiquetaEstadoLogistico(cod);
-            long cantidad = (mapaEstados != null && mapaEstados.containsKey(cod)) ? mapaEstados.get(cod) : 0L;
-            serie.getData().add(new XYChart.Data<>(etiqueta, cantidad));
+        List<DashboardViewModel.ItemGraficoEstado> items = DashboardViewModel.extraerDatosGraficoEstados(mapaEstados);
+        for (DashboardViewModel.ItemGraficoEstado item : items) {
+            serie.getData().add(new XYChart.Data<>(item.etiqueta(), item.cantidad()));
         }
 
         chartEstados.getData().add(serie);

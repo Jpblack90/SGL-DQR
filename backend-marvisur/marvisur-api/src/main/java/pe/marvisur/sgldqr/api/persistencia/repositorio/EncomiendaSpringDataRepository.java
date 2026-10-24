@@ -39,6 +39,16 @@ public interface EncomiendaSpringDataRepository extends JpaRepository<Encomienda
                                                      @Param("fin") OffsetDateTime fin,
                                                      @Param("idSucursal") String idSucursal);
 
+    @Query("SELECT COUNT(DISTINCT t.idEncomienda) " +
+           "FROM HistorialTrackingJpaEntity t " +
+           "JOIN EncomiendaJpaEntity e ON e.idEncomienda = t.idEncomienda " +
+           "WHERE t.estadoEvento = 'ENTREGADO' " +
+           "AND t.fechaHoraEvento >= :inicio AND t.fechaHoraEvento < :fin " +
+           "AND (:idSucursal IS NULL OR e.idSucursalOrigen = :idSucursal)")
+    long contarEntregadasEnPeriodo(@Param("inicio") OffsetDateTime inicio,
+                                   @Param("fin") OffsetDateTime fin,
+                                   @Param("idSucursal") String idSucursal);
+
     @Query("SELECT e.estadoLogistico AS estadoLogistico, COUNT(e) AS total " +
            "FROM EncomiendaJpaEntity e " +
            "WHERE (:idSucursal IS NULL OR e.idSucursalOrigen = :idSucursal) " +

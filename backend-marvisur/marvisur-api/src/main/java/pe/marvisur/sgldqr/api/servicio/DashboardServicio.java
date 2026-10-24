@@ -116,7 +116,7 @@ public class DashboardServicio {
         );
 
         long registradas = (p != null && p.getRegistradas() != null) ? p.getRegistradas() : 0L;
-        long entregadas = (p != null && p.getEntregadas() != null) ? p.getEntregadas() : 0L;
+        long entregadas = encomiendaRepository.contarEntregadasEnPeriodo(rango.inicio(), rango.fin(), idSucursal);
         long enRuta = (p != null && p.getEnRuta() != null) ? p.getEnRuta() : 0L;
         long pendCant = (p != null && p.getPendientesCantidad() != null) ? p.getPendientesCantidad() : 0L;
         BigDecimal pendMonto = (p != null && p.getPendientesMonto() != null)
