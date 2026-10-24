@@ -23,6 +23,11 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Unicidad e idempotencia de datos de prueba**: Generación de DNIs únicos de 8 dígitos para clientes, códigos de comprobante únicos (`COMP-xxxxxx`) y limpieza previa en `@BeforeEach` en orden seguro de claves foráneas (`archivos_pdf_comprobante` $\rightarrow$ `comprobantes_pago` $\rightarrow$ `parejas_doble_qr` $\rightarrow$ `encomiendas` $\rightarrow$ `clientes`), garantizando independencia estricta del orden de ejecución.
   - **Inserción segura de personal de prueba**: Implementación de `guardarEmpleadoSiNoExiste` para Chofer (TN4) y Recepcionista (TN1), previniendo colisiones de restricción única sobre `dni` y `correo`.
   - **Aserción de respuesta 404 ProblemDetail**: Corrección de validación en `error404IdenticoAnteComprobanteODocumentoErroneo` para verificar el cuerpo JSON RFC 7807 (`application/problem+json`) y su campo `detail` en lugar del `reason` HTTP (nulo en MockMvc al ser manejado por `@ExceptionHandler`), confirmando coincidencia idéntica texto a texto y ausencia de datos enviados.
+- [I1][DEV-03] Exportación OpenAPI sin corrupción UTF-8 ni alteración del árbol de trabajo (`OpenApiExportTest`):
+  - **Persistencia en `target/openapi/`**: Modificación de la prueba para exportar los bytes brutos directamente a `target/openapi/` en lugar de sobreescribir `docs/`, manteniendo limpio el árbol de trabajo Git tras `mvn clean verify`.
+  - **Preservación binaria UTF-8**: Uso de `getContentAsByteArray()` y escritura directa de bytes sin decodificación ISO-8859-1 intermedia ni reformateo con Jackson, eliminando la generación de mojibake («Ã³», «├»).
+  - **Protección contra regresiones**: Verificación explícita de ausencia de secuencias mal decodificadas y presencia de caracteres acentuados («Público», «Autenticación»).
+  - **Procedimiento de regeneración**: Documentación del protocolo formal con `curl.exe -o` en `scripts/README.md`.
 
 ---
 
