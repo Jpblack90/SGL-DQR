@@ -7,6 +7,15 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- [I1][I3][B3-W5] Generación y descarga de comprobante de envío en PDF (RF-11):
+  - **Dominio y Puertos (`marvisur-core`)**: Definición del modelo inmutable `ComprobantePdfDatos` y el puerto de salida `GeneradorComprobantePort` para desacoplar la generación física del core. Mantenimiento del 100% de reglas de arquitectura hexagonal (ArchUnit en verde).
+  - **Adaptador PDFBox 3.x (`marvisur-api`)**: Implementación en `PdfBoxGeneradorComprobanteAdapter` con Apache PDFBox 3.0.3 y fuentes estándar Helvetica con WinAnsiEncoding. Incorporación del encabezado corporativo, código y fecha en hora de Lima (`America/Lima`), sucursales origen y destino, nombres de clientes con documentos enmascarados (solo 3 últimos dígitos visibles, sin teléfonos ni correos), peso tasado, descripción, modalidad y estado de pago, liquidación de subtotal e IGV (18%), imagen PNG del QR1 operativo (nunca QR2), y pie de página con advertencia legal explícita sobre SUNAT.
+  - **Persistencia e Idempotencia**: Mapeo JPA de `comprobantes_pago` y `archivos_pdf_comprobante`. Almacenamiento en directorio configurable (`app.comprobantes.directorio`, por defecto `./comprobantes`) con cálculo de hash SHA-256 e idempotencia estricta en descargas sucesivas. Verificación de integridad en disco y regeneración automática en caso de discrepancia.
+  - **Endpoints REST**: Endpoint público `GET /api/v1/publico/comprobante.pdf` (con protección de limitación de tasa y 404 genérico idéntico) y endpoint interno `GET /api/v1/encomiendas/{id}/comprobante.pdf` (con control de alcance por sucursal para TN1 y TN2, acceso global para Administrador TN3 y 403 Forbidden para Chofer TN4).
+  - **Portal Web (`portal-web`)**: Incorporación de la función `descargarComprobantePdf` en `cliente.ts` y botón interactivo «Descargar comprobante (PDF)» en el resultado de `Rastreo.tsx` mediante descarga con Blob y URL temporal revocable (`URL.revokeObjectURL`). Manejo robusto de 404, 429 con `Retry-After` y errores de red preservando los campos del formulario y sin almacenamiento de datos personales en el cliente.
+  - **Pruebas Automatizadas**: Suite unitaria `ComprobantePdfGeneradorTest` (PDFBox, cabecera `%PDF`, validación de texto y privacidad), pruebas de integración `ComprobantePdfIntegracionTest` (MockMvc + Testcontainers) y pruebas unitarias de cliente web en `Rastreo.test.tsx` (8 tests).
+
 ---
 
 ## [0.2.1] - 2026-10-23

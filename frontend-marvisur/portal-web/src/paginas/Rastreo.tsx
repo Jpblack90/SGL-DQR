@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { consultarRastreo } from '../api/cliente';
+import { consultarRastreo, descargarComprobantePdf } from '../api/cliente';
 import { ApiError, RastreoPublicoDto, obtenerEtiquetaEstado } from '../api/tipos';
 import { Alerta } from '../componentes/Alerta';
 import { Cargando } from '../componentes/Cargando';
@@ -14,6 +14,8 @@ export const Rastreo: React.FC = () => {
   const [errorApi, setErrorApi] = useState<string | null>(null);
   const [reintentoSegundos, setReintentoSegundos] = useState<number | null>(null);
   const [resultado, setResultado] = useState<RastreoPublicoDto | null>(null);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
+  const [errorPdf, setErrorPdf] = useState<string | null>(null);
 
   const validarFormulario = (): boolean => {
     const errores: { comprobante?: string; documento?: string } = {};
@@ -64,7 +66,35 @@ export const Rastreo: React.FC = () => {
     }
   };
 
+  const manejarDescargaPdf = async () => {
+    if (!resultado) return;
+    setErrorPdf(null);
+    setDescargandoPdf(true);
+
+    try {
+      const blob = await descargarComprobantePdf(comprobante, documento);
+      const urlBlob = window.URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = urlBlob;
+      enlace.download = `comprobante-${resultado.codigoComprobante}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorPdf(err.message);
+      } else {
+        setErrorPdf('No se pudo descargar el comprobante. Verifique su conexión e intente nuevamente.');
+      }
+    } finally {
+      setDescargandoPdf(false);
+    }
+  };
+
   const limpiarBusqueda = () => {
+    setErrorPdf(null);
+    setDescargandoPdf(false);
     setComprobante('');
     setDocumento('');
     setErroresValidacion({});
@@ -225,8 +255,27 @@ export const Rastreo: React.FC = () => {
               >
                 {resultado.estadoPago === 'PAGADO' ? 'PAGADO' : 'PAGO PENDIENTE'}
               </span>
+
+              {/* Botón Descargar comprobante (PDF) */}
+              <button
+                type="button"
+                onClick={manejarDescargaPdf}
+                disabled={descargandoPdf}
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide bg-white text-azul-noche hover:bg-slate-100 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {descargandoPdf ? 'Descargando...' : 'Descargar comprobante (PDF)'}
+              </button>
             </div>
           </div>
+
+          {errorPdf && (
+            <div className="p-4 bg-red-50 border-b border-red-200">
+              <Alerta tipo="error" titulo="Error al descargar comprobante" mensaje={errorPdf} />
+            </div>
+          )}
 
           <div className="p-6 sm:p-8 space-y-6">
             {/* Aviso si el pago está PENDIENTE */}

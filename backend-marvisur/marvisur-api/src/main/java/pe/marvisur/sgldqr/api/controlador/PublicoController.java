@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +24,7 @@ import pe.marvisur.sgldqr.api.dto.RastreoPublicoDto;
 import pe.marvisur.sgldqr.api.dto.RespuestaBilleteraDto;
 import pe.marvisur.sgldqr.api.dto.RespuestaPreRegistroPublicoDto;
 import pe.marvisur.sgldqr.api.dto.SucursalPublicaDto;
+import pe.marvisur.sgldqr.api.servicio.ComprobanteServicio;
 import pe.marvisur.sgldqr.api.servicio.PublicoServicio;
 
 import java.util.List;
@@ -42,9 +45,11 @@ import java.util.Objects;
 public class PublicoController {
 
     private final PublicoServicio publicoServicio;
+    private final ComprobanteServicio comprobanteServicio;
 
-    public PublicoController(PublicoServicio publicoServicio) {
+    public PublicoController(PublicoServicio publicoServicio, ComprobanteServicio comprobanteServicio) {
         this.publicoServicio = Objects.requireNonNull(publicoServicio, "El publicoServicio no puede ser nulo");
+        this.comprobanteServicio = Objects.requireNonNull(comprobanteServicio, "El comprobanteServicio no puede ser nulo");
     }
 
     @GetMapping("/ping")
@@ -111,5 +116,26 @@ public class PublicoController {
     public ResponseEntity<RespuestaBilleteraDto> consultarBilletera(
             @Valid @RequestBody BilleteraRequest request) {
         return ResponseEntity.ok(publicoServicio.consultarBilletera(request));
+    }
+
+    @GetMapping(value = "/comprobante.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Descarga pública de comprobante de envío en PDF",
+            description = "Descarga el comprobante de control interno en PDF (RF-11). Requiere comprobante y número de documento válido de remitente o destinatario.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Comprobante PDF obtenido exitosamente",
+                    content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "400", description = "Parámetros obligatorios ausentes"),
+            @ApiResponse(responseCode = "404", description = "Comprobante no encontrado o documento no coincide")
+    })
+    public ResponseEntity<byte[]> descargarComprobantePdf(
+            @Parameter(description = "Código de boleta o comprobante", required = true)
+            @RequestParam(name = "comprobante") String comprobante,
+            @Parameter(description = "Número de documento (DNI o RUC) del remitente o destinatario", required = true)
+            @RequestParam(name = "documento") String documento) {
+        ComprobanteServicio.ResultadoPdfComprobante resultado = comprobanteServicio.obtenerOgenerarPdfPublico(comprobante, documento);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resultado.nombreArchivo() + "\"")
+                .body(resultado.contenidoPdf());
     }
 }

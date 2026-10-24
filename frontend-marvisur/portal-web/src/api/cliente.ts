@@ -228,3 +228,55 @@ export async function crearPreRegistro(request: CrearPreRegistroPublicoRequest):
     return manejarErrorRed(err);
   }
 }
+
+/**
+ * Descarga el comprobante de envío en PDF (RF-11)
+ */
+export async function descargarComprobantePdf(comprobante: string, documento: string): Promise<Blob> {
+  const params = new URLSearchParams({
+    comprobante: comprobante.trim(),
+    documento: documento.trim(),
+  });
+  const url = `${BASE_URL}/api/v1/publico/comprobante.pdf?${params.toString()}`;
+
+  try {
+    const respuesta = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/pdf',
+      },
+    });
+
+    if (respuesta.ok) {
+      return await respuesta.blob();
+    }
+
+    if (respuesta.status === 429) {
+      const retryAfterHeader = respuesta.headers.get('Retry-After');
+      const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
+      const segundos = isNaN(retryAfter) || retryAfter <= 0 ? 60 : retryAfter;
+      throw new ApiError(
+        `Has superado el límite de descargas permitidas. Por favor, espera ${segundos} segundos antes de intentar nuevamente.`,
+        429,
+        'LIMITE_EXCEDIDO',
+        segundos
+      );
+    }
+
+    if (respuesta.status === 404) {
+      throw new ApiError(
+        'No se encontró el comprobante para este número de envío y documento.',
+        404,
+        'COMPROBANTE_NO_ENCONTRADO'
+      );
+    }
+
+    throw new ApiError(
+      'No se pudo descargar el comprobante. Por favor, intente más tarde.',
+      respuesta.status,
+      'ERROR_DESCARGA'
+    );
+  } catch (err) {
+    return manejarErrorRed(err);
+  }
+}
