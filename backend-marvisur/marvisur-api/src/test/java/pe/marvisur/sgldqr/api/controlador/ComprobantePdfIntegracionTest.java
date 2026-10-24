@@ -36,6 +36,7 @@ import pe.marvisur.sgldqr.api.seguridad.JwtServicio;
 import pe.marvisur.sgldqr.api.seguridad.dto.EmpleadoAutenticadoDto;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.util.HexFormat;
@@ -43,7 +44,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -280,19 +280,43 @@ class ComprobantePdfIntegracionTest {
     @Test
     @DisplayName("Error 404 genérico idéntico ante comprobante no existente o documento erróneo")
     void error404IdenticoAnteComprobanteODocumentoErroneo() throws Exception {
+        String comprobanteInexistente = "COMP-INEXISTENTE-999";
+        String documentoErroneo = "99999999";
+
         // Caso A: comprobante erróneo / inexistente
-        mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
-                        .param("comprobante", "BOL-INEXISTENTE-999")
+        MvcResult resA = mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
+                        .param("comprobante", comprobanteInexistente)
                         .param("documento", dniRemitenteTest))
                 .andExpect(status().isNotFound())
-                .andExpect(status().reason(containsString("No se encontró el comprobante con los datos proporcionados")));
+                .andReturn();
 
         // Caso B: comprobante existente pero documento no coincide con remitente ni destinatario
-        mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
+        MvcResult resB = mockMvc.perform(get("/api/v1/publico/comprobante.pdf")
                         .param("comprobante", codigoComprobanteTest)
-                        .param("documento", "99999999"))
+                        .param("documento", documentoErroneo))
                 .andExpect(status().isNotFound())
-                .andExpect(status().reason(containsString("No se encontró el comprobante con los datos proporcionados")));
+                .andReturn();
+
+        // 1. Mismo Content-Type (application/problem+json)
+        String contentTypeA = resA.getResponse().getContentType();
+        String contentTypeB = resB.getResponse().getContentType();
+        assertThat(contentTypeA).isNotNull();
+        assertThat(contentTypeA).isEqualTo(contentTypeB);
+        assertThat(contentTypeA).contains("application/problem+json");
+
+        // 2. Mismo cuerpo de respuesta exacto (idénticos byte a byte para evitar enumeración)
+        String cuerpoA = resA.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String cuerpoB = resB.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(cuerpoA).isNotBlank();
+        assertThat(cuerpoA).isEqualTo(cuerpoB);
+
+        // 3. El cuerpo contiene el texto genérico de ProblemDetail y NO contiene datos enviados
+        assertThat(cuerpoA).contains("No se encontr");
+        assertThat(cuerpoA).contains("datos proporcionados");
+        assertThat(cuerpoA).doesNotContain(comprobanteInexistente);
+        assertThat(cuerpoA).doesNotContain(codigoComprobanteTest);
+        assertThat(cuerpoA).doesNotContain(documentoErroneo);
+        assertThat(cuerpoA).doesNotContain(dniRemitenteTest);
     }
 
     @Test

@@ -22,6 +22,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Longitud estricta de UUID**: Corrección de `id_encomienda` a `UUID.randomUUID().toString()` (36 caracteres exactos), eliminando desbordamiento de columna `VARCHAR(36)` provocado por prefijo `'ENC-TEST-'`.
   - **Unicidad e idempotencia de datos de prueba**: Generación de DNIs únicos de 8 dígitos para clientes, códigos de comprobante únicos (`COMP-xxxxxx`) y limpieza previa en `@BeforeEach` en orden seguro de claves foráneas (`archivos_pdf_comprobante` $\rightarrow$ `comprobantes_pago` $\rightarrow$ `parejas_doble_qr` $\rightarrow$ `encomiendas` $\rightarrow$ `clientes`), garantizando independencia estricta del orden de ejecución.
   - **Inserción segura de personal de prueba**: Implementación de `guardarEmpleadoSiNoExiste` para Chofer (TN4) y Recepcionista (TN1), previniendo colisiones de restricción única sobre `dni` y `correo`.
+  - **Aserción de respuesta 404 ProblemDetail**: Corrección de validación en `error404IdenticoAnteComprobanteODocumentoErroneo` para verificar el cuerpo JSON RFC 7807 (`application/problem+json`) y su campo `detail` en lugar del `reason` HTTP (nulo en MockMvc al ser manejado por `@ExceptionHandler`), confirmando coincidencia idéntica texto a texto y ausencia de datos enviados.
 
 ---
 
