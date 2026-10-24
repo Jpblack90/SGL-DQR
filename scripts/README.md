@@ -99,3 +99,25 @@ En una tercera terminal, lanza la aplicación de escritorio:
    - Escanea el QR2 desde la Billetera Digital del cliente.
    - Si la encomienda es Contra Entrega, el sistema exige el cobro en ventanilla antes de autorizar.
    - Tras la entrega exitosa, el QR2 queda **irreversiblemente invalidado** (RNF-01).
+
+
+---
+
+## Regeneración de Contratos OpenAPI (UTF-8 sin corrupción)
+
+Para regenerar formalmente las especificaciones OpenAPI versionadas en `docs/openapi-interno.json` y `docs/openapi-publico.json` preservando la codificación binaria exacta UTF-8 (sin corrupción de caracteres ni mojibake por decodificación o redirecciones de PowerShell):
+
+1. **Iniciar la API** (mediante Docker o `./scripts/demo-api.ps1` en puerto 8080).
+2. **Descargar con `curl.exe -o`** en bytes brutos tal cual (sin pasar por `Get-Content`, `ConvertTo-Json` ni redirecciones `>` de PowerShell):
+   ```powershell
+   # En Windows PowerShell (usar curl.exe explícito, no el alias de PowerShell):
+   curl.exe -s http://localhost:8080/v3/api-docs/interno -o docs/openapi-interno.json
+   curl.exe -s http://localhost:8080/v3/api-docs/publico -o docs/openapi-publico.json
+   ```
+   ```bash
+   # En Linux / macOS:
+   curl -s http://localhost:8080/v3/api-docs/interno -o docs/openapi-interno.json
+   curl -s http://localhost:8080/v3/api-docs/publico -o docs/openapi-publico.json
+   ```
+> [!IMPORTANT]
+> Las pruebas automatizadas (`OpenApiExportTest`) escriben sus artefactos únicamente en `target/openapi/` para mantener el árbol de trabajo de Git limpio. La actualización de los archivos versionados bajo `docs/` debe realizarse exclusivamente a través del procedimiento manual con `curl.exe -o`.
