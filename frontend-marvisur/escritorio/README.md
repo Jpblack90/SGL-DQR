@@ -224,3 +224,54 @@ mvn test -pl frontend-marvisur/escritorio
    - En la pantalla **Cola Local**, el estado del registro pasará automáticamente a **SINCRONIZADA**.
 7. **Paso 7 — Verificación en base de datos central:**
    - Consulte la base de datos central PostgreSQL (marvisur_db) o consulte el tracking web del comprobante: la encomienda estará registrada con sus hashes de Doble QR intactos y trazabilidad activa.
+
+---
+
+## 6. Guía de Prueba Manual del Dashboard Administrativo (RF-02 - TN3)
+
+### A. Escenario 1: Visualización y Filtros del Dashboard
+1. **Inicio de Sesión como Administrador:**
+   - Correo: `admin.demo@marvisur.pe` | Clave: `Demo1234*`.
+   - En el menú lateral izquierdo, verifique que la opción **📊 Dashboard** se encuentra habilitada funcionalmente (únicamente para el rol `TN3_ADMINISTRADOR`).
+2. **Carga Inicial de Indicadores:**
+   - Haga clic en **📊 Dashboard**.
+   - Verifique en la barra superior:
+     - Etiqueta de última actualización: `Actualizado: <hora local>` (en formato `HH:mm:ss` del equipo).
+     - Combo de período con valor predeterminado `Hoy`.
+     - Combo de sucursal con valor predeterminado `Todas las agencias` y listado de sucursales activas cargado desde la API.
+   - Verifique las 5 tarjetas KPI superiores:
+     - **Registradas**: total de encomiendas admitidas en el período.
+     - **Entregadas**: cantidad de entregas finalizadas con Doble QR.
+     - **En ruta**: encomiendas en tránsito logístico hacia destino.
+     - **Pendientes de pago**: conteo de paquetes por cobrar y monto acumulado en soles (`Monto: S/ XX.XX` con dos decimales y punto decimal).
+     - **Recaudado**: total cobrado en soles (`S/ XXXX.XX`).
+   - Verifique los paneles centrales e inferiores:
+     - **Gráfico de barras**: distribución actual por estado con etiquetas legibles en español (`Registrado`, `Almacén origen`, `En ruta`, `Almacén destino`, `Entregado`).
+     - **Tabla Recaudación por sucursal**: columnas `Agencia`, `Recaudado` y `Pendiente` en soles.
+     - **Panel Validaciones Doble QR**: métricas de total, exitosas, rechazadas por pago pendiente, rechazadas por token inválido, latencia promedio y latencia máxima.
+     - **Alerta de latencia (RNF-03)**: si la latencia máxima registrada supera los `1000 ms`, el valor se resalta automáticamente en color ámbar (`#F59E0B`).
+     - **Tabla Envíos sin movimiento**: encomiendas no entregadas con más de N horas sin eventos (etiqueta `Umbral: 48 horas`), o placeholder informativo `Sin envíos estancados` si la lista está vacía.
+     - **Nota al pie**: `Nota: Recaudado cuenta por fecha de registro del envío.`
+     - **Privacidad estricta**: verifique que en ninguna sección se muestran nombres, documentos ni teléfonos.
+
+### B. Escenario 2: Interacción con Filtros y Refresco Automático
+1. **Filtro de Período y Sucursal:**
+   - Cambie el período a **7 días** o **30 días**: verifique que el spinner se activa brevemente y las cifras se actualizan.
+   - Seleccione una sucursal específica (ej. `Agencia Central Lima (SUC-LIM-01)`): verifique que los indicadores se acotan al origen filtrado.
+   - Haga clic en **🔄 Actualizar**: dispara una consulta manual fuera del hilo de la interfaz.
+2. **Refresco Periódico de 30 Segundos:**
+   - Mantenga abierta la pestaña del Dashboard sin interactuar: cada 30 segundos se ejecuta automáticamente una consulta en segundo plano y se actualiza la hora local.
+   - Si una consulta está en curso, la siguiente se omite de forma segura sin colisiones.
+3. **Cancelación al Cambiar de Pestaña o Cerrar Sesión:**
+   - Cambie al módulo **Ventanilla** o **Almacén**: el planificador de 30 segundos se detiene de inmediato sin dejar hilos ni temporizadores huérfanos en segundo plano.
+   - Al volver a hacer clic en **📊 Dashboard**, el ciclo de refresco se reactiva limpiamente.
+
+### C. Escenario 3: Comportamiento ante Caída de Red / Modo Sin Conexión
+1. **Pérdida de Conectividad con Dashboard Abierto:**
+   - Detenga el backend central `marvisur-api`.
+   - Haga clic en **🔄 Actualizar** o espere el siguiente ciclo de 30 segundos.
+   - **Resultado esperado:**
+     - La cabecera superior conmuta a `Sin conexión` (punto rojo).
+     - Aparece el banner de advertencia: `Requiere conexión`.
+     - La etiqueta de hora cambia a: `Desactualizado (último: <hora>) · Requiere conexión`.
+     - Los datos previamente cargados (tarjetas, gráfico, tablas) **se conservan visibles** sin desaparecer ni quedar en blanco.

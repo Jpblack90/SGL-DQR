@@ -11,7 +11,7 @@ import java.util.Set;
  * - TN3 Administrador: Ventanilla, Almacén, Contingencia, Dashboard, Empleados
  * - TN4 Chofer: Rutas
  * </p>
- * En la versión actual (Fase D1 + D2 + D3), los módulos Ventanilla, Almacén y Contingencia
+ * En la versión actual (Fase D1 + D2 + D3 + D4), los módulos Ventanilla, Almacén, Contingencia y Dashboard están operativos.
  * están plenamente operativos. Dashboard, Empleados y Rutas siguen marcados como 'Próximamente'.
  */
 public final class ModeloMenuRol {
@@ -21,7 +21,7 @@ public final class ModeloMenuRol {
         ALMACEN("Almacén", "Validación cruzada Doble QR, entrega física y lotes", true),
         CONTINGENCIA("Contingencia", "Búsqueda DNI/RUC, cobro e incidencias de etiquetas", true),
         COLA_LOCAL("Cola Local", "Gestión de registros sin conexión y sincronización", true),
-        DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", false),
+        DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", true),
         EMPLEADOS("Empleados", "Gestión de personal y sucursales", false),
         RUTAS("Rutas", "Programación de viajes y asignación de flotas", false);
 

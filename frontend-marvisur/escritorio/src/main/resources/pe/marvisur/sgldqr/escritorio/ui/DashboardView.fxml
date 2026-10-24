@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorDashboard"
+            fitToWidth="true" style="-fx-background: #F8FAFC; -fx-background-color: #F8FAFC;">
+
+    <content>
+        <VBox spacing="16" style="-fx-padding: 20; -fx-background-color: #F8FAFC;">
+
+            <!-- BARRA SUPERIOR: CONTROLES, FILTROS Y ESTADO -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="tarjeta" style="-fx-padding: 12 16;">
+                <VBox spacing="2">
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Dashboard de Operaciones" styleClass="tarjeta-titulo" style="-fx-padding: 0;"/>
+                        <Label text="RF-02" style="-fx-background-color: #E2E8F0; -fx-text-fill: #475569; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    </HBox>
+                    <Label text="Monitoreo de volumen, tiempos, recaudación y auditoría Doble QR" style="-fx-text-fill: #64748B; -fx-font-size: 11px;"/>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Label text="Período:" styleClass="label-campo"/>
+                    <ComboBox fx:id="cboPeriodo" prefWidth="120"/>
+
+                    <Label text="Sucursal:" styleClass="label-campo"/>
+                    <ComboBox fx:id="cboSucursal" prefWidth="170"/>
+
+                    <Button fx:id="btnActualizar" text="🔄 Actualizar" onAction="#manejarActualizarManual"
+                            styleClass="btn-primario" style="-fx-padding: 6 12;"/>
+
+                    <ProgressIndicator fx:id="spinnerCarga" prefWidth="18" prefHeight="18" visible="false" managed="false"/>
+
+                    <Label fx:id="lblUltimaActualizacion" text="Actualizado: --:--:--"
+                           style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-padding: 0 4;"/>
+                </HBox>
+            </HBox>
+
+            <!-- BANNER DE ADVERTENCIA / ERROR / DESACTUALIZADO -->
+            <HBox fx:id="bannerEstado" spacing="8" alignment="CENTER_LEFT" visible="false" managed="false"
+                  style="-fx-background-color: #FEF3C7; -fx-border-color: #F59E0B; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8 12;">
+                <Label fx:id="lblBannerEstado" text="Requiere conexión"
+                       style="-fx-text-fill: #92400E; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- TARJETAS DE INDICADORES (KPIS) -->
+            <HBox spacing="12">
+                <!-- KPI 1: Registradas -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="4">
+                    <Label text="REGISTRADAS" style="-fx-text-fill: #64748B; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblKpiRegistradas" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                    <Label text="Total en período" style="-fx-text-fill: #94A3B8; -fx-font-size: 11px;"/>
+                </VBox>
+
+                <!-- KPI 2: Entregadas -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="4">
+                    <Label text="ENTREGADAS" style="-fx-text-fill: #64748B; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblKpiEntregadas" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10B981;"/>
+                    <Label text="Completadas con Doble QR" style="-fx-text-fill: #94A3B8; -fx-font-size: 11px;"/>
+                </VBox>
+
+                <!-- KPI 3: En ruta -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="4">
+                    <Label text="EN RUTA" style="-fx-text-fill: #64748B; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblKpiEnRuta" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #0284C7;"/>
+                    <Label text="En tránsito logístico" style="-fx-text-fill: #94A3B8; -fx-font-size: 11px;"/>
+                </VBox>
+
+                <!-- KPI 4: Pendientes de pago -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="4">
+                    <Label text="PENDIENTES DE PAGO" style="-fx-text-fill: #64748B; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblKpiPendientesCantidad" text="0" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #F59E0B;"/>
+                    <Label fx:id="lblKpiPendientesMonto" text="Monto: S/ 0.00" style="-fx-text-fill: #B45309; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <!-- KPI 5: Recaudado -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="4">
+                    <Label text="RECAUDADO" style="-fx-text-fill: #64748B; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblKpiRecaudado" text="S/ 0.00" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #E30613;"/>
+                    <Label text="Cobrado en el período" style="-fx-text-fill: #94A3B8; -fx-font-size: 11px;"/>
+                </VBox>
+            </HBox>
+
+            <!-- SECCIÓN INTERMEDIA: GRÁFICO DE ESTADOS Y TABLA DE RECAUDACIÓN POR SUCURSAL -->
+            <HBox spacing="16">
+                <!-- Gráfico de barras -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="8" prefHeight="300">
+                    <Label text="Distribución actual por estado logístico" styleClass="tarjeta-titulo"/>
+                    <BarChart fx:id="chartEstados" legendVisible="false" animated="false" prefHeight="240"
+                              style="-fx-bar-fill: #0F172A;">
+                        <xAxis>
+                            <CategoryAxis fx:id="ejeEstados" label="Estado" tickLabelRotation="0"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis fx:id="ejeCantidades" label="Cantidad" autoRanging="true"/>
+                        </yAxis>
+                    </BarChart>
+                </VBox>
+
+                <!-- Tabla de Recaudación por sucursal -->
+                <VBox styleClass="tarjeta" prefWidth="440" spacing="8" prefHeight="300">
+                    <Label text="Recaudación por sucursal" styleClass="tarjeta-titulo"/>
+                    <TableView fx:id="tblRecaudacion" VBox.vgrow="ALWAYS" prefHeight="240">
+                        <columns>
+                            <TableColumn fx:id="colAgenciaNombre" text="Agencia" prefWidth="180"/>
+                            <TableColumn fx:id="colAgenciaRecaudado" text="Recaudado" prefWidth="110" style="-fx-alignment: CENTER_RIGHT;"/>
+                            <TableColumn fx:id="colAgenciaPendiente" text="Pendiente" prefWidth="110" style="-fx-alignment: CENTER_RIGHT;"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="Sin datos de recaudación" style="-fx-text-fill: #94A3B8;"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+            </HBox>
+
+            <!-- SECCIÓN INFERIOR: AUDITORÍA DOBLE QR Y ENVÍOS SIN MOVIMIENTO -->
+            <HBox spacing="16">
+                <!-- Panel de validaciones Doble QR -->
+                <VBox styleClass="tarjeta" prefWidth="380" spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="6">
+                        <Label text="Validaciones del Doble QR" styleClass="tarjeta-titulo" style="-fx-padding: 0;"/>
+                        <Label text="RF-04" style="-fx-background-color: #E2E8F0; -fx-text-fill: #475569; -fx-padding: 2 6; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    </HBox>
+
+                    <GridPane hgap="12" vgap="8" style="-fx-padding: 6 0;">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints halignment="RIGHT"/>
+                        </columnConstraints>
+
+                        <!-- Total -->
+                        <Label text="Total validaciones:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblValTotal" text="0" GridPane.rowIndex="0" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+
+                        <!-- Exitosas -->
+                        <Label text="Exitosas (entrega autorizada):" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblValExitosas" text="0" GridPane.rowIndex="1" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #10B981;"/>
+
+                        <!-- Rechazadas por pago pendiente -->
+                        <Label text="Rechazadas por pago pendiente:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblValRechazadasPago" text="0" GridPane.rowIndex="2" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #F59E0B;"/>
+
+                        <!-- Rechazadas por token inválido -->
+                        <Label text="Rechazadas por token inválido:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblValRechazadasToken" text="0" GridPane.rowIndex="3" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #E30613;"/>
+
+                        <!-- Separador -->
+                        <Separator GridPane.rowIndex="4" GridPane.columnSpan="2" style="-fx-padding: 4 0;"/>
+
+                        <!-- Latencia promedio -->
+                        <Label text="Latencia promedio:" GridPane.rowIndex="5" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblLatenciaPromedio" text="0.0 ms" GridPane.rowIndex="5" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+
+                        <!-- Latencia máxima -->
+                        <Label text="Latencia máxima (RNF-03):" GridPane.rowIndex="6" GridPane.columnIndex="0" styleClass="label-campo"/>
+                        <Label fx:id="lblLatenciaMaxima" text="0 ms" GridPane.rowIndex="6" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- Tabla de envíos sin movimiento (estancados) -->
+                <VBox styleClass="tarjeta" HBox.hgrow="ALWAYS" spacing="8">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="Envíos sin movimiento" styleClass="tarjeta-titulo" style="-fx-padding: 0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblUmbralHoras" text="Umbral: 48 horas"
+                               style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    </HBox>
+
+                    <TableView fx:id="tblEstancados" VBox.vgrow="ALWAYS" prefHeight="170">
+                        <columns>
+                            <TableColumn fx:id="colEstancadoComprobante" text="Comprobante" prefWidth="130"/>
+                            <TableColumn fx:id="colEstancadoEstado" text="Estado" prefWidth="140"/>
+                            <TableColumn fx:id="colEstancadoDestino" text="Agencia Destino" prefWidth="160"/>
+                            <TableColumn fx:id="colEstancadoHoras" text="Sin movimiento" prefWidth="110" style="-fx-alignment: CENTER_RIGHT;"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="Sin envíos estancados" style="-fx-text-fill: #94A3B8;"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+            </HBox>
+
+            <!-- NOTA AL PIE Y PRIVACIDAD -->
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Nota: Recaudado cuenta por fecha de registro del envío."
+                       style="-fx-text-fill: #64748B; -fx-font-size: 11px; -fx-font-style: italic;"/>
+            </HBox>
+
+        </VBox>
+    </content>
+</ScrollPane>

@@ -91,6 +91,7 @@ public class ControladorPrincipal {
     private final ColaLocalPort colaLocalPort;
     private ScheduledExecutorService planificadorConectividad;
     private PauseTransition pausaNotificacionSync;
+    private ControladorDashboard controladorDashboardActivo;
 
     public ControladorPrincipal() {
         this(new MarvisurHttpClient(), ServicioConexion.getInstancia(), SincronizadorOffline.getInstancia(), new SQLiteColaAdapter());
@@ -275,6 +276,7 @@ public class ControladorPrincipal {
 
     @FXML
     public void mostrarVentanilla() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuVentanilla);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/VentanillaView.fxml"));
@@ -287,18 +289,21 @@ public class ControladorPrincipal {
 
     @FXML
     public void mostrarAlmacen() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuAlmacen);
         cargarVistaAlmacen("ENTREGA");
     }
 
     @FXML
     public void mostrarContingencia() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuContingencia);
         cargarVistaAlmacen("CONTINGENCIA");
     }
 
     @FXML
     public void mostrarColaLocal() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuColaLocal);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/ColaLocalView.fxml"));
@@ -324,7 +329,32 @@ public class ControladorPrincipal {
     }
 
     @FXML
+    public void mostrarDashboard() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuDashboard);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/DashboardView.fxml"));
+            Node vista = loader.load();
+            controladorDashboardActivo = loader.getController();
+            if (controladorDashboardActivo != null) {
+                controladorDashboardActivo.activar();
+            }
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar DashboardView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    private void desactivarDashboardSiActivo() {
+        if (controladorDashboardActivo != null) {
+            controladorDashboardActivo.desactivar();
+            controladorDashboardActivo = null;
+        }
+    }
+
+    @FXML
     public void mostrarAvisoProximamente() {
+        desactivarDashboardSiActivo();
         NavegadorUI.mostrarAlerta(
                 Alert.AlertType.INFORMATION,
                 "Módulo en Desarrollo",
@@ -341,6 +371,7 @@ public class ControladorPrincipal {
     }
 
     public void detenerTareasFondo() {
+        desactivarDashboardSiActivo();
         if (planificadorConectividad != null && !planificadorConectividad.isShutdown()) {
             planificadorConectividad.shutdownNow();
         }

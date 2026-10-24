@@ -61,7 +61,7 @@ class ModeloMenuRolTest {
     }
 
     @Test
-    @DisplayName("estaHabilitado: VENTANILLA, ALMACEN, CONTINGENCIA y COLA_LOCAL están habilitados funcionalmente")
+    @DisplayName("estaHabilitado: VENTANILLA, ALMACEN, CONTINGENCIA, COLA_LOCAL y DASHBOARD (TN3) habilitados")
     void testModulosHabilitadosFaseD3yOffline() {
         // TN1
         assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.VENTANILLA)).isTrue();
@@ -82,7 +82,10 @@ class ModeloMenuRolTest {
         assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.COLA_LOCAL)).isTrue();
 
         // Módulos en desarrollo para fases posteriores
-        assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
+        assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.DASHBOARD)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
+        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
+        assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
         assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.RUTAS)).isFalse();
     }
 }

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AlmacenPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AutenticacionPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.DashboardPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.SyncPort;
@@ -33,7 +34,7 @@ import java.util.logging.Logger;
  * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort},
  * {@link AlmacenPort} y {@link EstadoConexionPort}.
  */
-public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort {
+public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort, DashboardPort {
 
     private static final Logger LOGGER = Logger.getLogger(MarvisurHttpClient.class.getName());
     private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(2);
@@ -697,6 +698,50 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Al
             return pingResp.statusCode() == 200;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    // =========================================================================
+    // DASHBOARD OPERATIVO (RF-02)
+    // =========================================================================
+
+    @Override
+    public DashboardResumenDto obtenerResumenDashboard(PeriodoDashboard periodo, String idSucursal) {
+        PeriodoDashboard p = (periodo != null) ? periodo : PeriodoDashboard.HOY;
+        StringBuilder url = new StringBuilder(baseUrl)
+                .append("/api/v1/dashboard/resumen?periodo=")
+                .append(p.name());
+
+        if (idSucursal != null && !idSucursal.isBlank() && !"TODAS".equalsIgnoreCase(idSucursal)) {
+            url.append("&idSucursal=").append(URLEncoder.encode(idSucursal.trim(), StandardCharsets.UTF_8));
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), DashboardResumenDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al obtener resumen de dashboard: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al consultar dashboard: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al consultar dashboard: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al consultar dashboard: " + e.getMessage(), e);
         }
     }
 
