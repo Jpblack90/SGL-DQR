@@ -1,6 +1,6 @@
 # SGL-DQR — Sistema de Gestión Logística con Doble QR
 
-**Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.2.0 (Fase B Congelada)  
+**Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.2.1 (Fase B Congelada)  
 Arquitectura Hexagonal · Java 21 · Spring Boot 3 · JavaFX 21 (Offline-First en Ventanilla) · React 18 · PostgreSQL 16 · SQLite · Flyway · ZXing · JWT RBAC
 
 ---
@@ -18,7 +18,7 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 1. **`marvisur-core`**: Núcleo de dominio puro en Java 21 sin dependencias de frameworks externos (sin Spring, JPA ni JavaFX). Contiene las entidades (`Encomienda`, `ParDobleQR`, `Cliente`, `Empleado`), enums de negocio, puertos y el `MotorQR` criptográfico. Las reglas de aislamiento hexagonal son verificadas en cada compilación mediante ArchUnit.
 2. **`marvisur-api`**: Backend RESTful Spring Boot 3.3 con PostgreSQL 16, migraciones Flyway V1–V8 + seed V100, seguridad JWT con RBAC (roles TN1 a TN4), rate limiting en endpoints públicos, transacciones pesimistas (`SELECT ... FOR UPDATE`) en entregas y sincronización por lotes (`POST /api/v1/sync/encomiendas`).
 3. **`marvisur-escritorio`**: Cliente de ventanilla y almacén en JavaFX 21 con soporte offline para registro en ventanilla. Almacena encomiendas localmente en SQLite (`datos-locales/marvisur-local.db`) ante caídas de red y sincroniza automáticamente en segundo plano al restablecerse la conexión. Incluye componente `CampoEscaneo` para lectores USB y emulación gráfica de impresión térmica de 58 mm.
-4. **`portal-web`**: Portal web para clientes en React 18 + Vite + TypeScript + Tailwind CSS (mobile-first), con módulos de rastreo en vivo (`/rastreo`) y Billetera Digital segura (`/billetera`).
+4. **`portal-web`**: Portal web para clientes en React 18 + Vite + TypeScript + Tailwind CSS (mobile-first), con cotización en tiempo real (`/cotiza`), pre-registro web Código Express (`/pre-registro`), rastreo en vivo (`/rastreo`) y Billetera Digital segura (`/billetera`).
 
 ---
 
@@ -37,17 +37,17 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 
 ---
 
-## 3. Conteo de Pruebas Automatizadas (246 Pruebas en Verde)
+## 3. Conteo de Pruebas Automatizadas (263 Pruebas en Verde)
 
-El software cuenta con una suite integral de 246 pruebas automatizadas (100% en verde):
+El software cuenta con una suite integral de 263 pruebas automatizadas (100% en verde):
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Resultado |
 |---|---|:---:|:---:|
 | `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **100% Verde** |
-| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **100** | **100% Verde** |
-| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **64** | **100% Verde** |
-| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **32** | **100% Verde** |
-| **TOTAL** | **Multiplataforma** | **246** | **100% VERDE** |
+| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **104** | **100% Verde** |
+| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **76** | **100% Verde** |
+| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **33** | **100% Verde** |
+| **TOTAL** | **Multiplataforma** | **263** | **100% VERDE** |
 
 > Para un desglose exhaustivo de pruebas por clase, tiempos de ejecución, catálogo OpenAPI, tablas Flyway y líneas de código (LOC), consulte el [Informe Técnico de Métricas](docs/informe-metricas.md) generado automáticamente.
 
