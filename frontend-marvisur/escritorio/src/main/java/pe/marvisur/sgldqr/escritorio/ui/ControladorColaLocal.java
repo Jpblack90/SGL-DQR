@@ -169,6 +169,7 @@ public class ControladorColaLocal {
     public void manejarReintentarErrores() {
         try {
             colaLocalPort.reiniciarErroresReintentables();
+            servicioConexion.actualizarPendientes(colaLocalPort.contarPendientes());
             cargarDatos();
             NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Reintento de Sincronización",
                     "Registros restablecidos",
