@@ -49,4 +49,23 @@ $mvnArgs = @(
     '-Dmarvisur.login.mostrar-demo="true"'
 )
 
-mvn @mvnArgs
+$habiaJavaToolOptions = Test-Path env:JAVA_TOOL_OPTIONS
+$prevJavaToolOptions = $env:JAVA_TOOL_OPTIONS
+$banderaDemo = "-Dmarvisur.login.mostrar-demo=true"
+
+if ($habiaJavaToolOptions -and -not [string]::IsNullOrWhiteSpace($prevJavaToolOptions)) {
+    $env:JAVA_TOOL_OPTIONS = "$prevJavaToolOptions $banderaDemo"
+} else {
+    $env:JAVA_TOOL_OPTIONS = $banderaDemo
+}
+
+try {
+    mvn @mvnArgs
+}
+finally {
+    if ($habiaJavaToolOptions) {
+        $env:JAVA_TOOL_OPTIONS = $prevJavaToolOptions
+    } else {
+        Remove-Item env:JAVA_TOOL_OPTIONS -ErrorAction SilentlyContinue
+    }
+}
