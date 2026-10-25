@@ -44,11 +44,13 @@ El software cuenta con una suite integral de 263 pruebas automatizadas (100% en 
 | Módulo / Proyecto | Tecnologías | Pruebas | Resultado |
 |---|---|:---:|:---:|
 | `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **100% Verde** |
-| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **104** | **100% Verde** |
+| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16) / H2, Flyway | **104** | **100% Verde** |
 | `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **76** | **100% Verde** |
 | `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **33** | **100% Verde** |
 | **TOTAL** | **Multiplataforma** | **263** | **100% VERDE** |
 
+> **Nota sobre pruebas de base de datos**: En `marvisur-api`, de las 27 clases de prueba, 10 ejecutan integración contra PostgreSQL 16 real con Testcontainers (`@Testcontainers` / `@DynamicPropertySource`), 8 ejecutan contra base de datos en memoria H2 (modo compatibilidad PostgreSQL) y 9 son pruebas unitarias sin base de datos.
+>
 > Para un desglose exhaustivo de pruebas por clase, tiempos de ejecución, catálogo OpenAPI, tablas Flyway y líneas de código (LOC), consulte el [Informe Técnico de Métricas](docs/informe-metricas.md) generado automáticamente.
 
 ---

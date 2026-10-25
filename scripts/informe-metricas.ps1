@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Genera docs/informe-metricas.md con métricas reales extraídas automáticamente del repositorio.
 .DESCRIPTION
@@ -304,7 +304,7 @@ $md += @"
 
 
 ### 2.2. marvisur-api ($($apiData.TotalTests) pruebas · $($apiData.TiempoSeg) s)
-Incluye integración con Testcontainers (PostgreSQL 16 real), pruebas de concurrencia de 10 hilos simultáneos, rollback transaccional atómico y control RBAC.
+De las 27 clases de prueba del módulo, 10 clases ejecutan integración contra PostgreSQL 16 real con Testcontainers (@Testcontainers / @DynamicPropertySource), 8 clases contra base de datos en memoria H2 (modo compatibilidad PostgreSQL) y 9 clases de pruebas unitarias sin base de datos. Incluye pruebas de concurrencia de 10 hilos simultáneos, rollback transaccional atómico y control RBAC.
 
 | Clase de Prueba | Pruebas | Fallos | Errores | Omitidas | Tiempo (s) |
 |---|:---:|:---:|:---:|:---:|:---:|

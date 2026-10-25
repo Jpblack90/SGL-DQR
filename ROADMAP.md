@@ -94,6 +94,8 @@
 - [ ] **H2** *[Pendiente / Backlog]* Adaptador de escáner óptico USB vía API nativa (actualmente soportado vía emulación de teclado con `CampoEscaneo`)
 - [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
 - [x] **O4** Paquete portátil autocontenido .EXE con JRE embebido mediante jlink y jpackage (RNF-04)
+- [x] **CIERRE** Pipeline automatizado de cierre de versión v0.3.0 (`scripts/cierre-version.ps1`), sincronización OpenAPI y actualización de matrices
+- *Punto de reanudación I4:* Preparación del cierre de versión v0.3.0 completada. Siguiente paso: ejecución del script `scripts/cierre-version.ps1` con Docker activo para verificación general y regeneración de `docs/informe-metricas.md`.
 
 ---
 

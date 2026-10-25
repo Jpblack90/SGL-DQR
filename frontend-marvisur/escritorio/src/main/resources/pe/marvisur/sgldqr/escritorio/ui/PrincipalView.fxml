@@ -69,7 +69,7 @@
             <Region VBox.vgrow="ALWAYS"/>
 
             <VBox alignment="CENTER" spacing="2" style="-fx-padding: 8;">
-                <Label text="SGL-DQR v1.0.0" style="-fx-text-fill: #64748B; -fx-font-size: 10px;"/>
+                <Label text="SGL-DQR v0.3.0" style="-fx-text-fill: #64748B; -fx-font-size: 10px;"/>
                 <Label text="Expreso Marvisur S.A." style="-fx-text-fill: #475569; -fx-font-size: 9px;"/>
             </VBox>
         </VBox>
