@@ -217,6 +217,7 @@ $configContent = @"
 api.base-url=http://localhost:8080
 http.timeout-segundos=2
 portal.url-base=http://localhost:5173
+login.mostrar-demo=false
 "@
 Set-Content -Path $configTemplate -Value $configContent -Encoding UTF8
 

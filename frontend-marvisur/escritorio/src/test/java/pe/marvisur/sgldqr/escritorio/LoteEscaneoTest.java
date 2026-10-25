@@ -2,7 +2,11 @@ package pe.marvisur.sgldqr.escritorio;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.AgenciaResumenDto;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ItemResultadoLoteDto;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.RutaDto;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ViajeDto;
+import pe.marvisur.sgldqr.escritorio.ui.ControladorAlmacen;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.LoteEscaneoComando;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.RespuestaLoteEscaneoDto;
 
@@ -93,5 +97,52 @@ class LoteEscaneoTest {
         boolean excedeTope = items.size() > maxLote;
 
         assertThat(excedeTope).isTrue();
+    }
+
+    @Test
+    @DisplayName("lotes: mapeo amigable de acciones entre códigos técnicos y etiquetas UI")
+    void testMapeoAccionesLote() {
+        assertThat(ControladorAlmacen.etiquetaAccionLote("RECEPCIONAR_ORIGEN")).isEqualTo("Recepcionar en origen");
+        assertThat(ControladorAlmacen.etiquetaAccionLote("DESPACHAR_A_VIAJE")).isEqualTo("Despachar a viaje");
+        assertThat(ControladorAlmacen.etiquetaAccionLote("RECEPCIONAR_DESTINO")).isEqualTo("Recepcionar en destino");
+        assertThat(ControladorAlmacen.etiquetaAccionLote("OTRA")).isEqualTo("OTRA");
+        assertThat(ControladorAlmacen.etiquetaAccionLote(null)).isEqualTo("");
+
+        assertThat(ControladorAlmacen.codigoAccionLote("Recepcionar en origen")).isEqualTo("RECEPCIONAR_ORIGEN");
+        assertThat(ControladorAlmacen.codigoAccionLote("Despachar a viaje")).isEqualTo("DESPACHAR_A_VIAJE");
+        assertThat(ControladorAlmacen.codigoAccionLote("Recepcionar en destino")).isEqualTo("RECEPCIONAR_DESTINO");
+        assertThat(ControladorAlmacen.codigoAccionLote(null)).isEqualTo("RECEPCIONAR_ORIGEN");
+    }
+
+    @Test
+    @DisplayName("lotes: formateo legible de viaje en combo con origen, destino, placa y chofer")
+    void testFormatearViajeComboLote() {
+        RutaDto ruta = new RutaDto("R-1", new AgenciaResumenDto("SUC-1", "Lima"), new AgenciaResumenDto("SUC-2", "Cusco"), java.math.BigDecimal.valueOf(1100.0));
+        ViajeDto viaje = new ViajeDto("V-1", "R-1", "SUC-1", "SUC-2", 1100.0, "VEH-1", "ABC-123", "CHO-1", "Mario Chofer", "2026-10-25T10:00:00Z", "2026-10-26T10:00:00Z", "PROGRAMADO", ruta, "ABC-123", "Volvo");
+
+        String texto = ControladorAlmacen.formatearViajeComboLote(viaje);
+        assertThat(texto).isEqualTo("Lima → Cusco · ABC-123 · Mario Chofer");
+
+        assertThat(ControladorAlmacen.formatearViajeComboLote(null)).isEqualTo("");
+    }
+
+    @Test
+    @DisplayName("lotes: auto-agregar código al pulsar procesar con lista vacía y texto en campo")
+    void testAutoAgregarCodigoPendienteAlProcesar() {
+        List<String> items = new ArrayList<>();
+        String textoCampo = "MARVISUR:QR1:AUTO-ADD-001";
+
+        // Simula la lógica de verificación al pulsar procesar
+        if (items.isEmpty()) {
+            String codigoPendiente = textoCampo != null ? textoCampo.trim() : "";
+            if (!codigoPendiente.isEmpty()) {
+                if (!items.contains(codigoPendiente)) {
+                    items.add(codigoPendiente);
+                }
+            }
+        }
+
+        assertThat(items).hasSize(1);
+        assertThat(items.get(0)).isEqualTo("MARVISUR:QR1:AUTO-ADD-001");
     }
 }

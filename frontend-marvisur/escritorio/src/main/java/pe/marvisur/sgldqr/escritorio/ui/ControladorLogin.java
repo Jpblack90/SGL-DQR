@@ -8,6 +8,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import java.util.Properties;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ApiExcepcion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOfflineViewModel;
@@ -35,6 +38,9 @@ public class ControladorLogin {
     @FXML
     private ProgressIndicator spinnerCarga;
 
+    @FXML
+    private VBox panelDemo;
+
     private final AutenticacionPort autenticacionPort;
 
     public ControladorLogin() {
@@ -49,6 +55,23 @@ public class ControladorLogin {
     public void initialize() {
         lblError.setVisible(false);
         spinnerCarga.setVisible(false);
+        if (panelDemo != null) {
+            boolean mostrar = debeMostrarDemo();
+            panelDemo.setVisible(mostrar);
+            panelDemo.setManaged(mostrar);
+        }
+    }
+
+    public static boolean debeMostrarDemo() {
+        String propSys = System.getProperty("marvisur.login.mostrar-demo");
+        if (propSys == null || propSys.isBlank()) {
+            propSys = System.getProperty("login.mostrar-demo");
+        }
+        if (propSys != null && !propSys.isBlank()) {
+            return Boolean.parseBoolean(propSys.trim().replace("\"", ""));
+        }
+        Properties props = RutasEscritorio.cargarPropiedadesCombinadas();
+        return Boolean.parseBoolean(props.getProperty("login.mostrar-demo", "false").trim());
     }
 
     @FXML

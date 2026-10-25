@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOfflineViewModel;
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
@@ -281,7 +282,7 @@ public class ControladorAlmacen {
         switch (res.tipo()) {
             case EXITOSO -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #10B981; -fx-border-width: 2px; -fx-background-color: #F0FDF4;");
-                lblTituloResultadoEntrega.setText("✅ Entrega Física Autorizada");
+                lblTituloResultadoEntrega.setText("Entrega Física Autorizada");
                 lblTituloResultadoEntrega.setStyle("-fx-text-fill: #15803D; -fx-font-weight: bold; -fx-font-size: 15px;");
                 lblDetalleComprobanteEntrega.setText("Comprobante: " + res.codigoComprobante());
                 lblMontoPendienteEntrega.setVisible(false);
@@ -298,7 +299,7 @@ public class ControladorAlmacen {
             }
             case PAGO_PENDIENTE -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #F59E0B; -fx-border-width: 2px; -fx-background-color: #FFFBEB;");
-                lblTituloResultadoEntrega.setText("⚠️ Entrega Bloqueada por Pago Pendiente");
+                lblTituloResultadoEntrega.setText("Entrega Bloqueada por Pago Pendiente");
                 lblTituloResultadoEntrega.setStyle("-fx-text-fill: #B45309; -fx-font-weight: bold; -fx-font-size: 15px;");
                 lblDetalleComprobanteEntrega.setText("Comprobante: " + (res.codigoComprobante() != null ? res.codigoComprobante() : "--"));
                 lblMontoPendienteEntrega.setText("Pago pendiente: S/ " + (res.montoPendiente() != null ? res.montoPendiente().setScale(2).toPlainString() : "0.00"));
@@ -313,7 +314,7 @@ public class ControladorAlmacen {
             }
             case TOKEN_INVALIDO -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #DC2626; -fx-border-width: 2px; -fx-background-color: #FEF2F2;");
-                lblTituloResultadoEntrega.setText("❌ Token QR2 Inválido o Ya Utilizado");
+                lblTituloResultadoEntrega.setText("Token QR2 Inválido o Ya Utilizado");
                 lblTituloResultadoEntrega.setStyle("-fx-text-fill: #991B1B; -fx-font-weight: bold; -fx-font-size: 15px;");
                 lblDetalleComprobanteEntrega.setText("Código digital no corresponde o ya fue invalidado irreversiblemente.");
                 lblMontoPendienteEntrega.setVisible(false);
@@ -323,7 +324,7 @@ public class ControladorAlmacen {
             }
             case TRANSICION_INVALIDA -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #DC2626; -fx-border-width: 2px; -fx-background-color: #FEF2F2;");
-                lblTituloResultadoEntrega.setText("❌ Transición Inválida");
+                lblTituloResultadoEntrega.setText("Transición Inválida");
                 lblTituloResultadoEntrega.setStyle("-fx-text-fill: #991B1B; -fx-font-weight: bold; -fx-font-size: 15px;");
                 lblDetalleComprobanteEntrega.setText("La encomienda debe estar en estado 'EN_ALMACEN_DESTINO'. Estado actual: " + res.estadoLogistico());
                 lblMontoPendienteEntrega.setVisible(false);
@@ -333,7 +334,7 @@ public class ControladorAlmacen {
             }
             case NO_ENCONTRADO -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #DC2626; -fx-border-width: 2px; -fx-background-color: #FEF2F2;");
-                lblTituloResultadoEntrega.setText("❌ QR1 No Registrado");
+                lblTituloResultadoEntrega.setText("QR1 No Registrado");
                 lblTituloResultadoEntrega.setStyle("-fx-text-fill: #991B1B; -fx-font-weight: bold; -fx-font-size: 15px;");
                 lblDetalleComprobanteEntrega.setText("No se encontró encomienda asociada en el sistema.");
                 lblMontoPendienteEntrega.setVisible(false);
@@ -343,7 +344,7 @@ public class ControladorAlmacen {
             }
             default -> {
                 panelResultadoEntrega.setStyle("-fx-border-color: #DC2626; -fx-border-width: 2px; -fx-background-color: #FEF2F2;");
-                lblTituloResultadoEntrega.setText("❌ Error al Validar");
+                lblTituloResultadoEntrega.setText("Error al Validar");
                 lblDetalleComprobanteEntrega.setText(res.mensaje());
             }
         }
@@ -377,7 +378,7 @@ public class ControladorAlmacen {
                     "Se registró el cobro por S/ " + respuesta.montoTotal().setScale(2) + ". Proceda a reintentar la validación.");
             btnCobrarEntrega.setDisable(true);
             btnReintentarValidacion.setDisable(false);
-            lblMontoPendienteEntrega.setText("✅ Cobro registrado. Estado: " + respuesta.estadoPago());
+            lblMontoPendienteEntrega.setText("Cobro registrado. Estado: " + respuesta.estadoPago());
             lblMontoPendienteEntrega.setStyle("-fx-text-fill: #15803D; -fx-font-weight: bold;");
         });
 
@@ -425,7 +426,68 @@ public class ControladorAlmacen {
                 "DESPACHAR_A_VIAJE",
                 "RECEPCIONAR_DESTINO"
         ));
+        cmbAccionLote.setConverter(new StringConverter<String>() {
+            @Override
+            public String toString(String codigo) {
+                return etiquetaAccionLote(codigo);
+            }
+
+            @Override
+            public String fromString(String etiqueta) {
+                return codigoAccionLote(etiqueta);
+            }
+        });
+        cmbAccionLote.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : etiquetaAccionLote(item));
+            }
+        });
+        cmbAccionLote.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : etiquetaAccionLote(item));
+            }
+        });
         cmbAccionLote.setValue("RECEPCIONAR_ORIGEN");
+
+        cmbViajeLote.setCellFactory(lv -> new ListCell<ViajeDto>() {
+            @Override
+            protected void updateItem(ViajeDto v, boolean empty) {
+                super.updateItem(v, empty);
+                if (empty || v == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    String texto = formatearViajeComboLote(v);
+                    setText(texto);
+                    setTooltip(new Tooltip(texto));
+                }
+            }
+        });
+        cmbViajeLote.setButtonCell(new ListCell<ViajeDto>() {
+            @Override
+            protected void updateItem(ViajeDto v, boolean empty) {
+                super.updateItem(v, empty);
+                if (empty || v == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    String texto = formatearViajeComboLote(v);
+                    setText(texto);
+                    setTooltip(new Tooltip(texto));
+                }
+            }
+        });
+        cmbViajeLote.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                cmbViajeLote.setTooltip(new Tooltip(formatearViajeComboLote(newVal)));
+            } else {
+                cmbViajeLote.setTooltip(null);
+            }
+        });
 
         cmbAccionLote.valueProperty().addListener((obs, oldVal, newVal) -> {
             boolean esDespacho = "DESPACHAR_A_VIAJE".equalsIgnoreCase(newVal);
@@ -437,6 +499,8 @@ public class ControladorAlmacen {
         });
 
         listaEscaneoLote.setItems(itemsEscaneadosLote);
+        listaEscaneoLote.setPlaceholder(new Label("No hay códigos escaneados en cola"));
+        tablaResultadoLote.setPlaceholder(new Label("No hay resultados de lote para mostrar"));
 
         txtQr1Lote.setOnCodigoEscaneado(codigo -> {
             String codigoLimpio = codigo.trim();
@@ -525,7 +589,21 @@ public class ControladorAlmacen {
         }
 
         if (itemsEscaneadosLote.isEmpty()) {
-            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Lista Vacía", "Debe escanear al menos un código QR1.");
+            String codigoPendiente = txtQr1Lote != null && txtQr1Lote.getText() != null
+                    ? txtQr1Lote.getText().trim() : "";
+            if (!codigoPendiente.isEmpty()) {
+                if (itemsEscaneadosLote.contains(codigoPendiente)) {
+                    NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Código Duplicado",
+                            "El código QR1 ya se encuentra en la lista de escaneo actual.");
+                    return;
+                }
+                itemsEscaneadosLote.add(codigoPendiente);
+                txtQr1Lote.clear();
+                actualizarContadorLote();
+            } else {
+                NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Lista Vacía", "Debe escanear al menos un código QR1.");
+                return;
+            }
             return;
         }
 
@@ -646,6 +724,7 @@ public class ControladorAlmacen {
         colBusqEstadoLogistico.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().estadoLogistico()));
 
         tablaBusquedaEncomiendas.setItems(listaEncomiendasBusqueda);
+        tablaBusquedaEncomiendas.setPlaceholder(new Label("No se encontraron encomiendas para el documento ingresado"));
 
         tablaBusquedaEncomiendas.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             this.encomiendaSeleccionadaContingencia = newVal;
@@ -667,6 +746,7 @@ public class ControladorAlmacen {
         colIncMotivo.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().motivoReimpresion()));
         colIncFecha.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().fechaIncidencia()));
         tablaHistorialIncidencias.setItems(listaHistorialIncidencias);
+        tablaHistorialIncidencias.setPlaceholder(new Label("Sin incidencias registradas"));
     }
 
     @FXML
@@ -868,6 +948,39 @@ public class ControladorAlmacen {
         impresionPort.imprimirTicket(ticket);
         NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Impresión Térmica", "Etiqueta Generada",
                 "Se generó la nueva etiqueta física en salida/.");
+    }
+
+    public static String etiquetaAccionLote(String codigo) {
+        if (codigo == null) return "";
+        return switch (codigo.trim().toUpperCase()) {
+            case "RECEPCIONAR_ORIGEN" -> "Recepcionar en origen";
+            case "DESPACHAR_A_VIAJE" -> "Despachar a viaje";
+            case "RECEPCIONAR_DESTINO" -> "Recepcionar en destino";
+            default -> codigo;
+        };
+    }
+
+    public static String codigoAccionLote(String etiqueta) {
+        if (etiqueta == null) return "RECEPCIONAR_ORIGEN";
+        return switch (etiqueta.trim()) {
+            case "Recepcionar en origen" -> "RECEPCIONAR_ORIGEN";
+            case "Despachar a viaje" -> "DESPACHAR_A_VIAJE";
+            case "Recepcionar en destino" -> "RECEPCIONAR_DESTINO";
+            default -> etiqueta.trim();
+        };
+    }
+
+    public static String formatearViajeComboLote(ViajeDto viaje) {
+        if (viaje == null) return "";
+        String ruta = (viaje.ruta() != null && viaje.ruta().origen() != null && viaje.ruta().destino() != null)
+                ? viaje.ruta().origen().nombreAgencia().trim() + " → " + viaje.ruta().destino().nombreAgencia().trim()
+                : (viaje.idSucursalOrigen() != null ? viaje.idSucursalOrigen().trim() : "Origen") + " → " +
+                  (viaje.idSucursalDestino() != null ? viaje.idSucursalDestino().trim() : "Destino");
+        String placa = viaje.placaEfectiva();
+        String chofer = (viaje.nombreChofer() != null && !viaje.nombreChofer().isBlank())
+                ? " · " + viaje.nombreChofer().trim()
+                : "";
+        return String.format("%s · %s%s", ruta, placa, chofer);
     }
 
     public void seleccionarPestana(String pestana) {

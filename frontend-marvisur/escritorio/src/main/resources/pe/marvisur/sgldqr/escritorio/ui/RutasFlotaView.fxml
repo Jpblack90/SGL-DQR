@@ -40,18 +40,18 @@
                 <!-- Barra de Filtros y Acciones -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
                     <ComboBox fx:id="cboFiltroEstado" prefWidth="180.0" promptText="Estado de viaje"/>
-                    <Button fx:id="btnFiltrarViajes" text="🔍 Filtrar" onAction="#filtrarViajes" styleClass="btn-primario"/>
-                    <Button fx:id="btnActualizarViajes" text="🔄 Actualizar" onAction="#recargarViajes" styleClass="btn-secundario"/>
+                    <Button fx:id="btnFiltrarViajes" text="Filtrar" onAction="#filtrarViajes" styleClass="btn-primario"/>
+                    <Button fx:id="btnActualizarViajes" text="Actualizar" onAction="#recargarViajes" styleClass="btn-secundario"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button fx:id="btnNuevoViaje" text="+ Programar Viaje" onAction="#abrirDialogoNuevoViaje" styleClass="btn-primario"/>
+                    <Button fx:id="btnNuevoViaje" text="Programar Viaje" onAction="#abrirDialogoNuevoViaje" styleClass="btn-primario"/>
                 </HBox>
 
                 <!-- Tabla de Viajes -->
                 <TableView fx:id="tablaViajes" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
                     <columns>
-                        <TableColumn fx:id="colViajeRuta" text="Ruta (Origen ➔ Destino)" prefWidth="240.0"/>
+                        <TableColumn fx:id="colViajeRuta" text="Ruta (Origen → Destino)" prefWidth="300.0"/>
                         <TableColumn fx:id="colViajeVehiculo" text="Vehículo / Placa" prefWidth="160.0"/>
                         <TableColumn fx:id="colViajeChofer" text="Chofer Asignado" prefWidth="180.0"/>
                         <TableColumn fx:id="colViajeSalida" text="Salida" prefWidth="140.0" style="-fx-alignment: CENTER;"/>
@@ -62,9 +62,9 @@
 
                 <!-- Barra de Acciones Operativas -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Button fx:id="btnIniciarViaje" text="▶ Iniciar viaje" onAction="#confirmarIniciarViaje" disable="true" styleClass="btn-primario"/>
-                    <Button fx:id="btnFinalizarViaje" text="🏁 Finalizar viaje" onAction="#confirmarFinalizarViaje" disable="true" styleClass="btn-secundario"/>
-                    <Button fx:id="btnVerManifiesto" text="📋 Ver manifiesto" onAction="#abrirDialogoManifiesto" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnIniciarViaje" text="Iniciar viaje" onAction="#confirmarIniciarViaje" disable="true" styleClass="btn-primario"/>
+                    <Button fx:id="btnFinalizarViaje" text="Finalizar viaje" onAction="#confirmarFinalizarViaje" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnVerManifiesto" text="Ver manifiesto" onAction="#abrirDialogoManifiesto" disable="true" styleClass="btn-secundario"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
@@ -78,11 +78,11 @@
             <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
                 <!-- Barra de Acciones de Flota -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
-                    <Button fx:id="btnActualizarVehiculos" text="🔄 Actualizar" onAction="#recargarVehiculos" styleClass="btn-secundario"/>
+                    <Button fx:id="btnActualizarVehiculos" text="Actualizar" onAction="#recargarVehiculos" styleClass="btn-secundario"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button fx:id="btnNuevoVehiculo" text="+ Nuevo Vehículo" onAction="#abrirDialogoNuevoVehiculo" styleClass="btn-primario"/>
+                    <Button fx:id="btnNuevoVehiculo" text="Nuevo Vehículo" onAction="#abrirDialogoNuevoVehiculo" styleClass="btn-primario"/>
                 </HBox>
 
                 <!-- Tabla de Vehículos -->

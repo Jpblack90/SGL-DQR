@@ -21,9 +21,9 @@
         <HBox spacing="10" alignment="CENTER_RIGHT">
             <Button fx:id="btnRefrescar" text="Actualizar" onAction="#cargarDatos"
                     styleClass="btn-secundario"/>
-            <Button fx:id="btnReintentarErrores" text="🔄 Reintentar Errores" onAction="#manejarReintentarErrores"
+            <Button fx:id="btnReintentarErrores" text="Reintentar Errores" onAction="#manejarReintentarErrores"
                     style="-fx-background-color: #F59E0B; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-background-radius: 6;"/>
-            <Button fx:id="btnSincronizarAhora" text="⚡ Sincronizar Ahora" onAction="#manejarSincronizarAhora"
+            <Button fx:id="btnSincronizarAhora" text="Sincronizar Ahora" onAction="#manejarSincronizarAhora"
                     styleClass="btn-primario"/>
         </HBox>
     </HBox>
@@ -33,7 +33,7 @@
         <HBox spacing="10" alignment="CENTER_LEFT"
               style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;"
               HBox.hgrow="ALWAYS">
-            <Label text="⏳" style="-fx-font-size: 20px;"/>
+            
             <VBox spacing="2">
                 <Label text="Pendientes de Envío" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                 <Label fx:id="lblTotalPendientes" text="0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #D97706;"/>
@@ -43,7 +43,7 @@
         <HBox spacing="10" alignment="CENTER_LEFT"
               style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;"
               HBox.hgrow="ALWAYS">
-            <Label text="✅" style="-fx-font-size: 20px;"/>
+            
             <VBox spacing="2">
                 <Label text="Sincronizadas Exitosas" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                 <Label fx:id="lblTotalSincronizadas" text="0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #16A34A;"/>
@@ -53,7 +53,7 @@
         <HBox spacing="10" alignment="CENTER_LEFT"
               style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;"
               HBox.hgrow="ALWAYS">
-            <Label text="❌" style="-fx-font-size: 20px;"/>
+            
             <VBox spacing="2">
                 <Label text="Con Error de Sincronización" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                 <Label fx:id="lblTotalErrores" text="0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #DC2626;"/>
@@ -63,7 +63,7 @@
         <HBox spacing="10" alignment="CENTER_LEFT"
               style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;"
               HBox.hgrow="ALWAYS">
-            <Label text="📁" style="-fx-font-size: 20px;"/>
+            
             <VBox spacing="2">
                 <Label text="Total en Base Local" style="-fx-font-size: 11px; -fx-text-fill: #64748B;"/>
                 <Label fx:id="lblTotalRegistros" text="0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>

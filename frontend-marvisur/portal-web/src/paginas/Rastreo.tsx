@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { consultarRastreo, descargarComprobantePdf } from '../api/cliente';
 import { ApiError, RastreoPublicoDto, obtenerEtiquetaEstado } from '../api/tipos';
 import { Alerta } from '../componentes/Alerta';
@@ -6,6 +6,9 @@ import { Cargando } from '../componentes/Cargando';
 import { LineaTiempo } from '../componentes/LineaTiempo';
 
 export const Rastreo: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Rastrea tu envío · Expreso Marvisur';
+  }, []);
   const [comprobante, setComprobante] = useState('');
   const [documento, setDocumento] = useState('');
   const [erroresValidacion, setErroresValidacion] = useState<{ comprobante?: string; documento?: string }>({});

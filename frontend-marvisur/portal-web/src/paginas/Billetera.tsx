@@ -62,6 +62,7 @@ export const Billetera: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Billetera Digital · Expreso Marvisur';
     cargarBilletera();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.hash]);

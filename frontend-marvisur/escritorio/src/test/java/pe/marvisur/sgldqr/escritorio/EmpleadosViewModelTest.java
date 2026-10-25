@@ -295,4 +295,35 @@ class EmpleadosViewModelTest {
         assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("TODOS")).isEqualTo("Todos");
         assertThat(EmpleadosViewModel.mapearEstadoEtiqueta(null)).isEqualTo("Todos");
     }
+
+    @Test
+    @DisplayName("auditoria: lista de acciones incluye todas las acciones reales del backend")
+    void testAccionesAuditoriaCompletas() {
+        List<String> acciones = EmpleadosViewModel.ACCIONES_AUDITORIA;
+        assertThat(acciones).contains(
+                "TODAS",
+                "LOGIN_EXITOSO", "LOGIN_FALLIDO",
+                "EMPLEADO_CREADO", "EMPLEADO_ACTUALIZADO", "EMPLEADO_DADO_DE_BAJA", "EMPLEADO_REACTIVADO", "EMPLEADO_PASSWORD_RESTABLECIDA",
+                "REGISTRO_ENCOMIENDA", "COBRO_CONTRA_ENTREGA", "VALIDACION_ENTREGA", "INCIDENCIA_REGISTRADA", "SYNC_ENCOMIENDAS",
+                "LOTE_RECEPCION_ORIGEN", "LOTE_DESPACHO", "LOTE_RECEPCION_DESTINO",
+                "VEHICULO_REGISTRADO", "VIAJE_CREADO", "VIAJE_INICIADO", "VIAJE_FINALIZADO"
+        );
+    }
+
+    @Test
+    @DisplayName("auditoria: mapeo amigable de etiquetas para combo y tabla")
+    void testEtiquetasAccionAuditoria() {
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("TODAS")).isEqualTo("Todas las acciones");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("LOGIN_EXITOSO")).isEqualTo("Inicio de sesión exitoso");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("EMPLEADO_CREADO")).isEqualTo("Empleado registrado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("REGISTRO_ENCOMIENDA")).isEqualTo("Registro de encomienda");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("COBRO_CONTRA_ENTREGA")).isEqualTo("Cobro contra entrega");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VALIDACION_ENTREGA")).isEqualTo("Validación física y entrega");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VEHICULO_REGISTRADO")).isEqualTo("Vehículo registrado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_CREADO")).isEqualTo("Viaje programado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_INICIADO")).isEqualTo("Viaje iniciado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_FINALIZADO")).isEqualTo("Viaje finalizado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("ACCION_DESCONOCIDA")).isEqualTo("ACCION_DESCONOCIDA");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria(null)).isEqualTo("Todas las acciones");
+    }
 }

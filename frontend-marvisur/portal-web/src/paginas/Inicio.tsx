@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Inicio: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Expreso Marvisur · Envíos y Carga a Nivel Nacional';
+  }, []);
   return (
     <div className="space-y-12 sm:space-y-16">
       {/* Sección Hero */}

@@ -52,7 +52,7 @@
         </VBox>
 
         <!-- Ayuda rápida demo -->
-        <VBox alignment="CENTER" spacing="2" style="-fx-padding: 10 0 0 0;">
+        <VBox fx:id="panelDemo" alignment="CENTER" spacing="2" style="-fx-padding: 10 0 0 0;">
             <Label text="Acceso demo: recepcionista.demo@marvisur.pe"
                    style="-fx-font-size: 10px; -fx-text-fill: #94A3B8;"/>
             <Label text="Contraseña: Demo1234*"

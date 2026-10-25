@@ -53,6 +53,18 @@ public final class RutasFlotaViewModel {
         };
     }
 
+    public static String etiquetaEstadoLogistico(String estado) {
+        if (estado == null) return "--";
+        return switch (estado.trim().toUpperCase()) {
+            case "REGISTRADO" -> "Registrado";
+            case "RECEPCIONADO_ORIGEN" -> "Recepción origen";
+            case "EN_RUTA" -> "En ruta";
+            case "EN_ALMACEN_DESTINO" -> "Almacén destino";
+            case "ENTREGADO" -> "Entregado";
+            default -> estado.trim();
+        };
+    }
+
     public static String etiquetaEstadoViaje(String estado) {
         if (estado == null) return "--";
         return switch (estado.trim().toUpperCase()) {
@@ -308,6 +320,23 @@ public final class RutasFlotaViewModel {
                 .map(ManifiestoEncomiendaDto::pesoKg)
                 .filter(java.util.Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public static String formatearTituloManifiesto(ViajeDto viaje) {
+        if (viaje == null) {
+            return "Manifiesto de Carga";
+        }
+        String origen = viaje.ruta() != null && viaje.ruta().origen() != null && viaje.ruta().origen().nombreAgencia() != null
+                ? viaje.ruta().origen().nombreAgencia().trim()
+                : (viaje.idSucursalOrigen() != null ? viaje.idSucursalOrigen().trim() : "Origen");
+        String destino = viaje.ruta() != null && viaje.ruta().destino() != null && viaje.ruta().destino().nombreAgencia() != null
+                ? viaje.ruta().destino().nombreAgencia().trim()
+                : (viaje.idSucursalDestino() != null ? viaje.idSucursalDestino().trim() : "Destino");
+        String placa = viaje.placaEfectiva();
+        if ("S/P".equals(placa) && viaje.idViaje() != null) {
+            placa = viaje.idViaje();
+        }
+        return String.format("Manifiesto · %s → %s · %s", origen, destino, placa);
     }
 
     public static String textoResumenManifiesto(List<ManifiestoEncomiendaDto> encomiendas) {

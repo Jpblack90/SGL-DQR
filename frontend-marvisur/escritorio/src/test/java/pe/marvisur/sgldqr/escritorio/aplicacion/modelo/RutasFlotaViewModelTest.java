@@ -201,4 +201,32 @@ class RutasFlotaViewModelTest {
         assertThat(resumen).contains("Total encomiendas: 2");
         assertThat(resumen).contains("20.00 kg");
     }
+
+    @Test
+    @DisplayName("manifiesto: mapeo de etiquetas legibles de estado logístico")
+    void testEtiquetaEstadoLogistico() {
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("REGISTRADO")).isEqualTo("Registrado");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("RECEPCIONADO_ORIGEN")).isEqualTo("Recepción origen");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("EN_RUTA")).isEqualTo("En ruta");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("EN_ALMACEN_DESTINO")).isEqualTo("Almacén destino");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("ENTREGADO")).isEqualTo("Entregado");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico(null)).isEqualTo("--");
+        assertThat(RutasFlotaViewModel.etiquetaEstadoLogistico("OTRO")).isEqualTo("OTRO");
+    }
+
+    @Test
+    @DisplayName("manifiesto: formateo de título amigable con origen, destino y placa")
+    void testFormatearTituloManifiesto() {
+        RutaDto ruta = new RutaDto("R-1", new AgenciaResumenDto("SUC-1", "Lima Central"), new AgenciaResumenDto("SUC-2", "Arequipa"), new BigDecimal("1000.0"));
+        ViajeDto viaje = new ViajeDto("V-123", "R-1", "SUC-1", "SUC-2", 1000.0, "VEH-1", "V1A-999", "CHO-1", "Carlos", "2026-10-25T10:00:00Z", "2026-10-26T10:00:00Z", "PROGRAMADO", ruta, "V1A-999", "Volvo");
+
+        String titulo = RutasFlotaViewModel.formatearTituloManifiesto(viaje);
+        assertThat(titulo).isEqualTo("Manifiesto · Lima Central → Arequipa · V1A-999");
+
+        ViajeDto viajeSinRuta = new ViajeDto("V-456", "R-2", "Trujillo", "Chiclayo", 200.0, "VEH-2", null, "CHO-2", "Pedro", "2026-10-25T10:00:00Z", "2026-10-26T10:00:00Z", "PROGRAMADO", null, null, null);
+        String tituloFallback = RutasFlotaViewModel.formatearTituloManifiesto(viajeSinRuta);
+        assertThat(tituloFallback).isEqualTo("Manifiesto · Trujillo → Chiclayo · V-456");
+
+        assertThat(RutasFlotaViewModel.formatearTituloManifiesto(null)).isEqualTo("Manifiesto de Carga");
+    }
 }
