@@ -89,3 +89,7 @@ scripts/*.pid
 # ---- Resultados de pruebas temporales ----
 vitest-results.json
 */vitest-results.json
+ 
+# ---- Directorio comprobantes PDF ----
+comprobantes/
+*/comprobantes/

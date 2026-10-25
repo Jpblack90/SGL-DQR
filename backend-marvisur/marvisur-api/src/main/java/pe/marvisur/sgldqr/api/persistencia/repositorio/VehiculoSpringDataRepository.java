@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface VehiculoSpringDataRepository extends JpaRepository<VehiculoJpaEntity, String> {
     Optional<VehiculoJpaEntity> findByPlaca(String placa);
+
+    boolean existsByPlacaIgnoreCase(String placa);
 }

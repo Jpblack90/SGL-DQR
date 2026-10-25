@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorRutasFlota"
+      spacing="14.0" style="-fx-background-color: #F8FAFC;">
+    <padding>
+        <Insets top="16.0" right="20.0" bottom="16.0" left="20.0"/>
+    </padding>
+
+    <!-- Encabezado del Módulo -->
+    <VBox spacing="4.0">
+        <Label fx:id="lblTituloModulo" text="Rutas y Flota de Transporte" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+        <Label fx:id="lblSubtituloModulo" text="Programación de viajes interprovinciales, despacho en ruta y flota de unidades vehiculares (RF-05)." style="-fx-font-size: 13px; -fx-text-fill: #64748B;"/>
+    </VBox>
+
+    <!-- Banner de Estado / Mensajes -->
+    <HBox fx:id="bannerEstado" visible="false" managed="false" alignment="CENTER_LEFT" spacing="10.0"
+          style="-fx-background-color: #FEE2E2; -fx-border-color: #FCA5A5; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 10px 14px;">
+        <Label fx:id="lblBannerEstado" text="" style="-fx-text-fill: #B91C1C; -fx-font-weight: bold; -fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Pestañas Principales: Viajes y Flota -->
+    <TabPane fx:id="tabPaneModulo" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <!-- Pestaña 1: Viajes -->
+        <Tab fx:id="tabViajes" text="Viajes Interprovinciales">
+            <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
+                <!-- Barra de Filtros y Acciones -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
+                    <ComboBox fx:id="cboFiltroEstado" prefWidth="180.0" promptText="Estado de viaje"/>
+                    <Button fx:id="btnFiltrarViajes" text="🔍 Filtrar" onAction="#filtrarViajes" styleClass="btn-primario"/>
+                    <Button fx:id="btnActualizarViajes" text="🔄 Actualizar" onAction="#recargarViajes" styleClass="btn-secundario"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="btnNuevoViaje" text="+ Programar Viaje" onAction="#abrirDialogoNuevoViaje" styleClass="btn-primario"/>
+                </HBox>
+
+                <!-- Tabla de Viajes -->
+                <TableView fx:id="tablaViajes" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
+                    <columns>
+                        <TableColumn fx:id="colViajeRuta" text="Ruta (Origen ➔ Destino)" prefWidth="240.0"/>
+                        <TableColumn fx:id="colViajeVehiculo" text="Vehículo / Placa" prefWidth="160.0"/>
+                        <TableColumn fx:id="colViajeChofer" text="Chofer Asignado" prefWidth="180.0"/>
+                        <TableColumn fx:id="colViajeSalida" text="Salida" prefWidth="140.0" style="-fx-alignment: CENTER;"/>
+                        <TableColumn fx:id="colViajeLlegada" text="Llegada Estimada" prefWidth="140.0" style="-fx-alignment: CENTER;"/>
+                        <TableColumn fx:id="colViajeEstado" text="Estado" prefWidth="110.0" style="-fx-alignment: CENTER;"/>
+                    </columns>
+                </TableView>
+
+                <!-- Barra de Acciones Operativas -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Button fx:id="btnIniciarViaje" text="▶ Iniciar viaje" onAction="#confirmarIniciarViaje" disable="true" styleClass="btn-primario"/>
+                    <Button fx:id="btnFinalizarViaje" text="🏁 Finalizar viaje" onAction="#confirmarFinalizarViaje" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnVerManifiesto" text="📋 Ver manifiesto" onAction="#abrirDialogoManifiesto" disable="true" styleClass="btn-secundario"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label fx:id="lblTotalViajes" text="Total viajes: 0" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- Pestaña 2: Flota de Vehículos -->
+        <Tab fx:id="tabFlota" text="Flota de Vehículos">
+            <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
+                <!-- Barra de Acciones de Flota -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
+                    <Button fx:id="btnActualizarVehiculos" text="🔄 Actualizar" onAction="#recargarVehiculos" styleClass="btn-secundario"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="btnNuevoVehiculo" text="+ Nuevo Vehículo" onAction="#abrirDialogoNuevoVehiculo" styleClass="btn-primario"/>
+                </HBox>
+
+                <!-- Tabla de Vehículos -->
+                <TableView fx:id="tablaVehiculos" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
+                    <columns>
+                        <TableColumn fx:id="colVehiculoPlaca" text="Placa" prefWidth="150.0" style="-fx-alignment: CENTER;"/>
+                        <TableColumn fx:id="colVehiculoModelo" text="Modelo / Descripción" prefWidth="300.0"/>
+                        <TableColumn fx:id="colVehiculoCapacidad" text="Capacidad de Carga (kg)" prefWidth="200.0" style="-fx-alignment: CENTER-RIGHT;"/>
+                    </columns>
+                </TableView>
+
+                <!-- Barra Inferior de Flota -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblTotalVehiculos" text="Total vehículos: 0" style="-fx-text-fill: #475569; -fx-font-size: 12px;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

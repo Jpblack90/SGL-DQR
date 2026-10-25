@@ -65,16 +65,19 @@
 
 #### I1 — Backend API
 - [x] **B4** Endpoints de sincronización idempotentes por UUID (`POST /api/v1/sync/encomiendas`, RNF-02)
-- [ ] **B1** *[Pendiente / Backlog]* Dashboard (KPIs en tiempo real) y empleados con auditoría (RF-02, RF-03)
-- [ ] **B2** *[Pendiente / Backlog]* Flota, rutas y ciclo de viaje; TN4 actualiza estado; «En ruta» masivo (RF-05)
+- [~] **B1** Dashboard y Personal (KPIs en tiempo real y gestión de empleados con auditoría completados en backend; resuelta integridad referencial en pruebas de auditoría) (RF-02, RF-03)
+- [x] **B2** Flota, rutas y ciclo de viaje en backend API; endpoints vehiculos (TN3), rutas (TN2/TN3/TN4), viajes (TN2/TN3/TN4 con RBAC chofer), programación y avance de estado con auditoría y manifiesto sin datos personales (RF-05)
 - [ ] **B3** *[Pendiente / Backlog]* Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
 - [x] **B5** Pruebas de rendimiento RNF-03 y perfil dev con Swagger / prod protegido
+- *Punto de reanudación I1:* Tarea B2 cerrada en backend API (resuelta integridad referencial en prueba de manifiesto de viaje). Siguiente paso: interfaces visuales correspondientes o B3 en backlog.
 
 #### I2 — Escritorio JavaFX (offline-first)
 - [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
 - [x] **D2** Ventanilla: registro de encomienda, Código Express y datos de impresión térmica 58 mm (RF-04)
 - [x] **D3** Almacén: validación cruzada Doble QR, Batch Scanning, contingencia e incidencias (RF-06, RF-07)
-- [ ] **D4** *[Pendiente / Backlog]* Dashboard, empleados, choferes y rutas (RF-02, RF-03, RF-05)
+- [x] **D4** Dashboard y Personal (RF-02 KPIs y RF-03 Gestión de personal y auditoría en escritorio para TN3 completados; consistencia FXML y formato amigable de combos verificado)
+- [x] **D5** Rutas y Flota: gestión de unidades vehiculares (TN3), programación de viajes interprovinciales (TN3), despacho y avance de estado en ruta (TN3, TN4), consulta modal de manifiesto de carga sin datos personales y navegación RBAC (RF-05)
+- *Punto de reanudación I2:* Tarea D5 completada con 148 pruebas del módulo de escritorio en verde. Siguiente paso: verificación manual en entorno gráfico con usuario final.
 
 #### I3 — Portal Web y Pruebas (React + Vite + TypeScript + Tailwind)
 - [x] **W1** Scaffold del portal con tema de marca y catálogo público de agencias
@@ -90,7 +93,7 @@
 - [ ] **H1** *[Pendiente / Backlog]* Adaptador ESC/POS para ticketera física de 58 mm por puerto USB/Serie (actualmente emulado en PNG)
 - [ ] **H2** *[Pendiente / Backlog]* Adaptador de escáner óptico USB vía API nativa (actualmente soportado vía emulación de teclado con `CampoEscaneo`)
 - [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
-- [ ] **O4** *[Pendiente / Backlog]* Instalador .EXE autocontenido con `jpackage` (RNF-04; ejecutable vía Maven y JAR)
+- [x] **O4** Paquete portátil autocontenido .EXE con JRE embebido mediante jlink y jpackage (RNF-04)
 
 ---
 

@@ -48,6 +48,15 @@ public class ViajeDto {
     @Schema(description = "Estado actual del viaje", example = "PROGRAMADO")
     private EstadoViaje estadoViaje;
 
+    @Schema(description = "Datos detallados de la ruta asociada")
+    private RutaDto ruta;
+
+    @Schema(description = "Placa del vehículo", example = "V1A-852")
+    private String placa;
+
+    @Schema(description = "Modelo del vehículo", example = "Volvo FH16")
+    private String modelo;
+
     public ViajeDto() {
     }
 
@@ -62,11 +71,23 @@ public class ViajeDto {
         this.distanciaKm = distanciaKm;
         this.idVehiculo = idVehiculo;
         this.placaVehiculo = placaVehiculo;
+        this.placa = placaVehiculo;
         this.idChofer = idChofer;
         this.nombreChofer = nombreChofer;
         this.fechaSalida = fechaSalida;
         this.fechaLlegadaEstimada = fechaLlegadaEstimada;
         this.estadoViaje = estadoViaje;
+    }
+
+    public ViajeDto(String idViaje, String idRuta, String idSucursalOrigen, String idSucursalDestino,
+                    BigDecimal distanciaKm, String idVehiculo, String placaVehiculo, String idChofer,
+                    String nombreChofer, LocalDateTime fechaSalida, LocalDateTime fechaLlegadaEstimada,
+                    EstadoViaje estadoViaje, RutaDto ruta, String placa, String modelo) {
+        this(idViaje, idRuta, idSucursalOrigen, idSucursalDestino, distanciaKm, idVehiculo, placaVehiculo,
+                idChofer, nombreChofer, fechaSalida, fechaLlegadaEstimada, estadoViaje);
+        this.ruta = ruta;
+        this.placa = placa != null ? placa : placaVehiculo;
+        this.modelo = modelo;
     }
 
     public String getIdViaje() {
@@ -163,5 +184,32 @@ public class ViajeDto {
 
     public void setEstadoViaje(EstadoViaje estadoViaje) {
         this.estadoViaje = estadoViaje;
+    }
+
+    public RutaDto getRuta() {
+        return ruta;
+    }
+
+    public void setRuta(RutaDto ruta) {
+        this.ruta = ruta;
+    }
+
+    public String getPlaca() {
+        return placa != null ? placa : placaVehiculo;
+    }
+
+    public void setPlaca(String placa) {
+        this.placa = placa;
+        if (this.placaVehiculo == null) {
+            this.placaVehiculo = placa;
+        }
+    }
+
+    public String getModelo() {
+        return modelo;
+    }
+
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
     }
 }

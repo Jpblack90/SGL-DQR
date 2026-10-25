@@ -1,6 +1,7 @@
 package pe.marvisur.sgldqr.escritorio.infraestructura.impresion;
 
 import pe.marvisur.sgldqr.puertos.ImpresionPort;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -29,7 +30,6 @@ public class ImpresionSimuladaAdapter implements ImpresionPort {
 
     private static final Logger LOGGER = Logger.getLogger(ImpresionSimuladaAdapter.class.getName());
     private static final int ANCHO_TICKET_PX = 384; // Ancho estándar para papel térmico 58mm (8 dots/mm)
-    private static final Path DIRECTORIO_SALIDA = Paths.get("salida");
 
     private volatile Path ultimoTicketGenerado;
 
@@ -41,16 +41,16 @@ public class ImpresionSimuladaAdapter implements ImpresionPort {
         }
 
         try {
-            // Asegurar existencia de directorio salida/
-            if (!Files.exists(DIRECTORIO_SALIDA)) {
-                Files.createDirectories(DIRECTORIO_SALIDA);
+            Path dirSalida = RutasEscritorio.obtenerDirectorioSalida();
+            if (!Files.exists(dirSalida)) {
+                Files.createDirectories(dirSalida);
             }
 
             // Generar imagen simulada del ticket térmico
             BufferedImage imagenTicket = renderizarImagenTicket(datosTicket);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"));
-            Path archivoDestino = DIRECTORIO_SALIDA.resolve("ticket_" + timestamp + ".png");
+            Path archivoDestino = dirSalida.resolve("ticket_" + timestamp + ".png");
 
             ImageIO.write(imagenTicket, "PNG", archivoDestino.toFile());
             this.ultimoTicketGenerado = archivoDestino;

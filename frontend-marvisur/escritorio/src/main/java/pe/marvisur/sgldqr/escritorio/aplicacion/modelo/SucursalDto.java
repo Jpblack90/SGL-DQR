@@ -11,6 +11,9 @@ public record SucursalDto(
 ) {
     @Override
     public String toString() {
-        return nombreAgencia + " (" + ciudad + ")";
+        if (ciudad != null && !ciudad.isBlank()) {
+            return (nombreAgencia != null ? nombreAgencia : "") + " (" + ciudad.trim() + ")";
+        }
+        return nombreAgencia != null ? nombreAgencia : "";
     }
 }

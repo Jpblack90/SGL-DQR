@@ -20,6 +20,7 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.UsuarioSesion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.ColaLocalPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 import pe.marvisur.sgldqr.escritorio.infraestructura.sqlite.SQLiteColaAdapter;
 import pe.marvisur.sgldqr.infraestructura.qr.ZXingAdapter;
@@ -98,15 +99,12 @@ public class VentanillaOfflineServicio implements VentanillaPort {
     }
 
     private static TarifarioPorPeso obtenerTarifarioConfigurado() {
-        try (InputStream is = VentanillaOfflineServicio.class.getResourceAsStream("/escritorio.properties")) {
-            if (is != null) {
-                Properties prop = new Properties();
-                prop.load(is);
-                String baseStr = prop.getProperty("tarifa.base");
-                String kgStr = prop.getProperty("tarifa.costo-por-kg");
-                if (baseStr != null && kgStr != null) {
-                    return new TarifarioPorPeso(new BigDecimal(baseStr.trim()), new BigDecimal(kgStr.trim()));
-                }
+        try {
+            Properties prop = RutasEscritorio.cargarPropiedadesCombinadas();
+            String baseStr = prop.getProperty("tarifa.base");
+            String kgStr = prop.getProperty("tarifa.costo-por-kg");
+            if (baseStr != null && kgStr != null) {
+                return new TarifarioPorPeso(new BigDecimal(baseStr.trim()), new BigDecimal(kgStr.trim()));
             }
         } catch (Exception ignored) {
         }
@@ -114,14 +112,11 @@ public class VentanillaOfflineServicio implements VentanillaPort {
     }
 
     private static String obtenerPortalUrlConfigurado() {
-        try (InputStream is = VentanillaOfflineServicio.class.getResourceAsStream("/escritorio.properties")) {
-            if (is != null) {
-                Properties prop = new Properties();
-                prop.load(is);
-                String url = prop.getProperty("portal.url-base");
-                if (url != null && !url.isBlank()) {
-                    return url.trim();
-                }
+        try {
+            Properties prop = RutasEscritorio.cargarPropiedadesCombinadas();
+            String url = prop.getProperty("portal.url-base");
+            if (url != null && !url.isBlank()) {
+                return url.trim();
             }
         } catch (Exception ignored) {
         }

@@ -31,6 +31,16 @@ public class ManejadorGlobalExcepciones {
 
     private static final Logger log = LoggerFactory.getLogger(ManejadorGlobalExcepciones.class);
 
+    @ExceptionHandler(ExcepcionOperacionInvalida.class)
+    public ResponseEntity<ProblemDetail> manejarOperacionInvalida(ExcepcionOperacionInvalida ex) {
+        log.warn("Operación inválida [{}]: {}", ex.getCodigo(), ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
+        problem.setTitle(ex.getTitulo());
+        problem.setType(URI.create("https://marvisur.pe/errores/" + ex.getCodigo().toLowerCase().replace('_', '-')));
+        problem.setProperty("codigo", ex.getCodigo());
+        return ResponseEntity.status(ex.getStatus()).body(problem);
+    }
+
     @ExceptionHandler(ExcepcionEntregaBloqueada.class)
     public ResponseEntity<ProblemDetail> manejarEntregaBloqueada(ExcepcionEntregaBloqueada ex) {
         log.warn("Entrega bloqueada: {}", ex.getMessage());

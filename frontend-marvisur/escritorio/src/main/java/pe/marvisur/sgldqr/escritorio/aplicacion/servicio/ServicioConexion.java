@@ -3,6 +3,7 @@ package pe.marvisur.sgldqr.escritorio.aplicacion.servicio;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EstadoConexionUI;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.ConfiguracionApi;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -75,14 +76,11 @@ public class ServicioConexion implements EstadoConexionPort {
     }
 
     private static Duration obtenerTimeoutConfigurado() {
-        try (InputStream is = ServicioConexion.class.getResourceAsStream("/escritorio.properties")) {
-            if (is != null) {
-                Properties prop = new Properties();
-                prop.load(is);
-                String segStr = prop.getProperty("http.timeout-segundos");
-                if (segStr != null && !segStr.isBlank()) {
-                    return Duration.ofSeconds(Long.parseLong(segStr.trim()));
-                }
+        try {
+            Properties prop = RutasEscritorio.cargarPropiedadesCombinadas();
+            String segStr = prop.getProperty("http.timeout-segundos");
+            if (segStr != null && !segStr.isBlank()) {
+                return Duration.ofSeconds(Long.parseLong(segStr.trim()));
             }
         } catch (Exception ignored) {
         }

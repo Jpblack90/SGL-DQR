@@ -1,6 +1,5 @@
 package pe.marvisur.sgldqr.api.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,9 +26,6 @@ public class OpenApiExportTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
     @DisplayName("Genera y exporta especificación OpenAPI para endpoints públicos")
     void exportarOpenApiPublico() throws Exception {
@@ -36,21 +33,26 @@ public class OpenApiExportTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String json = result.getResponse().getContentAsString();
+        byte[] rawBytes = result.getResponse().getContentAsByteArray();
+        assertThat(rawBytes).isNotEmpty();
+
+        // Guardar bytes tal cual en target/openapi/ (carpeta no versionada para mantener el árbol git limpio)
+        Path targetDir = Paths.get("target/openapi");
+        Files.createDirectories(targetDir);
+        Path targetFile = targetDir.resolve("openapi-publico.json");
+        Files.write(targetFile, rawBytes);
+        assertThat(Files.exists(targetFile)).isTrue();
+
+        // Verificaciones sobre el contenido y protección contra regresión de codificación UTF-8
+        String json = new String(rawBytes, StandardCharsets.UTF_8);
         assertThat(json).contains("/api/v1/publico/rastreo");
         assertThat(json).doesNotContain("/api/v1/entregas/validar");
 
-        Object jsonObject = objectMapper.readValue(json, Object.class);
-        String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
-
-        Path docsDir = Paths.get("../../docs").toAbsolutePath().normalize();
-        if (!Files.exists(docsDir)) {
-            docsDir = Paths.get("docs").toAbsolutePath().normalize();
-        }
-        Path targetFile = docsDir.resolve("openapi-publico.json");
-        Files.writeString(targetFile, prettyJson);
-
-        assertThat(Files.exists(targetFile)).isTrue();
+        assertThat(json).doesNotContain("Ã");
+        assertThat(json).doesNotContain("\u00C3");
+        assertThat(json).doesNotContain("├");
+        assertThat(json).doesNotContain("\u251C");
+        assertThat(json).contains("Público");
     }
 
     @Test
@@ -60,20 +62,25 @@ public class OpenApiExportTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String json = result.getResponse().getContentAsString();
+        byte[] rawBytes = result.getResponse().getContentAsByteArray();
+        assertThat(rawBytes).isNotEmpty();
+
+        // Guardar bytes tal cual en target/openapi/ (carpeta no versionada para mantener el árbol git limpio)
+        Path targetDir = Paths.get("target/openapi");
+        Files.createDirectories(targetDir);
+        Path targetFile = targetDir.resolve("openapi-interno.json");
+        Files.write(targetFile, rawBytes);
+        assertThat(Files.exists(targetFile)).isTrue();
+
+        // Verificaciones sobre el contenido y protección contra regresión de codificación UTF-8
+        String json = new String(rawBytes, StandardCharsets.UTF_8);
         assertThat(json).contains("/api/v1/encomiendas");
         assertThat(json).doesNotContain("/api/v1/publico/rastreo");
 
-        Object jsonObject = objectMapper.readValue(json, Object.class);
-        String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
-
-        Path docsDir = Paths.get("../../docs").toAbsolutePath().normalize();
-        if (!Files.exists(docsDir)) {
-            docsDir = Paths.get("docs").toAbsolutePath().normalize();
-        }
-        Path targetFile = docsDir.resolve("openapi-interno.json");
-        Files.writeString(targetFile, prettyJson);
-
-        assertThat(Files.exists(targetFile)).isTrue();
+        assertThat(json).doesNotContain("Ã");
+        assertThat(json).doesNotContain("\u00C3");
+        assertThat(json).doesNotContain("├");
+        assertThat(json).doesNotContain("\u251C");
+        assertThat(json).contains("Autenticación");
     }
 }

@@ -53,18 +53,18 @@
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuColaLocal" text="📋 Cola Local" onAction="#mostrarColaLocal"
                     styleClass="boton-menu"/>
-            <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+            <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota" onAction="#mostrarRutas"
+                    styleClass="boton-menu"/>
 
             <Separator style="-fx-background-color: #334155; -fx-padding: 6 0;"/>
 
             <Label text="GESTIÓN"
                    style="-fx-text-fill: #94A3B8; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 6 10;"/>
 
-            <Button fx:id="btnMenuDashboard" text="📊 Dashboard (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
-            <Button fx:id="btnMenuEmpleados" text="👥 Empleados (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+            <Button fx:id="btnMenuDashboard" text="📊 Dashboard" onAction="#mostrarDashboard"
+                    styleClass="boton-menu"/>
+            <Button fx:id="btnMenuEmpleados" text="👥 Empleados" onAction="#mostrarEmpleados"
+                    styleClass="boton-menu"/>
 
             <Region VBox.vgrow="ALWAYS"/>
 

@@ -49,9 +49,6 @@ public class ControladorPrincipal {
     private Label lblPendientes;
 
     @FXML
-    private Label lblNotificacionSync;
-
-    @FXML
     private Label lblSucursal;
 
     @FXML
@@ -91,6 +88,7 @@ public class ControladorPrincipal {
     private final ColaLocalPort colaLocalPort;
     private ScheduledExecutorService planificadorConectividad;
     private PauseTransition pausaNotificacionSync;
+    private ControladorDashboard controladorDashboardActivo;
 
     public ControladorPrincipal() {
         this(new MarvisurHttpClient(), ServicioConexion.getInstancia(), SincronizadorOffline.getInstancia(), new SQLiteColaAdapter());
@@ -156,7 +154,13 @@ public class ControladorPrincipal {
         boolean habilitado = modulo.isImplementado();
         if (!habilitado) {
             boton.setDisable(false); // Se mantiene clickable para mostrar el diálogo explicativo
+            if (!boton.getStyleClass().contains("boton-menu-deshabilitado")) {
+                boton.getStyleClass().add("boton-menu-deshabilitado");
+            }
             boton.setStyle("-fx-opacity: 0.65;");
+        } else {
+            boton.getStyleClass().remove("boton-menu-deshabilitado");
+            boton.setStyle("");
         }
     }
 
@@ -168,6 +172,8 @@ public class ControladorPrincipal {
             mostrarVentanilla();
         } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)) {
             mostrarAlmacen();
+        } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.RUTAS)) {
+            mostrarRutas();
         } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)) {
             mostrarContingencia();
         } else {
@@ -275,6 +281,7 @@ public class ControladorPrincipal {
 
     @FXML
     public void mostrarVentanilla() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuVentanilla);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/VentanillaView.fxml"));
@@ -287,18 +294,21 @@ public class ControladorPrincipal {
 
     @FXML
     public void mostrarAlmacen() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuAlmacen);
         cargarVistaAlmacen("ENTREGA");
     }
 
     @FXML
     public void mostrarContingencia() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuContingencia);
         cargarVistaAlmacen("CONTINGENCIA");
     }
 
     @FXML
     public void mostrarColaLocal() {
+        desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuColaLocal);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/ColaLocalView.fxml"));
@@ -324,7 +334,58 @@ public class ControladorPrincipal {
     }
 
     @FXML
+    public void mostrarDashboard() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuDashboard);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/DashboardView.fxml"));
+            Node vista = loader.load();
+            controladorDashboardActivo = loader.getController();
+            if (controladorDashboardActivo != null) {
+                controladorDashboardActivo.activar();
+            }
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar DashboardView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    @FXML
+    public void mostrarEmpleados() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuEmpleados);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/EmpleadosView.fxml"));
+            Node vista = loader.load();
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar EmpleadosView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    @FXML
+    public void mostrarRutas() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuRutas);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/RutasFlotaView.fxml"));
+            Node vista = loader.load();
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar RutasFlotaView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    private void desactivarDashboardSiActivo() {
+        if (controladorDashboardActivo != null) {
+            controladorDashboardActivo.desactivar();
+            controladorDashboardActivo = null;
+        }
+    }
+
+    @FXML
     public void mostrarAvisoProximamente() {
+        desactivarDashboardSiActivo();
         NavegadorUI.mostrarAlerta(
                 Alert.AlertType.INFORMATION,
                 "Módulo en Desarrollo",
@@ -341,6 +402,7 @@ public class ControladorPrincipal {
     }
 
     public void detenerTareasFondo() {
+        desactivarDashboardSiActivo();
         if (planificadorConectividad != null && !planificadorConectividad.isShutdown()) {
             planificadorConectividad.shutdownNow();
         }
