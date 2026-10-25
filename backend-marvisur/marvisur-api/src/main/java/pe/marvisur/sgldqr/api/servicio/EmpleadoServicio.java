@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import pe.marvisur.sgldqr.api.error.ExcepcionOperacionInvalida;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EmpleadoJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.RolJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.SucursalJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.especificacion.EmpleadoFiltroEspecificacion;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.EmpleadoSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.RolSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.SucursalSpringDataRepository;
@@ -91,9 +93,11 @@ public class EmpleadoServicio {
         String rolFiltro = (idRol != null && !idRol.isBlank()) ? idRol.trim() : null;
         String sucursalFiltro = (idSucursal != null && !idSucursal.isBlank()) ? idSucursal.trim() : null;
 
-        Page<EmpleadoJpaEntity> paginaEntidades = empleadoRepository.buscarConFiltros(
-                estadoFiltro, rolFiltro, sucursalFiltro, terminoBusqueda, pageableAjustado
+        Specification<EmpleadoJpaEntity> spec = EmpleadoFiltroEspecificacion.conFiltros(
+                estadoFiltro, rolFiltro, sucursalFiltro, terminoBusqueda
         );
+
+        Page<EmpleadoJpaEntity> paginaEntidades = empleadoRepository.findAll(spec, pageableAjustado);
 
         Map<String, String> rolesMap = rolRepository.findAll().stream()
                 .collect(Collectors.toMap(RolJpaEntity::getIdRol, RolJpaEntity::getNombreRol, (a, b) -> a));

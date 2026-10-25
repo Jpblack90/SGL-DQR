@@ -6,11 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.marvisur.sgldqr.api.dto.ItemAuditoriaDto;
 import pe.marvisur.sgldqr.api.persistencia.entidad.AuditoriaLogJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EmpleadoJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.especificacion.AuditoriaFiltroEspecificacion;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.AuditoriaLogSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.EmpleadoSpringDataRepository;
 
@@ -49,9 +51,11 @@ public class AuditoriaServicio {
         String empleadoFiltro = (idEmpleado != null && !idEmpleado.isBlank()) ? idEmpleado.trim() : null;
         String accionFiltro = (accion != null && !accion.isBlank()) ? accion.trim() : null;
 
-        Page<AuditoriaLogJpaEntity> paginaLogs = auditoriaRepository.buscarConFiltros(
-                empleadoFiltro, accionFiltro, desde, hasta, pageableAjustado
+        Specification<AuditoriaLogJpaEntity> spec = AuditoriaFiltroEspecificacion.conFiltros(
+                empleadoFiltro, accionFiltro, desde, hasta
         );
+
+        Page<AuditoriaLogJpaEntity> paginaLogs = auditoriaRepository.findAll(spec, pageableAjustado);
 
         Set<String> idsEmpleados = paginaLogs.getContent().stream()
                 .map(AuditoriaLogJpaEntity::getIdEmpleado)
