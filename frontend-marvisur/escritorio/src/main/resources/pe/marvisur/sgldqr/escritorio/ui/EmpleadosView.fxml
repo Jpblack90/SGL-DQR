@@ -43,7 +43,7 @@
                 <!-- Barra de Búsqueda y Filtros -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
                     <TextField fx:id="txtBuscar" promptText="Buscar DNI, nombres, apellidos, correo..." prefWidth="240.0"/>
-                    <ComboBox fx:id="cboEstado" prefWidth="120.0" promptText="Estado"/>
+                    <ComboBox fx:id="cboEstado" prefWidth="135.0" promptText="Estado"/>
                     <ComboBox fx:id="cboRol" prefWidth="170.0" promptText="Rol"/>
                     <ComboBox fx:id="cboSucursal" prefWidth="190.0" promptText="Agencia"/>
                     <Button fx:id="btnBuscar" text="🔍 Buscar" onAction="#buscarEmpleados" styleClass="btn-primario"/>
@@ -83,7 +83,7 @@
             <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
                 <!-- Barra de Filtros de Auditoría -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
-                    <ComboBox fx:id="cboFiltroAuditoriaEmpleado" prefWidth="220.0" promptText="Todos los colaboradores"/>
+                    <ComboBox fx:id="cboFiltroAuditoriaEmpleado" prefWidth="250.0" promptText="Todos los colaboradores"/>
                     <ComboBox fx:id="cboFiltroAuditoriaAccion" prefWidth="190.0" promptText="Todas las acciones"/>
                     <DatePicker fx:id="dpDesde" promptText="Desde..." prefWidth="130.0"/>
                     <DatePicker fx:id="dpHasta" promptText="Hasta..." prefWidth="130.0"/>

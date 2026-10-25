@@ -191,7 +191,10 @@ public class ControladorDashboard {
                 if (sucursales != null && !sucursales.isEmpty()) {
                     Platform.runLater(() -> {
                         for (SucursalDto s : sucursales) {
-                            cboSucursal.getItems().add(new ItemSucursalFiltro(s.id(), s.nombreAgencia() + " (" + s.ciudad() + ")"));
+                            String etiqueta = (s.ciudad() != null && !s.ciudad().isBlank())
+                                    ? s.nombreAgencia() + " (" + s.ciudad().trim() + ")"
+                                    : s.nombreAgencia();
+                            cboSucursal.getItems().add(new ItemSucursalFiltro(s.id(), etiqueta));
                         }
                     });
                 }

@@ -48,6 +48,60 @@ public final class EmpleadosViewModel {
             "TODOS"
     );
 
+    public static final List<String> ESTADOS_FILTRO_ETIQUETAS = List.of(
+            "Activos",
+            "Inactivos",
+            "Todos"
+    );
+
+    public static String mapearEstadoApi(String etiqueta) {
+        if (etiqueta == null) return "TODOS";
+        return switch (etiqueta.trim().toUpperCase()) {
+            case "ACTIVOS", "ACTIVO" -> "ACTIVOS";
+            case "INACTIVOS", "INACTIVO" -> "INACTIVOS";
+            default -> "TODOS";
+        };
+    }
+
+    public static String mapearEstadoEtiqueta(String claveApi) {
+        if (claveApi == null) return "Todos";
+        return switch (claveApi.trim().toUpperCase()) {
+            case "ACTIVOS", "ACTIVO" -> "Activos";
+            case "INACTIVOS", "INACTIVO" -> "Inactivos";
+            default -> "Todos";
+        };
+    }
+
+    public static String formatearColaboradorCombo(EmpleadoDto emp) {
+        if (emp == null || emp.idEmpleado() == null || emp.idEmpleado().isBlank()) {
+            return "Todos los colaboradores";
+        }
+        String nombre = emp.nombreCompleto().trim();
+        if (emp.dni() != null && !emp.dni().isBlank()) {
+            return nombre + " (" + emp.dni().trim() + ")";
+        }
+        return nombre;
+    }
+
+    public static String formatearSucursalCombo(SucursalDto s) {
+        if (s == null || s.id() == null || s.id().isBlank()) {
+            return "Todas las agencias";
+        }
+        String nombre = s.nombreAgencia() != null ? s.nombreAgencia().trim() : "";
+        String ciudad = s.ciudad() != null ? s.ciudad().trim() : "";
+        if (!ciudad.isEmpty()) {
+            return nombre + " (" + ciudad + ")";
+        }
+        return nombre;
+    }
+
+    public static String formatearRolCombo(RolComboDto r) {
+        if (r == null || r.id() == null || r.id().isBlank()) {
+            return "Todos los roles";
+        }
+        return r.nombre() != null ? r.nombre().trim() : "";
+    }
+
     private EmpleadosViewModel() {
     }
 

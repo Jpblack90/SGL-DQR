@@ -49,9 +49,6 @@ public class ControladorPrincipal {
     private Label lblPendientes;
 
     @FXML
-    private Label lblNotificacionSync;
-
-    @FXML
     private Label lblSucursal;
 
     @FXML
@@ -157,7 +154,13 @@ public class ControladorPrincipal {
         boolean habilitado = modulo.isImplementado();
         if (!habilitado) {
             boton.setDisable(false); // Se mantiene clickable para mostrar el diálogo explicativo
+            if (!boton.getStyleClass().contains("boton-menu-deshabilitado")) {
+                boton.getStyleClass().add("boton-menu-deshabilitado");
+            }
             boton.setStyle("-fx-opacity: 0.65;");
+        } else {
+            boton.getStyleClass().remove("boton-menu-deshabilitado");
+            boton.setStyle("");
         }
     }
 

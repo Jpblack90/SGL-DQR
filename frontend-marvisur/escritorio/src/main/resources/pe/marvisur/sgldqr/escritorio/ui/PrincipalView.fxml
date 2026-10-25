@@ -54,7 +54,7 @@
             <Button fx:id="btnMenuColaLocal" text="📋 Cola Local" onAction="#mostrarColaLocal"
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+                    styleClass="boton-menu"/>
 
             <Separator style="-fx-background-color: #334155; -fx-padding: 6 0;"/>
 
@@ -64,7 +64,7 @@
             <Button fx:id="btnMenuDashboard" text="📊 Dashboard" onAction="#mostrarDashboard"
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuEmpleados" text="👥 Empleados" onAction="#mostrarEmpleados"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+                    styleClass="boton-menu"/>
 
             <Region VBox.vgrow="ALWAYS"/>
 

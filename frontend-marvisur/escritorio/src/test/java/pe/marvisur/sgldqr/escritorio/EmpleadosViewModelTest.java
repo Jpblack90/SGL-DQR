@@ -7,6 +7,8 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.CrearEmpleadoRequest;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EmpleadoDto;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EmpleadosViewModel;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.RestablecerPasswordRequest;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.RolComboDto;
+import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.SucursalDto;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -218,5 +220,79 @@ class EmpleadosViewModelTest {
         RestablecerPasswordRequest reset = new RestablecerPasswordRequest("OtraClaveSecreta99");
         assertThat(reset.toString()).doesNotContain("OtraClaveSecreta99");
         assertThat(reset.toString()).contains("[PROTEGIDO]");
+    }
+
+    @Test
+    @DisplayName("combos: formatearColaboradorCombo maneja wildcard null y datos completos")
+    void testFormatearColaboradorCombo() {
+        assertThat(EmpleadosViewModel.formatearColaboradorCombo(null))
+                .isEqualTo("Todos los colaboradores");
+
+        EmpleadoDto wildcard = new EmpleadoDto(null, null, null, null, null, null, null, null, null, true);
+        assertThat(EmpleadosViewModel.formatearColaboradorCombo(wildcard))
+                .isEqualTo("Todos los colaboradores");
+        assertThat(wildcard.toString()).isEqualTo("Todos los colaboradores");
+
+        EmpleadoDto empConDni = new EmpleadoDto("E-1", "71234567", "Carlos", "Mendoza", "c@m.pe", "R1", "Chofer", "S1", "Lima", true);
+        assertThat(EmpleadosViewModel.formatearColaboradorCombo(empConDni))
+                .isEqualTo("Carlos Mendoza (71234567)");
+        assertThat(empConDni.toString()).isEqualTo("Carlos Mendoza (71234567)");
+
+        EmpleadoDto empSinDni = new EmpleadoDto("E-2", null, "Ana", "Ruiz", "a@r.pe", "R1", "Chofer", "S1", "Lima", true);
+        assertThat(EmpleadosViewModel.formatearColaboradorCombo(empSinDni))
+                .isEqualTo("Ana Ruiz");
+    }
+
+    @Test
+    @DisplayName("combos: formatearSucursalCombo formatea Nombre (Ciudad) evitando paréntesis vacíos")
+    void testFormatearSucursalCombo() {
+        assertThat(EmpleadosViewModel.formatearSucursalCombo(null))
+                .isEqualTo("Todas las agencias");
+
+        SucursalDto wildcard = new SucursalDto(null, "Todas las agencias", null, null);
+        assertThat(EmpleadosViewModel.formatearSucursalCombo(wildcard))
+                .isEqualTo("Todas las agencias");
+        assertThat(wildcard.toString()).isEqualTo("Todas las agencias");
+
+        SucursalDto sucConCiudad = new SucursalDto("SUC-1", "Agencia Central", "Lima", "Av. Principal 123");
+        assertThat(EmpleadosViewModel.formatearSucursalCombo(sucConCiudad))
+                .isEqualTo("Agencia Central (Lima)");
+        assertThat(sucConCiudad.toString()).isEqualTo("Agencia Central (Lima)");
+
+        SucursalDto sucSinCiudad = new SucursalDto("SUC-2", "Agencia Almacen", null, "Av. Industrial");
+        assertThat(EmpleadosViewModel.formatearSucursalCombo(sucSinCiudad))
+                .isEqualTo("Agencia Almacen");
+        assertThat(sucSinCiudad.toString()).isEqualTo("Agencia Almacen");
+
+        SucursalDto sucCiudadBlanco = new SucursalDto("SUC-3", "Agencia Norte", "   ", "Av. Norte");
+        assertThat(EmpleadosViewModel.formatearSucursalCombo(sucCiudadBlanco))
+                .isEqualTo("Agencia Norte");
+        assertThat(sucCiudadBlanco.toString()).isEqualTo("Agencia Norte");
+    }
+
+    @Test
+    @DisplayName("combos: formatearRolCombo maneja rol válido y wildcard")
+    void testFormatearRolCombo() {
+        assertThat(EmpleadosViewModel.formatearRolCombo(null))
+                .isEqualTo("Todos los roles");
+        assertThat(EmpleadosViewModel.formatearRolCombo(new RolComboDto(null, "Todos los roles")))
+                .isEqualTo("Todos los roles");
+        assertThat(EmpleadosViewModel.formatearRolCombo(new RolComboDto("ROL-1", "Administrador")))
+                .isEqualTo("Administrador");
+    }
+
+    @Test
+    @DisplayName("combos: mapeo bidireccional de etiquetas de estado y claves API")
+    void testMapeoEstadosCombo() {
+        assertThat(EmpleadosViewModel.mapearEstadoApi("Activos")).isEqualTo("ACTIVOS");
+        assertThat(EmpleadosViewModel.mapearEstadoApi("Inactivos")).isEqualTo("INACTIVOS");
+        assertThat(EmpleadosViewModel.mapearEstadoApi("Todos")).isEqualTo("TODOS");
+        assertThat(EmpleadosViewModel.mapearEstadoApi(null)).isEqualTo("TODOS");
+        assertThat(EmpleadosViewModel.mapearEstadoApi("DESCONOCIDO")).isEqualTo("TODOS");
+
+        assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("ACTIVOS")).isEqualTo("Activos");
+        assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("INACTIVOS")).isEqualTo("Inactivos");
+        assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("TODOS")).isEqualTo("Todos");
+        assertThat(EmpleadosViewModel.mapearEstadoEtiqueta(null)).isEqualTo("Todos");
     }
 }

@@ -26,4 +26,16 @@ public record EmpleadoDto(
     public boolean esActivo() {
         return Boolean.TRUE.equals(estado);
     }
+
+    @Override
+    public String toString() {
+        if (idEmpleado == null || idEmpleado.isBlank()) {
+            return "Todos los colaboradores";
+        }
+        String nombre = nombreCompleto().trim();
+        if (dni != null && !dni.isBlank()) {
+            return nombre + " (" + dni.trim() + ")";
+        }
+        return nombre;
+    }
 }

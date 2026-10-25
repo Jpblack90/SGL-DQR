@@ -28,3 +28,8 @@
 6. **Seguridad y fuente de verdad**:
    - **Cero secretos en Git**: ninguna contraseña, credencial, archivo `.env` ni token privado debe versionarse.
    - Si algo no está en `/docs` o en el `Diccionario_Datos_SGL_DQR.md`, pregunta; no inventes tablas, columnas ni reglas de negocio.
+
+7. **Consistencia de interfaz y pruebas en escritorio**:
+   - **Nunca reescribir un FXML completo**: edita únicamente las líneas necesarias para evitar romper identificadores (`fx:id`) o anidamientos de la vista.
+   - **Verificación de consistencia FXML-Controlador**: tras editar una vista FXML o un controlador JavaFX, ejecuta obligatoriamente `ConsistenciaVistasFxmlTest` para certificar la correspondencia exacta de campos `@FXML` y métodos manejadores.
+   - **Reporte de verificación manual**: lo que las pruebas sin interfaz no pueden verificar (cómo se ve una pantalla y si abre) debe listarse explícitamente en el reporte como «pendiente de verificación manual del usuario».

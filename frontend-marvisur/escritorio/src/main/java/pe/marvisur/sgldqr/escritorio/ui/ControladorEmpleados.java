@@ -13,7 +13,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
@@ -184,8 +188,12 @@ public class ControladorEmpleados {
     }
 
     private void configurarFiltros() {
-        cboEstado.setItems(FXCollections.observableArrayList(EmpleadosViewModel.ESTADOS_FILTRO));
-        cboEstado.setValue("ACTIVOS");
+        cboEstado.setItems(FXCollections.observableArrayList(EmpleadosViewModel.ESTADOS_FILTRO_ETIQUETAS));
+        cboEstado.setValue("Activos");
+
+        configurarComboRol(cboRol);
+        configurarComboSucursal(cboSucursal);
+        configurarComboAuditoriaEmpleado(cboFiltroAuditoriaEmpleado);
 
         cboFiltroAuditoriaAccion.setItems(FXCollections.observableArrayList(EmpleadosViewModel.ACCIONES_AUDITORIA));
         cboFiltroAuditoriaAccion.setValue("TODAS");
@@ -199,6 +207,75 @@ public class ControladorEmpleados {
                 }
             });
         }
+    }
+
+    private void configurarComboRol(ComboBox<RolComboDto> combo) {
+        StringConverter<RolComboDto> converter = new StringConverter<>() {
+            @Override
+            public String toString(RolComboDto r) {
+                return EmpleadosViewModel.formatearRolCombo(r);
+            }
+            @Override
+            public RolComboDto fromString(String string) {
+                return null;
+            }
+        };
+        combo.setConverter(converter);
+        Callback<ListView<RolComboDto>, ListCell<RolComboDto>> cellFactory = lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(RolComboDto item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : EmpleadosViewModel.formatearRolCombo(item));
+            }
+        };
+        combo.setCellFactory(cellFactory);
+        combo.setButtonCell(cellFactory.call(null));
+    }
+
+    private void configurarComboSucursal(ComboBox<SucursalDto> combo) {
+        StringConverter<SucursalDto> converter = new StringConverter<>() {
+            @Override
+            public String toString(SucursalDto s) {
+                return EmpleadosViewModel.formatearSucursalCombo(s);
+            }
+            @Override
+            public SucursalDto fromString(String string) {
+                return null;
+            }
+        };
+        combo.setConverter(converter);
+        Callback<ListView<SucursalDto>, ListCell<SucursalDto>> cellFactory = lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(SucursalDto item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : EmpleadosViewModel.formatearSucursalCombo(item));
+            }
+        };
+        combo.setCellFactory(cellFactory);
+        combo.setButtonCell(cellFactory.call(null));
+    }
+
+    private void configurarComboAuditoriaEmpleado(ComboBox<EmpleadoDto> combo) {
+        StringConverter<EmpleadoDto> converter = new StringConverter<>() {
+            @Override
+            public String toString(EmpleadoDto emp) {
+                return EmpleadosViewModel.formatearColaboradorCombo(emp);
+            }
+            @Override
+            public EmpleadoDto fromString(String string) {
+                return null;
+            }
+        };
+        combo.setConverter(converter);
+        Callback<ListView<EmpleadoDto>, ListCell<EmpleadoDto>> cellFactory = lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(EmpleadoDto emp, boolean empty) {
+                super.updateItem(emp, empty);
+                setText(empty ? null : EmpleadosViewModel.formatearColaboradorCombo(emp));
+            }
+        };
+        combo.setCellFactory(cellFactory);
+        combo.setButtonCell(cellFactory.call(null));
     }
 
     private void configurarEventosSeleccion() {
@@ -228,7 +305,7 @@ public class ControladorEmpleados {
                     cboRol.getSelectionModel().selectFirst();
 
                     List<SucursalDto> comboSucList = new ArrayList<>();
-                    comboSucList.add(new SucursalDto(null, "Todas las agencias", "", ""));
+                    comboSucList.add(new SucursalDto(null, "Todas las agencias", null, null));
                     comboSucList.addAll(catalogoSucursales);
                     cboSucursal.setItems(FXCollections.observableArrayList(comboSucList));
                     cboSucursal.getSelectionModel().selectFirst();
@@ -253,7 +330,7 @@ public class ControladorEmpleados {
     @FXML
     public void limpiarFiltrosEmpleados() {
         txtBuscar.clear();
-        cboEstado.setValue("ACTIVOS");
+        cboEstado.setValue("Activos");
         if (!cboRol.getItems().isEmpty()) cboRol.getSelectionModel().selectFirst();
         if (!cboSucursal.getItems().isEmpty()) cboSucursal.getSelectionModel().selectFirst();
         cargarPaginaEmpleados(0);
@@ -279,12 +356,12 @@ public class ControladorEmpleados {
             return;
         }
 
-        String estado = cboEstado.getValue();
+        String estado = EmpleadosViewModel.mapearEstadoApi(cboEstado.getValue());
         RolComboDto rolSel = cboRol.getValue();
-        String idRol = (rolSel != null && rolSel.id() != null) ? rolSel.id() : null;
+        String idRol = (rolSel != null && rolSel.id() != null && !rolSel.id().isBlank()) ? rolSel.id() : null;
 
         SucursalDto sucSel = cboSucursal.getValue();
-        String idSucursal = (sucSel != null && sucSel.id() != null) ? sucSel.id() : null;
+        String idSucursal = (sucSel != null && sucSel.id() != null && !sucSel.id().isBlank()) ? sucSel.id() : null;
 
         String q = txtBuscar.getText() != null ? txtBuscar.getText().trim() : null;
 
@@ -311,7 +388,7 @@ public class ControladorEmpleados {
                     // Cargar combo de filtro en auditoría con los primeros 50 colaboradores
                     if (cboFiltroAuditoriaEmpleado.getItems().isEmpty() && !resultado.empty()) {
                         List<EmpleadoDto> empleadosAuditoria = new ArrayList<>();
-                        empleadosAuditoria.add(new EmpleadoDto(null, "", "Todos los", "colaboradores", "", "", "", "", "", true));
+                        empleadosAuditoria.add(null);
                         empleadosAuditoria.addAll(resultado.content());
                         cboFiltroAuditoriaEmpleado.setItems(FXCollections.observableArrayList(empleadosAuditoria));
                         cboFiltroAuditoriaEmpleado.getSelectionModel().selectFirst();
@@ -349,7 +426,9 @@ public class ControladorEmpleados {
         txtCorreo.setPromptText("correo@marvisur.pe");
 
         ComboBox<RolComboDto> cboNuevoRol = new ComboBox<>(FXCollections.observableArrayList(catalogoRoles));
+        configurarComboRol(cboNuevoRol);
         ComboBox<SucursalDto> cboNuevaSucursal = new ComboBox<>(FXCollections.observableArrayList(catalogoSucursales));
+        configurarComboSucursal(cboNuevaSucursal);
         PasswordField txtPassword = new PasswordField();
         PasswordField txtConfirmacion = new PasswordField();
 
@@ -457,6 +536,7 @@ public class ControladorEmpleados {
         TextField txtCorreo = new TextField(sel.correo());
 
         ComboBox<RolComboDto> cboEditarRol = new ComboBox<>(FXCollections.observableArrayList(catalogoRoles));
+        configurarComboRol(cboEditarRol);
         for (RolComboDto r : catalogoRoles) {
             if (r.id().equals(sel.idRol())) {
                 cboEditarRol.setValue(r);
@@ -465,6 +545,7 @@ public class ControladorEmpleados {
         }
 
         ComboBox<SucursalDto> cboEditarSucursal = new ComboBox<>(FXCollections.observableArrayList(catalogoSucursales));
+        configurarComboSucursal(cboEditarSucursal);
         for (SucursalDto s : catalogoSucursales) {
             if (s.id().equals(sel.idSucursal())) {
                 cboEditarSucursal.setValue(s);
