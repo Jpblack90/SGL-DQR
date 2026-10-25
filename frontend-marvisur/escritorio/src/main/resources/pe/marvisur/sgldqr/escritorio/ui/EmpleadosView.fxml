@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorEmpleados"
+      spacing="14.0" style="-fx-background-color: #F8FAFC;">
+    <padding>
+        <Insets top="16.0" right="20.0" bottom="16.0" left="20.0"/>
+    </padding>
+
+    <!-- Encabezado del Módulo -->
+    <VBox spacing="4.0">
+        <Label text="Gestión de Personal y Bitácora de Auditoría" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"/>
+        <Label text="Control de acceso RBAC, altas y modificaciones de colaboradores y trazabilidad de eventos operativos (RF-03)." style="-fx-font-size: 13px; -fx-text-fill: #64748B;"/>
+    </VBox>
+
+    <!-- Banner de Estado / Mensajes -->
+    <HBox fx:id="bannerEstado" visible="false" managed="false" alignment="CENTER_LEFT" spacing="10.0"
+          style="-fx-background-color: #FEE2E2; -fx-border-color: #FCA5A5; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 10px 14px;">
+        <Label fx:id="lblBannerEstado" text="" style="-fx-text-fill: #B91C1C; -fx-font-weight: bold; -fx-font-size: 12px;" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Pestañas Principales: Personal y Auditoría -->
+    <TabPane fx:id="tabPaneModulo" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <!-- Pestaña 1: Personal -->
+        <Tab text="Personal Operativo">
+            <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
+                <!-- Barra de Búsqueda y Filtros -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
+                    <TextField fx:id="txtBuscar" promptText="Buscar DNI, nombres, apellidos, correo..." prefWidth="240.0"/>
+                    <ComboBox fx:id="cboEstado" prefWidth="120.0" promptText="Estado"/>
+                    <ComboBox fx:id="cboRol" prefWidth="170.0" promptText="Rol"/>
+                    <ComboBox fx:id="cboSucursal" prefWidth="190.0" promptText="Agencia"/>
+                    <Button fx:id="btnBuscar" text="🔍 Buscar" onAction="#buscarEmpleados" styleClass="btn-primario"/>
+                    <Button fx:id="btnLimpiarFiltros" text="Limpiar" onAction="#limpiarFiltrosEmpleados" styleClass="btn-secundario"/>
+                </HBox>
+
+                <!-- Tabla de Personal -->
+                <TableView fx:id="tablaEmpleados" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
+                    <columns>
+                        <TableColumn fx:id="colDni" text="DNI" prefWidth="90.0" style="-fx-alignment: CENTER;"/>
+                        <TableColumn fx:id="colNombresApellidos" text="Nombres y Apellidos" prefWidth="220.0"/>
+                        <TableColumn fx:id="colCorreo" text="Correo Corporativo" prefWidth="210.0"/>
+                        <TableColumn fx:id="colRol" text="Rol" prefWidth="140.0"/>
+                        <TableColumn fx:id="colSucursal" text="Agencia Asignada" prefWidth="170.0"/>
+                        <TableColumn fx:id="colEstado" text="Estado" prefWidth="90.0" style="-fx-alignment: CENTER;"/>
+                    </columns>
+                </TableView>
+
+                <!-- Barra de Acciones y Paginación -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Button fx:id="btnNuevo" text="+ Nuevo Colaborador" onAction="#abrirDialogoNuevo" styleClass="btn-primario"/>
+                    <Button fx:id="btnEditar" text="✎ Editar" onAction="#abrirDialogoEditar" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnCambiarEstado" text="⊘ Dar de baja" onAction="#confirmarCambioEstado" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnRestablecerPassword" text="🔑 Restablecer Contraseña" onAction="#abrirDialogoRestablecerPassword" disable="true" styleClass="btn-secundario"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="btnAnterior" text="◀ Anterior" onAction="#paginaAnteriorEmpleados" disable="true" styleClass="btn-secundario"/>
+                    <Label fx:id="lblPaginacion" text="Página 0 de 0 (Total: 0)" styleClass="label-campo"/>
+                    <Button fx:id="btnSiguiente" text="Siguiente ▶" onAction="#paginaSiguienteEmpleados" disable="true" styleClass="btn-secundario"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- Pestaña 2: Auditoría -->
+        <Tab text="Bitácora de Auditoría">
+            <VBox spacing="12.0" style="-fx-padding: 14px 0 0 0;">
+                <!-- Barra de Filtros de Auditoría -->
+                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
+                    <ComboBox fx:id="cboFiltroAuditoriaEmpleado" prefWidth="220.0" promptText="Todos los colaboradores"/>
+                    <ComboBox fx:id="cboFiltroAuditoriaAccion" prefWidth="190.0" promptText="Todas las acciones"/>
+                    <DatePicker fx:id="dpDesde" promptText="Desde..." prefWidth="130.0"/>
+                    <DatePicker fx:id="dpHasta" promptText="Hasta..." prefWidth="130.0"/>
+                    <Button fx:id="btnFiltrarAuditoria" text="Filtrar" onAction="#filtrarAuditoria" styleClass="btn-primario"/>
+                    <Button fx:id="btnLimpiarAuditoria" text="Limpiar" onAction="#limpiarFiltrosAuditoria" styleClass="btn-secundario"/>
+                </HBox>
+
+                <!-- Tabla de Auditoría -->
+                <TableView fx:id="tablaAuditoria" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
+                    <columns>
+                        <TableColumn fx:id="colAuditoriaFecha" text="Fecha y Hora" prefWidth="150.0"/>
+                        <TableColumn fx:id="colAuditoriaEmpleado" text="Colaborador" prefWidth="200.0"/>
+                        <TableColumn fx:id="colAuditoriaAccion" text="Acción Ejecutada" prefWidth="170.0"/>
+                        <TableColumn fx:id="colAuditoriaTabla" text="Tabla" prefWidth="120.0"/>
+                        <TableColumn fx:id="colAuditoriaRegistro" text="Registro ID" prefWidth="140.0"/>
+                        <TableColumn fx:id="colAuditoriaIp" text="IP Origen" prefWidth="120.0"/>
+                    </columns>
+                </TableView>
+
+                <!-- Paginación de Auditoría -->
+                <HBox spacing="10.0" alignment="CENTER_RIGHT">
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnAuditoriaAnterior" text="◀ Anterior" onAction="#paginaAnteriorAuditoria" disable="true" styleClass="btn-secundario"/>
+                    <Label fx:id="lblAuditoriaPaginacion" text="Página 0 de 0 (Total: 0)" styleClass="label-campo"/>
+                    <Button fx:id="btnAuditoriaSiguiente" text="Siguiente ▶" onAction="#paginaSiguienteAuditoria" disable="true" styleClass="btn-secundario"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

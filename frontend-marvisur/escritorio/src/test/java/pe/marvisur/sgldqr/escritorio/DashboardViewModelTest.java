@@ -162,4 +162,40 @@ class DashboardViewModelTest {
         assertThat(DashboardViewModel.limpiarMensajeError(null))
                 .isEqualTo("Error inesperado en el dashboard");
     }
+
+    @Test
+    @DisplayName("calcularLimiteSuperiorEje: calcula el límite superior del eje Y sin decimales respetando mínimo 1")
+    void testCalcularLimiteSuperiorEje() {
+        // Caso [1, 0, 0, 1, 1] -> debe retornar 1
+        Map<String, Long> casoUnos = Map.of(
+                "REGISTRADO", 1L,
+                "EN_ALMACEN_ORIGEN", 0L,
+                "EN_RUTA", 0L,
+                "EN_ALMACEN_DESTINO", 1L,
+                "ENTREGADO", 1L
+        );
+        assertThat(DashboardViewModel.calcularLimiteSuperiorEje(casoUnos)).isEqualTo(1L);
+
+        // Caso con máximo 7 -> debe retornar 7
+        Map<String, Long> casoSiete = Map.of(
+                "REGISTRADO", 7L,
+                "EN_ALMACEN_ORIGEN", 2L,
+                "EN_RUTA", 3L,
+                "EN_ALMACEN_DESTINO", 1L,
+                "ENTREGADO", 0L
+        );
+        assertThat(DashboardViewModel.calcularLimiteSuperiorEje(casoSiete)).isEqualTo(7L);
+
+        // Caso vacío o todos 0 -> debe retornar 1 (mínimo de escala)
+        Map<String, Long> casoCero = Map.of(
+                "REGISTRADO", 0L,
+                "EN_ALMACEN_ORIGEN", 0L,
+                "EN_RUTA", 0L,
+                "EN_ALMACEN_DESTINO", 0L,
+                "ENTREGADO", 0L
+        );
+        assertThat(DashboardViewModel.calcularLimiteSuperiorEje(casoCero)).isEqualTo(1L);
+        assertThat(DashboardViewModel.calcularLimiteSuperiorEje((Map<String, Long>) null)).isEqualTo(1L);
+        assertThat(DashboardViewModel.calcularLimiteSuperiorEje(List.of())).isEqualTo(1L);
+    }
 }

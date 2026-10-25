@@ -345,6 +345,19 @@ public class ControladorPrincipal {
         }
     }
 
+    @FXML
+    public void mostrarEmpleados() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuEmpleados);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/EmpleadosView.fxml"));
+            Node vista = loader.load();
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar EmpleadosView.fxml: " + e.getMessage(), e);
+        }
+    }
+
     private void desactivarDashboardSiActivo() {
         if (controladorDashboardActivo != null) {
             controladorDashboardActivo.desactivar();

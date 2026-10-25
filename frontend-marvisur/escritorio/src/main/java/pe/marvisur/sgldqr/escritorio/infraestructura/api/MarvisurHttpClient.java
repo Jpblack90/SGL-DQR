@@ -12,6 +12,11 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.DashboardPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EstadoConexionPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.SyncPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EmpleadosPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AuditoriaPort;
+import com.fasterxml.jackson.databind.JavaType;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 
 import java.io.IOException;
@@ -34,7 +39,7 @@ import java.util.logging.Logger;
  * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort},
  * {@link AlmacenPort} y {@link EstadoConexionPort}.
  */
-public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort, DashboardPort {
+public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort, DashboardPort, EmpleadosPort, AuditoriaPort {
 
     private static final Logger LOGGER = Logger.getLogger(MarvisurHttpClient.class.getName());
     private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(2);
@@ -748,6 +753,330 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Al
     // =========================================================================
     // UTILITARIOS PRIVADOS
     // =========================================================================
+
+    // =========================================================================
+    // GESTIÓN DE EMPLEADOS Y ROLES (RF-03)
+    // =========================================================================
+
+    @Override
+    public PaginaDto<EmpleadoDto> listarEmpleados(String estado, String idRol, String idSucursal, String q, int pagina, int tamano) {
+        StringBuilder url = new StringBuilder(baseUrl)
+                .append("/api/v1/empleados?page=")
+                .append(Math.max(0, pagina))
+                .append("&size=")
+                .append(tamano > 0 ? tamano : 20);
+
+        if (estado != null && !estado.isBlank() && !"TODOS".equalsIgnoreCase(estado)) {
+            url.append("&estado=").append(URLEncoder.encode(estado.trim(), StandardCharsets.UTF_8));
+        }
+        if (idRol != null && !idRol.isBlank() && !"TODOS".equalsIgnoreCase(idRol)) {
+            url.append("&idRol=").append(URLEncoder.encode(idRol.trim(), StandardCharsets.UTF_8));
+        }
+        if (idSucursal != null && !idSucursal.isBlank() && !"TODAS".equalsIgnoreCase(idSucursal)) {
+            url.append("&idSucursal=").append(URLEncoder.encode(idSucursal.trim(), StandardCharsets.UTF_8));
+        }
+        if (q != null && !q.isBlank()) {
+            url.append("&q=").append(URLEncoder.encode(q.trim(), StandardCharsets.UTF_8));
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JavaType type = objectMapper.getTypeFactory().constructParametricType(PaginaDto.class, EmpleadoDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al listar empleados: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al listar empleados: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al listar empleados: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al listar empleados: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public EmpleadoDto obtenerPorId(String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("El ID de empleado es obligatorio");
+        }
+        String url = baseUrl + "/api/v1/empleados/" + URLEncoder.encode(id.trim(), StandardCharsets.UTF_8);
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), EmpleadoDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al obtener empleado: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al obtener empleado: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al obtener empleado: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al obtener empleado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public EmpleadoDto crearEmpleado(CrearEmpleadoRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("La petición es obligatoria");
+        }
+        String url = baseUrl + "/api/v1/empleados";
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201 || response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), EmpleadoDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al crear empleado: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al crear empleado: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al crear empleado: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al crear empleado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public EmpleadoDto actualizarEmpleado(String id, ActualizarEmpleadoRequest request) {
+        if (id == null || id.isBlank() || request == null) {
+            throw new IllegalArgumentException("El ID y la petición son obligatorios");
+        }
+        String url = baseUrl + "/api/v1/empleados/" + URLEncoder.encode(id.trim(), StandardCharsets.UTF_8);
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .PUT(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), EmpleadoDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al actualizar empleado: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al actualizar empleado: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al actualizar empleado: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al actualizar empleado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public EmpleadoDto cambiarEstado(String id, CambiarEstadoEmpleadoRequest request) {
+        if (id == null || id.isBlank() || request == null) {
+            throw new IllegalArgumentException("El ID y la petición son obligatorios");
+        }
+        String url = baseUrl + "/api/v1/empleados/" + URLEncoder.encode(id.trim(), StandardCharsets.UTF_8) + "/estado";
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), EmpleadoDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al cambiar estado de empleado: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al cambiar estado de empleado: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al cambiar estado de empleado: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al cambiar estado de empleado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void restablecerPassword(String id, RestablecerPasswordRequest request) {
+        if (id == null || id.isBlank() || request == null) {
+            throw new IllegalArgumentException("El ID y la petición son obligatorios");
+        }
+        String url = baseUrl + "/api/v1/empleados/" + URLEncoder.encode(id.trim(), StandardCharsets.UTF_8) + "/password";
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 204) {
+                return;
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al restablecer contraseña: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al restablecer contraseña: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al restablecer contraseña: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al restablecer contraseña: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<RolComboDto> listarRoles() {
+        String url = baseUrl + "/api/v1/roles";
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, RolComboDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al listar roles: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al listar roles: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al listar roles: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al listar roles: " + e.getMessage(), e);
+        }
+    }
+
+    // =========================================================================
+    // AUDITORÍA DEL SISTEMA (RF-03)
+    // =========================================================================
+
+    @Override
+    public PaginaDto<ItemAuditoriaDto> listarAuditoria(String idEmpleado, String accion, OffsetDateTime desde, OffsetDateTime hasta, int pagina, int tamano) {
+        StringBuilder url = new StringBuilder(baseUrl)
+                .append("/api/v1/auditoria?page=")
+                .append(Math.max(0, pagina))
+                .append("&size=")
+                .append(tamano > 0 ? tamano : 50);
+
+        if (idEmpleado != null && !idEmpleado.isBlank() && !"TODOS".equalsIgnoreCase(idEmpleado)) {
+            url.append("&idEmpleado=").append(URLEncoder.encode(idEmpleado.trim(), StandardCharsets.UTF_8));
+        }
+        if (accion != null && !accion.isBlank() && !"TODAS".equalsIgnoreCase(accion)) {
+            url.append("&accion=").append(URLEncoder.encode(accion.trim(), StandardCharsets.UTF_8));
+        }
+        if (desde != null) {
+            url.append("&desde=").append(URLEncoder.encode(desde.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), StandardCharsets.UTF_8));
+        }
+        if (hasta != null) {
+            url.append("&hasta=").append(URLEncoder.encode(hasta.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), StandardCharsets.UTF_8));
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JavaType type = objectMapper.getTypeFactory().constructParametricType(PaginaDto.class, ItemAuditoriaDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al consultar auditoría: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al consultar auditoría: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al consultar auditoría: " + e.getMessage());
+            throw new ApiExcepcion("Error de comunicación al consultar auditoría: " + e.getMessage(), e);
+        }
+    }
 
     private void adjuntarAutorizacionSiExiste(HttpRequest.Builder builder) {
         String token = SesionContexto.obtenerToken();

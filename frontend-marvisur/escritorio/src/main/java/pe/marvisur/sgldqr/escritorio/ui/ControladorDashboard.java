@@ -169,6 +169,9 @@ public class ControladorDashboard {
 
     private void configurarGrafico() {
         if (ejeCantidades != null) {
+            ejeCantidades.setAutoRanging(false);
+            ejeCantidades.setLowerBound(0);
+            ejeCantidades.setUpperBound(1);
             ejeCantidades.setTickUnit(1);
             ejeCantidades.setMinorTickCount(0);
         }
@@ -377,6 +380,15 @@ public class ControladorDashboard {
         List<DashboardViewModel.ItemGraficoEstado> items = DashboardViewModel.extraerDatosGraficoEstados(mapaEstados);
         for (DashboardViewModel.ItemGraficoEstado item : items) {
             serie.getData().add(new XYChart.Data<>(item.etiqueta(), item.cantidad()));
+        }
+
+        if (ejeCantidades != null) {
+            long limiteSuperior = DashboardViewModel.calcularLimiteSuperiorEje(items);
+            ejeCantidades.setAutoRanging(false);
+            ejeCantidades.setLowerBound(0);
+            ejeCantidades.setUpperBound(limiteSuperior);
+            ejeCantidades.setTickUnit(1);
+            ejeCantidades.setMinorTickCount(0);
         }
 
         chartEstados.getData().add(serie);

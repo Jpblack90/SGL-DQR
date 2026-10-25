@@ -275,3 +275,49 @@ mvn test -pl frontend-marvisur/escritorio
      - Aparece el banner de advertencia: `Requiere conexión`.
      - La etiqueta de hora cambia a: `Desactualizado (último: <hora>) · Requiere conexión`.
      - Los datos previamente cargados (tarjetas, gráfico, tablas) **se conservan visibles** sin desaparecer ni quedar en blanco.
+
+
+---
+
+## 7. Guía de Prueba Manual de Gestión de Empleados y Auditoría (RF-03 - TN3)
+
+### A. Escenario 1: Pestaña «Personal» y Operaciones CRUD
+1. **Inicio de Sesión y Acceso:**
+   - Inicie sesión como Administrador (`admin.demo@marvisur.pe` / `Demo1234*`).
+   - En el menú lateral, verifique que la opción **👥 Empleados** está disponible y habilitada exclusivamente para el rol `TN3_ADMINISTRADOR`.
+   - Haga clic en **👥 Empleados**: se abrirá la vista con dos pestañas: **Personal** y **Auditoría**.
+2. **Búsqueda y Filtros de Personal:**
+   - Ingrese un término en el campo de búsqueda (DNI, nombres, apellidos o correo) y presione Enter o haga clic en **🔍 Buscar**.
+   - Filtre por estado laboral (`Activos`, `Inactivos` o `Todos`), rol (`TN1 Recepcionista`, `TN2 Almacenero`, etc.) o agencia.
+   - Verifique que la tabla se actualiza paginada a 20 registros por página, mostrando los botones de paginación (`Anterior`, `Siguiente`) y el total formateado (`Página 1 de N (Total: M)`).
+3. **Registro de Nuevo Colaborador:**
+   - Haga clic en **➕ Nuevo Empleado**: se despliega un diálogo modal.
+   - Ingrese DNI (8 dígitos exactos), nombres, apellidos, correo corporativo, seleccione rol y agencia, e ingrese una contraseña (mínimo 8 caracteres con al menos una letra y un número) y su confirmación.
+   - Verifique la validación previa: si faltan datos o la contraseña no coincide, se muestra un mensaje de alerta local sin realizar peticiones HTTP.
+   - Complete datos válidos y confirme: el empleado se crea mediante `POST /api/v1/empleados`, las contraseñas se purgan inmediatamente de la memoria RAM (sin exponerse en logs ni `toString()`), el modal se cierra y la tabla se refresca automáticamente.
+4. **Edición de Datos de Colaborador:**
+   - Seleccione un empleado en la tabla y haga clic en **✏️ Editar**: se abrirá el diálogo con sus datos precargados.
+   - El campo DNI se muestra deshabilitado (el DNI es inmutable).
+   - Modifique nombres, apellidos, correo, rol o agencia y guarde los cambios (`PUT /api/v1/empleados/{id}`).
+5. **Baja Lógica y Reactivación:**
+   - Seleccione un colaborador activo y haga clic en **🚫 Dar de baja**: el sistema solicita confirmación modal antes de proceder (`PATCH /api/v1/empleados/{id}/estado`).
+   - Si se intenta dar de baja al propio administrador en sesión o al único administrador activo del sistema, la API rechaza con código 409 y se despliega un mensaje explicativo claro: *«Debe quedar al menos un administrador activo»* o *«No puedes realizar esta acción sobre tu propia cuenta»* (sin contener la palabra `null`).
+   - Para un colaborador inactivo, el botón cambia dinámicamente a **✅ Reactivar**.
+6. **Restablecimiento Seguro de Contraseña:**
+   - Seleccione un empleado activo y haga clic en **🔑 Restablecer Contraseña**.
+   - Ingrese la nueva contraseña temporal y su confirmación.
+   - Al confirmar (`POST /api/v1/empleados/{id}/password`), la clave se envía de manera segura, se purga de la memoria de inmediato y se notifica el éxito de la operación.
+
+### B. Escenario 2: Pestaña «Auditoría» y Trazabilidad de Operaciones
+1. **Consulta y Filtros de Auditoría:**
+   - Haga clic en la pestaña **Auditoría**.
+   - Seleccione un colaborador específico o mantenga `Todos los colaboradores`.
+   - Seleccione una acción específica (ej. `LOGIN_EXITOSO`, `EMPLEADO_CREADO`, `REGISTRO_ENCOMIENDA`, `ENTREGA_VALIDADA`, etc.) o `Todas las acciones`.
+   - Seleccione rango de fechas en los componentes `Fecha desde` y `Fecha hasta`: el cliente convierte las fechas automáticamente a inicio y fin del día en la zona horaria oficial `America/Lima` (-05:00) enviándolas en formato ISO 8601.
+   - Haga clic en **🔍 Filtrar**: la tabla presenta los registros ordenados descendentemente a 50 ítems por página.
+2. **Visualización y Zonas Horarias:**
+   - Verifique que la columna `Fecha / Hora` muestra la marca temporal formateada en la zona horaria del equipo local del operador (`dd/MM/yyyy HH:mm:ss`).
+   - Verifique las columnas `Colaborador`, `Acción`, `Tabla / Registro Afectado` e `IP Origen`.
+3. **Manejo Sin Conexión y Expiración:**
+   - Si se pierde la conectividad con el servidor central, se muestra el banner de advertencia `Requiere conexión` y se bloquean las consultas.
+   - Si el token JWT de la sesión del administrador expira durante la operación, el cliente captura el error `HTTP 401`, notifica el cierre de sesión y redirige automáticamente a la pantalla de Login.

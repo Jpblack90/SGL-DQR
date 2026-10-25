@@ -87,5 +87,11 @@ class ModeloMenuRolTest {
         assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
         assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.DASHBOARD)).isFalse();
         assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.RUTAS)).isFalse();
+
+        // Módulo EMPLEADOS habilitado exclusivamente para TN3 Administrador
+        assertThat(ModeloMenuRol.estaHabilitado("TN3", ModeloMenuRol.ModuloMenu.EMPLEADOS)).isTrue();
+        assertThat(ModeloMenuRol.estaHabilitado("TN1", ModeloMenuRol.ModuloMenu.EMPLEADOS)).isFalse();
+        assertThat(ModeloMenuRol.estaHabilitado("TN2", ModeloMenuRol.ModuloMenu.EMPLEADOS)).isFalse();
+        assertThat(ModeloMenuRol.estaHabilitado("TN4", ModeloMenuRol.ModuloMenu.EMPLEADOS)).isFalse();
     }
 }

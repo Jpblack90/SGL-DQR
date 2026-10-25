@@ -117,6 +117,27 @@ public class DashboardViewModel {
      * Extrae los datos para las 5 barras del gráfico de estados logísticos en orden garantizado,
      * utilizando las claves exactas de la API y asignando 0 ante claves faltantes o nulas.
      */
+    /**
+     * Calcula el límite superior del eje Y para el gráfico de barras.
+     * Garantiza números enteros enteros sin autoRanging fraccionario: max(1, valor máximo).
+     */
+    public static long calcularLimiteSuperiorEje(List<ItemGraficoEstado> items) {
+        if (items == null || items.isEmpty()) {
+            return 1L;
+        }
+        long max = 0L;
+        for (ItemGraficoEstado item : items) {
+            if (item != null && item.cantidad() > max) {
+                max = item.cantidad();
+            }
+        }
+        return Math.max(1L, max);
+    }
+
+    public static long calcularLimiteSuperiorEje(Map<String, Long> mapaEstados) {
+        return calcularLimiteSuperiorEje(extraerDatosGraficoEstados(mapaEstados));
+    }
+
     public static List<ItemGraficoEstado> extraerDatosGraficoEstados(Map<String, Long> mapaEstados) {
         List<ItemGraficoEstado> items = new ArrayList<>(CLAVES_ESTADOS_GRAFICO.size());
         for (String clave : CLAVES_ESTADOS_GRAFICO) {

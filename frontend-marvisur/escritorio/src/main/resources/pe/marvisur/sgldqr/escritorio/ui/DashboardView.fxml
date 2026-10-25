@@ -99,7 +99,7 @@
                             <CategoryAxis fx:id="ejeEstados" label="Estado" tickLabelRotation="0"/>
                         </xAxis>
                         <yAxis>
-                            <NumberAxis fx:id="ejeCantidades" label="Cantidad" autoRanging="true" tickUnit="1" minorTickCount="0"/>
+                            <NumberAxis fx:id="ejeCantidades" label="Cantidad" autoRanging="false" lowerBound="0" upperBound="1" tickUnit="1" minorTickCount="0"/>
                         </yAxis>
                     </BarChart>
                 </VBox>

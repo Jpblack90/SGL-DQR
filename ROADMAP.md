@@ -74,7 +74,7 @@
 - [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
 - [x] **D2** Ventanilla: registro de encomienda, Código Express y datos de impresión térmica 58 mm (RF-04)
 - [x] **D3** Almacén: validación cruzada Doble QR, Batch Scanning, contingencia e incidencias (RF-06, RF-07)
-- [~] **D4** Dashboard (RF-02 KPIs en escritorio para TN3 completado; empleados y rutas pendientes)
+- [~] **D4** Dashboard y Personal (RF-02 KPIs y RF-03 Gestión de personal y auditoría en escritorio para TN3 completados; eje de gráfico ajustado a escala entera; rutas pendientes)
 
 #### I3 — Portal Web y Pruebas (React + Vite + TypeScript + Tailwind)
 - [x] **W1** Scaffold del portal con tema de marca y catálogo público de agencias

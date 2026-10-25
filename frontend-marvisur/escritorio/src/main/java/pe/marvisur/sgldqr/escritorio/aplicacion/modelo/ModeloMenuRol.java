@@ -22,7 +22,7 @@ public final class ModeloMenuRol {
         CONTINGENCIA("Contingencia", "Búsqueda DNI/RUC, cobro e incidencias de etiquetas", true),
         COLA_LOCAL("Cola Local", "Gestión de registros sin conexión y sincronización", true),
         DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", true),
-        EMPLEADOS("Empleados", "Gestión de personal y sucursales", false),
+        EMPLEADOS("Empleados", "Gestión de personal y auditoría", true),
         RUTAS("Rutas", "Programación de viajes y asignación de flotas", false);
 
         private final String titulo;

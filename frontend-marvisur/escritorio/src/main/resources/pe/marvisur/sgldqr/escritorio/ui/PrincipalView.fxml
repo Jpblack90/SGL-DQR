@@ -1,52 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pe.marvisur.sgldqr.escritorio.ui.ControladorPrincipal"
-            prefWidth="1100" prefHeight="700">
+            prefHeight="720.0" prefWidth="1100.0"
+            style="-fx-background-color: #F8FAFC;">
 
     <!-- BARRA SUPERIOR -->
     <top>
-        <HBox styleClass="barra-superior" spacing="16" alignment="CENTER_LEFT">
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Circle radius="9" fill="#E30613"/>
-                <Label text="EXPRESO MARVISUR · SGL-DQR" styleClass="titulo-app"/>
-            </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="barra-superior">
+            <Label text="EXPRESO MARVISUR" styleClass="titulo-app"/>
+            <Label text="SGL-DQR · Ventanilla y Almacén" style="-fx-text-fill: #94A3B8; -fx-font-size: 13px;"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <!-- Indicador de conectividad centralizada (Health Polling cada 5s) -->
-            <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 10;">
-                <Circle fx:id="circuloConexion" radius="5" fill="#10B981"/>
+            <!-- Indicador de conectividad central (ServicioConexion) -->
+            <HBox fx:id="panelConectividad" alignment="CENTER" spacing="6"
+                  style="-fx-background-color: #0F172A; -fx-padding: 4 10; -fx-background-radius: 12;">
+                <Circle fx:id="indicadorConexion" radius="5" styleClass="estado-online"/>
                 <Label fx:id="lblEstadoConexion" text="En línea"
                        style="-fx-text-fill: #E2E8F0; -fx-font-size: 11px; -fx-font-weight: bold;"/>
-                <Label fx:id="lblPendientes" text="Pendientes: 0" visible="false" managed="false"
-                       style="-fx-text-fill: #F59E0B; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: #78350F; -fx-padding: 2 6; -fx-background-radius: 4;"/>
+                <Label fx:id="lblPendientes" text="(0 pend.)"
+                       style="-fx-text-fill: #F59E0B; -fx-font-size: 11px; -fx-font-weight: bold;"
+                       visible="false" managed="false"/>
             </HBox>
 
-            <!-- Datos del Colaborador -->
-            <Label fx:id="lblSucursal" text="Agencia: SUC-LIM-01" styleClass="badge-sucursal"/>
-            <Label fx:id="lblUsuario" text="Colaborador" styleClass="badge-usuario"/>
-            <Label fx:id="lblRol" text="TN1" styleClass="badge-sucursal"/>
-
-            <!-- Botón Cerrar Sesión -->
-            <Button fx:id="btnCerrarSesion" text="Salir" onAction="#manejarCerrarSesion"
-                    styleClass="btn-secundario" style="-fx-font-size: 11px; -fx-padding: 4 10;"/>
+            <Label fx:id="lblSucursal" text="Agencia Lima Central" styleClass="badge-sucursal"/>
+            <Label fx:id="lblUsuario" text="TN1 · Juan Pérez" styleClass="badge-usuario"/>
+            <Button text="Cerrar Sesión" onAction="#cerrarSesion" styleClass="btn-secundario"
+                    style="-fx-font-size: 11px; -fx-padding: 4 10;"/>
         </HBox>
     </top>
 
-    <!-- MENÚ LATERAL -->
+    <!-- MENÚ LATERAL IZQUIERDO -->
     <left>
-        <VBox styleClass="menu-lateral" spacing="6">
+        <VBox spacing="4" styleClass="menu-lateral">
             <Label text="OPERACIONES"
                    style="-fx-text-fill: #94A3B8; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 6 10;"/>
 
             <Button fx:id="btnMenuVentanilla" text="📦 Ventanilla" onAction="#mostrarVentanilla"
-                    styleClass="boton-menu"/>
+                    styleClass="boton-menu, boton-menu-activo"/>
             <Button fx:id="btnMenuAlmacen" text="🏬 Almacén" onAction="#mostrarAlmacen"
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuContingencia" text="🚨 Contingencia" onAction="#mostrarContingencia"
@@ -63,8 +60,8 @@
 
             <Button fx:id="btnMenuDashboard" text="📊 Dashboard" onAction="#mostrarDashboard"
                     styleClass="boton-menu"/>
-            <Button fx:id="btnMenuEmpleados" text="👥 Empleados (Próx.)" onAction="#mostrarAvisoProximamente"
-                    styleClass="boton-menu, boton-menu-deshabilitado"/>
+            <Button fx:id="btnMenuEmpleados" text="👥 Empleados" onAction="#mostrarEmpleados"
+                    styleClass="boton-menu"/>
 
             <Region VBox.vgrow="ALWAYS"/>
 
