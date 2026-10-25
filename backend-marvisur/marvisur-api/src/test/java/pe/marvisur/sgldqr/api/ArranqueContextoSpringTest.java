@@ -17,6 +17,10 @@ import pe.marvisur.sgldqr.api.controlador.EmpleadoController;
 import pe.marvisur.sgldqr.api.controlador.EncomiendaController;
 import pe.marvisur.sgldqr.api.controlador.PublicoController;
 import pe.marvisur.sgldqr.api.controlador.RolController;
+import pe.marvisur.sgldqr.api.controlador.RutaController;
+import pe.marvisur.sgldqr.api.controlador.VehiculoController;
+import pe.marvisur.sgldqr.api.controlador.ViajeController;
+import pe.marvisur.sgldqr.api.servicio.FlotaViajeServicio;
 import pe.marvisur.sgldqr.api.servicio.AuditoriaServicio;
 import pe.marvisur.sgldqr.api.servicio.ComprobanteServicio;
 import pe.marvisur.sgldqr.api.servicio.DashboardServicio;
@@ -84,6 +88,18 @@ class ArranqueContextoSpringTest {
     @Autowired
     private RolController rolController;
 
+    @Autowired
+    private VehiculoController vehiculoController;
+
+    @Autowired
+    private RutaController rutaController;
+
+    @Autowired
+    private ViajeController viajeController;
+
+    @Autowired
+    private FlotaViajeServicio flotaViajeServicio;
+
     @Test
     @DisplayName("El contexto de Spring Boot arranca correctamente y todos los beans críticos se instancian")
     void contextLoads() {
@@ -98,6 +114,10 @@ class ArranqueContextoSpringTest {
         assertThat(auditoriaController).isNotNull();
         assertThat(auditoriaServicio).isNotNull();
         assertThat(rolController).isNotNull();
+        assertThat(vehiculoController).isNotNull();
+        assertThat(rutaController).isNotNull();
+        assertThat(viajeController).isNotNull();
+        assertThat(flotaViajeServicio).isNotNull();
 
         assertThat(applicationContext.containsBean("comprobanteServicio")).isTrue();
         assertThat(applicationContext.containsBean("encomiendaController")).isTrue();
@@ -105,5 +125,9 @@ class ArranqueContextoSpringTest {
         assertThat(applicationContext.containsBean("empleadoController")).isTrue();
         assertThat(applicationContext.containsBean("auditoriaController")).isTrue();
         assertThat(applicationContext.containsBean("rolController")).isTrue();
+        assertThat(applicationContext.containsBean("vehiculoController")).isTrue();
+        assertThat(applicationContext.containsBean("rutaController")).isTrue();
+        assertThat(applicationContext.containsBean("viajeController")).isTrue();
+        assertThat(applicationContext.containsBean("flotaViajeServicio")).isTrue();
     }
 }
