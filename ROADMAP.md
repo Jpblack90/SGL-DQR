@@ -65,7 +65,7 @@
 
 #### I1 — Backend API
 - [x] **B4** Endpoints de sincronización idempotentes por UUID (`POST /api/v1/sync/encomiendas`, RNF-02)
-- [~] **B1** Dashboard y Personal (KPIs en tiempo real y gestión de empleados con auditoría completados en backend; resuelta consulta PostgreSQL 16 con Criteria) (RF-02, RF-03)
+- [~] **B1** Dashboard y Personal (KPIs en tiempo real y gestión de empleados con auditoría completados en backend; resuelta integridad referencial en pruebas de auditoría) (RF-02, RF-03)
 - [ ] **B2** *[Pendiente / Backlog]* Flota, rutas y ciclo de viaje; TN4 actualiza estado; «En ruta» masivo (RF-05)
 - [ ] **B3** *[Pendiente / Backlog]* Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
 - [x] **B5** Pruebas de rendimiento RNF-03 y perfil dev con Swagger / prod protegido

@@ -6,15 +6,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import pe.marvisur.sgldqr.api.persistencia.entidad.AuditoriaLogJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.entidad.EmpleadoJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.AuditoriaLogSpringDataRepository;
+import pe.marvisur.sgldqr.api.persistencia.repositorio.EmpleadoSpringDataRepository;
 import pe.marvisur.sgldqr.api.seguridad.ConstantesSeguridad;
 import pe.marvisur.sgldqr.api.seguridad.JwtServicio;
 import pe.marvisur.sgldqr.api.seguridad.dto.EmpleadoAutenticadoDto;
@@ -22,6 +25,7 @@ import pe.marvisur.sgldqr.api.seguridad.dto.EmpleadoAutenticadoDto;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -62,12 +66,26 @@ class AuditoriaControllerTest {
     @Autowired
     private AuditoriaLogSpringDataRepository auditoriaRepository;
 
+    @Autowired
+    private EmpleadoSpringDataRepository empleadoRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private String tokenAdmin;
     private String tokenRecepcionista;
 
     @BeforeEach
     void setUp() {
+        // Borrar primero auditoria_logs para respetar la restricción fk_auditoria_empleado
         auditoriaRepository.deleteAllInBatch();
+
+        // Limpiar los empleados de prueba preservando EMP-ADMIN-01 de la migración V7
+        for (EmpleadoJpaEntity emp : empleadoRepository.findAll()) {
+            if (!"EMP-ADMIN-01".equals(emp.getIdEmpleado())) {
+                empleadoRepository.delete(emp);
+            }
+        }
 
         tokenAdmin = jwtServicio.generarToken(new EmpleadoAutenticadoDto(
                 "EMP-ADMIN-01", "Admin", "General", "admin@marvisur.pe",
@@ -78,6 +96,24 @@ class AuditoriaControllerTest {
                 UUID.randomUUID().toString(), "Recepcionista", "Turno", "rec@marvisur.pe",
                 ConstantesSeguridad.AUTH_RECEPCIONISTA, "SUC-LIM-01"
         ));
+    }
+
+    private EmpleadoJpaEntity crearEmpleadoPrueba(String idRol) {
+        String id = UUID.randomUUID().toString();
+        String dni = String.valueOf(ThreadLocalRandom.current().nextInt(10000000, 99999999));
+        String correo = "emp." + id.substring(0, 8) + "@marvisur.pe";
+        EmpleadoJpaEntity emp = new EmpleadoJpaEntity(
+                id,
+                idRol,
+                "SUC-LIM-01",
+                dni,
+                "Empleado",
+                "Pruebas",
+                correo,
+                passwordEncoder.encode("ClaveSegura2026"),
+                true
+        );
+        return empleadoRepository.save(emp);
     }
 
     @Test
@@ -193,12 +229,14 @@ class AuditoriaControllerTest {
     @Test
     @DisplayName("Filtro solo idEmpleado: retorna únicamente registros del empleado indicado")
     void listarAuditoria_SoloIdEmpleado() throws Exception {
+        EmpleadoJpaEntity otroEmp = crearEmpleadoPrueba(ConstantesSeguridad.ID_ROL_RECEPCIONISTA);
+
         AuditoriaLogJpaEntity logAdmin = new AuditoriaLogJpaEntity(
                 UUID.randomUUID().toString(), "EMP-ADMIN-01", "ACCION_ADMIN", "empleados",
                 "EMP-001", "127.0.0.1", OffsetDateTime.now().minusMinutes(2)
         );
         AuditoriaLogJpaEntity logOtro = new AuditoriaLogJpaEntity(
-                UUID.randomUUID().toString(), "EMP-REC-01", "ACCION_OTRO", "empleados",
+                UUID.randomUUID().toString(), otroEmp.getIdEmpleado(), "ACCION_OTRO", "empleados",
                 "EMP-002", "127.0.0.1", OffsetDateTime.now().minusMinutes(1)
         );
         auditoriaRepository.save(logAdmin);
@@ -216,6 +254,8 @@ class AuditoriaControllerTest {
     @Test
     @DisplayName("Combinación de dos filtros (idEmpleado y desde): aplica ambas condiciones")
     void listarAuditoria_CombinacionDeDos() throws Exception {
+        EmpleadoJpaEntity otroEmp = crearEmpleadoPrueba(ConstantesSeguridad.ID_ROL_RECEPCIONISTA);
+
         OffsetDateTime ahora = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         AuditoriaLogJpaEntity logMatch = new AuditoriaLogJpaEntity(
                 UUID.randomUUID().toString(), "EMP-ADMIN-01", "MATCH", "empleados",
@@ -226,7 +266,7 @@ class AuditoriaControllerTest {
                 "EMP-001", "127.0.0.1", ahora.minusHours(4)
         );
         AuditoriaLogJpaEntity logOtroEmpleadoReciente = new AuditoriaLogJpaEntity(
-                UUID.randomUUID().toString(), "EMP-REC-01", "NO_MATCH_EMP", "empleados",
+                UUID.randomUUID().toString(), otroEmp.getIdEmpleado(), "NO_MATCH_EMP", "empleados",
                 "EMP-002", "127.0.0.1", ahora.minusMinutes(10)
         );
         auditoriaRepository.save(logMatch);
