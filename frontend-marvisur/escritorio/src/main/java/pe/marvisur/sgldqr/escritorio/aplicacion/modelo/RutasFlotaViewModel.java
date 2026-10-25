@@ -115,6 +115,17 @@ public final class RutasFlotaViewModel {
         return dist.isEmpty() ? (origen + " ➔ " + destino) : (origen + " ➔ " + destino + " (" + dist + ")");
     }
 
+    public static String formatearRutaTabla(RutaDto ruta) {
+        if (ruta == null || ruta.id() == null) {
+            return "";
+        }
+        String origen = (ruta.origen() != null && ruta.origen().nombreAgencia() != null)
+                ? ruta.origen().nombreAgencia().trim() : "Origen";
+        String destino = (ruta.destino() != null && ruta.destino().nombreAgencia() != null)
+                ? ruta.destino().nombreAgencia().trim() : "Destino";
+        return origen + " → " + destino;
+    }
+
     public static String formatearVehiculoCombo(VehiculoDto v) {
         if (v == null || v.idVehiculo() == null) {
             return "Seleccione un vehículo...";
@@ -268,6 +279,25 @@ public final class RutasFlotaViewModel {
 
     public static boolean puedeIniciarViaje(ViajeDto viaje) {
         return viaje != null && "PROGRAMADO".equalsIgnoreCase(viaje.estadoViaje());
+    }
+
+    public static boolean esViajeSinCarga(List<ManifiestoEncomiendaDto> encomiendas) {
+        return encomiendas != null && encomiendas.isEmpty();
+    }
+
+    public static String encabezadoConfirmacionInicioViaje(List<ManifiestoEncomiendaDto> encomiendas) {
+        if (esViajeSinCarga(encomiendas)) {
+            return "¿Iniciar viaje sin encomiendas?";
+        }
+        return "¿Está seguro de iniciar el viaje seleccionado?";
+    }
+
+    public static String mensajeConfirmacionInicioViaje(ViajeDto viaje, List<ManifiestoEncomiendaDto> encomiendas) {
+        if (esViajeSinCarga(encomiendas)) {
+            return "Este viaje no tiene encomiendas asignadas. ¿Iniciarlo de todos modos?";
+        }
+        String vehiculo = (viaje != null) ? (viaje.placa() != null ? viaje.placa() : viaje.idVehiculo()) : "--";
+        return "El estado pasará a EN RUTA.\nVehículo: " + vehiculo;
     }
 
     public static boolean puedeFinalizarViaje(ViajeDto viaje) {

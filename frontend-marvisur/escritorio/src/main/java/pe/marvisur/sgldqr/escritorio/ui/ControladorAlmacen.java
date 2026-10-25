@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -130,6 +131,8 @@ public class ControladorAlmacen {
     private final ObservableList<IncidenciaHistorialDto> listaHistorialIncidencias = FXCollections.observableArrayList();
     private String qr1RegeneradoBase64Actual;
     private EncomiendaBusquedaDto encomiendaSeleccionadaContingencia;
+    private String accionUltimoLote;
+    private Consumer<Tab> alCambiarPestana;
 
     private final AlmacenPort almacenPort;
     private final ImpresionPort impresionPort;
@@ -147,6 +150,7 @@ public class ControladorAlmacen {
     public void initialize() {
         configurarPermisosPestanas();
         configurarBloqueoOfflinePestanas();
+        configurarSincronizacionPestanas();
         inicializarPestanaEntrega();
         inicializarPestanaLotes();
         inicializarPestanaContingencia();
@@ -168,6 +172,16 @@ public class ControladorAlmacen {
                 if (newTab != null && !ServicioConexion.getInstancia().estaEnLinea()) {
                     NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Requiere Conexión", "Operación no disponible sin conexión",
                             PestanasBloqueadasOfflineViewModel.MENSAJE_REQUIERE_CONEXION);
+                }
+            });
+        }
+    }
+
+    private void configurarSincronizacionPestanas() {
+        if (tabPaneAlmacen != null) {
+            tabPaneAlmacen.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (alCambiarPestana != null && newTab != null) {
+                    alCambiarPestana.accept(newTab);
                 }
             });
         }
@@ -516,7 +530,8 @@ public class ControladorAlmacen {
 
         colLoteQr1.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().qr1()));
         colLoteResultado.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().resultado()));
-        colLoteMotivo.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getMotivoLegible()));
+        colLoteMotivo.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getMotivoLegible(accionUltimoLote != null ? accionUltimoLote : cmbAccionLote.getValue())));
 
         // Formato visual de la celda de resultado (verde, gris, rojo)
         colLoteResultado.setCellFactory(col -> new TableCell<>() {
@@ -588,26 +603,23 @@ public class ControladorAlmacen {
             return;
         }
 
-        if (itemsEscaneadosLote.isEmpty()) {
-            String codigoPendiente = txtQr1Lote != null && txtQr1Lote.getText() != null
-                    ? txtQr1Lote.getText().trim() : "";
-            if (!codigoPendiente.isEmpty()) {
-                if (itemsEscaneadosLote.contains(codigoPendiente)) {
-                    NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Código Duplicado",
-                            "El código QR1 ya se encuentra en la lista de escaneo actual.");
-                    return;
-                }
+        String codigoPendiente = txtQr1Lote != null && txtQr1Lote.getText() != null
+                ? txtQr1Lote.getText().trim() : "";
+        if (!codigoPendiente.isEmpty()) {
+            if (!itemsEscaneadosLote.contains(codigoPendiente)) {
                 itemsEscaneadosLote.add(codigoPendiente);
-                txtQr1Lote.clear();
                 actualizarContadorLote();
-            } else {
-                NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Lista Vacía", "Debe escanear al menos un código QR1.");
-                return;
             }
+            txtQr1Lote.clear();
+        }
+
+        if (itemsEscaneadosLote.isEmpty()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Lote de Escaneo", "Lista Vacía", "Debe escanear al menos un código QR1.");
             return;
         }
 
         String accion = cmbAccionLote.getValue();
+        this.accionUltimoLote = accion;
         String idViaje = null;
 
         if ("DESPACHAR_A_VIAJE".equalsIgnoreCase(accion)) {
@@ -724,7 +736,7 @@ public class ControladorAlmacen {
         colBusqEstadoLogistico.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().estadoLogistico()));
 
         tablaBusquedaEncomiendas.setItems(listaEncomiendasBusqueda);
-        tablaBusquedaEncomiendas.setPlaceholder(new Label("No se encontraron encomiendas para el documento ingresado"));
+        tablaBusquedaEncomiendas.setPlaceholder(new Label("Ingrese un DNI o RUC y pulse Buscar"));
 
         tablaBusquedaEncomiendas.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             this.encomiendaSeleccionadaContingencia = newVal;
@@ -777,6 +789,7 @@ public class ControladorAlmacen {
             btnBuscarDoc.setDisable(false);
             listaEncomiendasBusqueda.setAll(tarea.getValue());
             if (listaEncomiendasBusqueda.isEmpty()) {
+                tablaBusquedaEncomiendas.setPlaceholder(new Label("No se encontraron encomiendas para el documento ingresado"));
                 NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Búsqueda", "Sin resultados",
                         "No se encontraron encomiendas no entregadas asociadas al documento: " + doc);
             }
@@ -998,5 +1011,21 @@ public class ControladorAlmacen {
                 tabPaneAlmacen.getSelectionModel().select(tabEntrega);
             }
         }
+    }
+
+    public void setAlCambiarPestana(Consumer<Tab> alCambiarPestana) {
+        this.alCambiarPestana = alCambiarPestana;
+    }
+
+    public Tab getTabEntrega() {
+        return tabEntrega;
+    }
+
+    public Tab getTabLotes() {
+        return tabLotes;
+    }
+
+    public Tab getTabContingencia() {
+        return tabContingencia;
     }
 }
