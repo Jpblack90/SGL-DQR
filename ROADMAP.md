@@ -75,7 +75,9 @@
 - [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
 - [x] **D2** Ventanilla: registro de encomienda, Código Express y datos de impresión térmica 58 mm (RF-04)
 - [x] **D3** Almacén: validación cruzada Doble QR, Batch Scanning, contingencia e incidencias (RF-06, RF-07)
-- [~] **D4** Dashboard y Personal (RF-02 KPIs y RF-03 Gestión de personal y auditoría en escritorio para TN3 completados; consistencia FXML y formato amigable de combos verificado; rutas pendientes)
+- [x] **D4** Dashboard y Personal (RF-02 KPIs y RF-03 Gestión de personal y auditoría en escritorio para TN3 completados; consistencia FXML y formato amigable de combos verificado)
+- [x] **D5** Rutas y Flota: gestión de unidades vehiculares (TN3), programación de viajes interprovinciales (TN3), despacho y avance de estado en ruta (TN3, TN4), consulta modal de manifiesto de carga sin datos personales y navegación RBAC (RF-05)
+- *Punto de reanudación I2:* Tarea D5 completada con 148 pruebas del módulo de escritorio en verde. Siguiente paso: verificación manual en entorno gráfico con usuario final.
 
 #### I3 — Portal Web y Pruebas (React + Vite + TypeScript + Tailwind)
 - [x] **W1** Scaffold del portal con tema de marca y catálogo público de agencias

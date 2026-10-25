@@ -53,7 +53,7 @@
                     styleClass="boton-menu"/>
             <Button fx:id="btnMenuColaLocal" text="📋 Cola Local" onAction="#mostrarColaLocal"
                     styleClass="boton-menu"/>
-            <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota (Próx.)" onAction="#mostrarAvisoProximamente"
+            <Button fx:id="btnMenuRutas" text="🚚 Rutas / Flota" onAction="#mostrarRutas"
                     styleClass="boton-menu"/>
 
             <Separator style="-fx-background-color: #334155; -fx-padding: 6 0;"/>

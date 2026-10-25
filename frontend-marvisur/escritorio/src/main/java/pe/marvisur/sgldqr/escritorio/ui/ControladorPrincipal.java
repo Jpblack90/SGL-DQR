@@ -172,6 +172,8 @@ public class ControladorPrincipal {
             mostrarVentanilla();
         } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.ALMACEN)) {
             mostrarAlmacen();
+        } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.RUTAS)) {
+            mostrarRutas();
         } else if (ModeloMenuRol.estaAutorizado(rol, ModeloMenuRol.ModuloMenu.CONTINGENCIA)) {
             mostrarContingencia();
         } else {
@@ -358,6 +360,19 @@ public class ControladorPrincipal {
             contenedorContenido.getChildren().setAll(vista);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error al cargar EmpleadosView.fxml: " + e.getMessage(), e);
+        }
+    }
+
+    @FXML
+    public void mostrarRutas() {
+        desactivarDashboardSiActivo();
+        marcarBotonActivo(btnMenuRutas);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/RutasFlotaView.fxml"));
+            Node vista = loader.load();
+            contenedorContenido.getChildren().setAll(vista);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error al cargar RutasFlotaView.fxml: " + e.getMessage(), e);
         }
     }
 

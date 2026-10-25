@@ -14,6 +14,7 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.VentanillaPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.SyncPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.EmpleadosPort;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AuditoriaPort;
+import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.FlotaPort;
 import com.fasterxml.jackson.databind.JavaType;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
  * Implementa los puertos {@link AutenticacionPort}, {@link VentanillaPort},
  * {@link AlmacenPort} y {@link EstadoConexionPort}.
  */
-public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort, DashboardPort, EmpleadosPort, AuditoriaPort {
+public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, AlmacenPort, EstadoConexionPort, SyncPort, DashboardPort, EmpleadosPort, AuditoriaPort, FlotaPort {
 
     private static final Logger LOGGER = Logger.getLogger(MarvisurHttpClient.class.getName());
     private static final Duration TIMEOUT_DEFAULT = Duration.ofSeconds(2);
@@ -1075,6 +1076,269 @@ public class MarvisurHttpClient implements AutenticacionPort, VentanillaPort, Al
             LOGGER.log(Level.WARNING, "Error al consultar auditoría: " + e.getMessage());
             ServicioConexion.getInstancia().reportarFalloConexion("Error de red al consultar auditoría: " + e.getMessage());
             throw new ApiExcepcion("Error de comunicación al consultar auditoría: " + e.getMessage(), e);
+        }
+    }
+
+    // =========================================================================
+    // RUTAS Y FLOTA DE TRANSPORTE (RF-05)
+    // =========================================================================
+
+    @Override
+    public List<VehiculoDto> listarVehiculos() {
+        String url = baseUrl + "/api/v1/vehiculos";
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, VehiculoDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al listar vehículos: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al listar vehículos: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al listar vehículos: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public VehiculoDto registrarVehiculo(CrearVehiculoRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("La petición no puede ser nula");
+        }
+        String url = baseUrl + "/api/v1/vehiculos";
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                return objectMapper.readValue(response.body(), VehiculoDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al registrar vehículo: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al registrar vehículo: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al registrar vehículo: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public List<RutaDto> listarRutas() {
+        String url = baseUrl + "/api/v1/rutas";
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, RutaDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al listar rutas: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al listar rutas: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al listar rutas: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public List<ViajeDto> listarViajes(String estado, String idSucursalOrigen, String idChofer) {
+        StringBuilder sb = new StringBuilder(baseUrl).append("/api/v1/viajes");
+        boolean primero = true;
+        if (estado != null && !estado.isBlank() && !"TODOS".equalsIgnoreCase(estado)) {
+            sb.append(primero ? "?" : "&").append("estado=").append(URLEncoder.encode(estado.trim(), StandardCharsets.UTF_8));
+            primero = false;
+        }
+        if (idSucursalOrigen != null && !idSucursalOrigen.isBlank() && !"TODOS".equalsIgnoreCase(idSucursalOrigen)) {
+            sb.append(primero ? "?" : "&").append("idSucursalOrigen=").append(URLEncoder.encode(idSucursalOrigen.trim(), StandardCharsets.UTF_8));
+            primero = false;
+        }
+        if (idChofer != null && !idChofer.isBlank() && !"TODOS".equalsIgnoreCase(idChofer)) {
+            sb.append(primero ? "?" : "&").append("idChofer=").append(URLEncoder.encode(idChofer.trim(), StandardCharsets.UTF_8));
+        }
+
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(sb.toString()))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, ViajeDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al listar viajes: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al listar viajes: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al listar viajes: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public ViajeDto crearViaje(CrearViajeRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("La petición no puede ser nula");
+        }
+        String url = baseUrl + "/api/v1/viajes";
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                return objectMapper.readValue(response.body(), ViajeDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al programar viaje: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al programar viaje: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al programar viaje: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public ViajeDto cambiarEstadoViaje(String idViaje, CambiarEstadoViajeRequest request) {
+        if (idViaje == null || idViaje.isBlank() || request == null) {
+            throw new IllegalArgumentException("El ID del viaje y la petición son obligatorios");
+        }
+        String url = baseUrl + "/api/v1/viajes/" + URLEncoder.encode(idViaje.trim(), StandardCharsets.UTF_8) + "/estado";
+        try {
+            String jsonBody = objectMapper.writeValueAsString(request);
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                return objectMapper.readValue(response.body(), ViajeDto.class);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al cambiar estado de viaje: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al cambiar estado de viaje: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al cambiar estado de viaje: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
+        }
+    }
+
+    @Override
+    public List<ManifiestoEncomiendaDto> obtenerManifiesto(String idViaje) {
+        if (idViaje == null || idViaje.isBlank()) {
+            throw new IllegalArgumentException("El ID del viaje es obligatorio");
+        }
+        String url = baseUrl + "/api/v1/viajes/" + URLEncoder.encode(idViaje.trim(), StandardCharsets.UTF_8) + "/encomiendas";
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")
+                    .timeout(TIMEOUT_DEFAULT)
+                    .GET();
+
+            adjuntarAutorizacionSiExiste(builder);
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ServicioConexion.getInstancia().reportarExitoConexion();
+                JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, ManifiestoEncomiendaDto.class);
+                return objectMapper.readValue(response.body(), type);
+            } else {
+                procesarErrorRespuesta(response);
+                throw new ApiExcepcion(response.statusCode(), "Error al obtener manifiesto: HTTP " + response.statusCode());
+            }
+        } catch (ApiExcepcion ae) {
+            throw ae;
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            LOGGER.log(Level.WARNING, "Error al obtener manifiesto: " + e.getMessage());
+            ServicioConexion.getInstancia().reportarFalloConexion("Error de red al obtener manifiesto: " + e.getMessage());
+            throw new ApiExcepcion(0, "SIN_CONEXION", "Requiere conexión", null);
         }
     }
 

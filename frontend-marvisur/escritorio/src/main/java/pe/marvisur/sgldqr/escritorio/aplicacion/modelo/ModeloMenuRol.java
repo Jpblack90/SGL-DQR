@@ -23,7 +23,7 @@ public final class ModeloMenuRol {
         COLA_LOCAL("Cola Local", "Gestión de registros sin conexión y sincronización", true),
         DASHBOARD("Dashboard", "KPIs de volumen, tiempos y recaudación", true),
         EMPLEADOS("Empleados", "Gestión de personal y auditoría", true),
-        RUTAS("Rutas", "Programación de viajes y asignación de flotas", false);
+        RUTAS("Rutas", "Programación de viajes y asignación de flotas", true);
 
         private final String titulo;
         private final String descripcion;

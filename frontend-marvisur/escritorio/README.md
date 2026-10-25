@@ -362,3 +362,55 @@ Para garantizar que la aplicación funcione correctamente incluso si se instala 
 3. **Manejo Sin Conexión y Expiración:**
    - Si se pierde la conectividad con el servidor central, se muestra el banner de advertencia `Requiere conexión` y se bloquean las consultas.
    - Si el token JWT de la sesión del administrador expira durante la operación, el cliente captura el error `HTTP 401`, notifica el cierre de sesión y redirige automáticamente a la pantalla de Login.
+
+---
+
+## 8. Guía de Prueba Manual de Rutas y Flota de Transporte (RF-05 - TN3 y TN4)
+
+### A. Escenario 1: Flota y Programación de Viajes (Rol TN3 Administrador)
+1. **Inicio de Sesión y Acceso al Módulo:**
+   - Inicie sesión como Administrador (`admin.demo@marvisur.pe` / `Demo1234*`).
+   - En el menú lateral izquierdo, verifique que la opción **🚚 Rutas / Flota** se encuentra disponible y habilitada.
+   - Haga clic en **🚚 Rutas / Flota**: se abrirá la vista con dos pestañas: **Viajes Interprovinciales** y **Flota de Vehículos**.
+2. **Gestión de la Flota de Vehículos:**
+   - Haga clic en la pestaña **Flota de Vehículos**: se presentará la lista de unidades activas registradas con su placa, modelo/descripción y capacidad de carga útil en kilogramos.
+   - Haga clic en **➕ Nuevo Vehículo**: se abre el diálogo modal de registro.
+   - Ingrese una placa de rodaje válida (entre 5 y 10 caracteres alfanuméricos en mayúsculas, ej. `V1A-852` o `ABC-123`), modelo del camión (ej. `Volvo FH16`) y capacidad de carga (ej. `25000.00`).
+   - Verifique la validación previa: si la placa tiene caracteres inválidos o la capacidad es menor o igual a cero, se notifica una advertencia local.
+   - Confirme el registro: la petición se envía mediante `POST /api/v1/vehiculos`. En caso de placa duplicada, el sistema notifica amigablemente: *«Ya existe un vehículo con esa placa»*. Al completarse exitosamente, el modal se cierra y la tabla de vehículos se refresca.
+3. **Programación de un Nuevo Viaje:**
+   - Diríjase a la pestaña **Viajes Interprovinciales** y haga clic en **➕ Programar Viaje**.
+   - Seleccione una ruta interprovincial habilitada (ej. `Lima Central ➔ Arequipa Terminal (1010.50 km)`).
+   - Seleccione un vehículo disponible de la flota.
+   - Seleccione un chofer calificado (el combo lista exclusivamente colaboradores activos con rol Chofer, formateados con nombres y DNI).
+   - Establezca la fecha y hora de salida, así como la fecha y hora estimada de llegada.
+   - Verifique la validación local: si la fecha de llegada no es posterior a la salida, se bloquea el envío notificando el error.
+   - Confirme el formulario: se envía mediante `POST /api/v1/viajes`, registrándose con estado inicial `PROGRAMADO`. Si el chofer o el vehículo ya tienen un viaje en ruta, se notifica con claridad (*«El chofer ya tiene un viaje en ruta»* o *«El vehículo ya está en un viaje en ruta»*).
+4. **Consulta Modal de Manifiesto de Carga (Cero Datos Personales):**
+   - Seleccione cualquier viaje de la tabla y haga clic en **📋 Ver manifiesto**.
+   - Se desplegará la ventana modal con el listado de encomiendas asignadas al viaje (`Comprobante`, `Estado Logístico`, `Agencia Destino`, `Peso`).
+   - **Verificación de Privacidad:** Certifique que no se muestra ningún dato personal (sin DNI, nombres de remitente/destinatario ni teléfonos).
+   - En el pie del diálogo, verifique el resumen de totales: número total de encomiendas y sumatoria exacta del peso en kilogramos.
+5. **Control de Despacho y Transiciones de Estado:**
+   - Con un viaje seleccionado en estado `PROGRAMADO`, verifique que el botón **▶ Iniciar viaje** está habilitado y el botón **🏁 Finalizar viaje** deshabilitado.
+   - Haga clic en **▶ Iniciar viaje**: el sistema solicita confirmación modal antes de enviar `PATCH /api/v1/viajes/{id}/estado`. Al confirmar, el estado cambia a `EN_RUTA`.
+   - Al volver a seleccionar el viaje, verifique que **▶ Iniciar viaje** queda deshabilitado y **🏁 Finalizar viaje** se habilita.
+   - Haga clic en **🏁 Finalizar viaje**: confirme el diálogo modal y el estado se actualizará a `FINALIZADO`, liberando la unidad y al conductor.
+
+### B. Escenario 2: Despacho y Operación de Viajes Asignados (Rol TN4 Chofer)
+1. **Inicio de Sesión como Chofer:**
+   - Inicie sesión con credenciales de chofer (`chofer.demo@marvisur.pe` / `Demo1234*`).
+   - Verifique que la aplicación abre automáticamente el módulo de rutas al iniciar sesión.
+2. **Adaptación de Interfaz para Chofer:**
+   - El título de la vista se ajusta a: **«Mis Viajes Asignados»**.
+   - La pestaña **Flota de Vehículos** se encuentra oculta/removida.
+   - El botón **➕ Programar Viaje** se encuentra oculto.
+   - La tabla muestra únicamente los viajes asignados al chofer en sesión.
+3. **Operaciones Permitidas para Chofer:**
+   - Puede consultar el manifiesto de carga de sus viajes (**📋 Ver manifiesto**).
+   - Puede despachar e iniciar su viaje (**▶ Iniciar viaje**) y concluirlo (**🏁 Finalizar viaje**).
+
+### C. Escenario 3: Comportamiento ante Caída de Red / Modo Sin Conexión
+1. Si se interrumpe la red o se apaga la API central:
+   - Al intentar filtrar o actualizar viajes o flota, se despliega el banner de advertencia: *«Requiere conexión: no se puede consultar viajes sin conexión central»*.
+   - Ninguna pantalla muestra errores con el texto literal `null` ni excepciones sin procesar.

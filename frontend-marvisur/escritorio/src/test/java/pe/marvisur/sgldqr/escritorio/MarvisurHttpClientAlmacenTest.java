@@ -257,6 +257,59 @@ class MarvisurHttpClientAlmacenTest {
     }
 
     @Test
+    @DisplayName("listarViajes: 200 OK con JSON nuevo completo (RF-05) deserializa correctamente para flujo de Lotes")
+    void testListarViajesConJsonNuevoCompletoExitoso() {
+        servidorMock.createContext("/api/v1/viajes", exchange -> {
+            String respuesta = """
+                    [
+                      {
+                        "idViaje": "VIAJE-NEW-100",
+                        "idRuta": "RUT-LIM-AQP",
+                        "idSucursalOrigen": "SUC-LIM-01",
+                        "idSucursalDestino": "SUC-AQP-01",
+                        "distanciaKm": 1010.5,
+                        "idVehiculo": "VEH-DEMO-01",
+                        "placaVehiculo": "V1A-100",
+                        "idChofer": "EMP-DEMO-TN4",
+                        "nombreChofer": "Jorge Huamán",
+                        "fechaSalida": "2026-10-25T20:00:00",
+                        "fechaLlegadaEstimada": "2026-10-26T12:00:00",
+                        "estadoViaje": "PROGRAMADO",
+                        "ruta": {
+                          "id": "RUT-LIM-AQP",
+                          "origen": {
+                            "id": "SUC-LIM-01",
+                            "nombreAgencia": "Agencia Lima Central"
+                          },
+                          "destino": {
+                            "id": "SUC-AQP-01",
+                            "nombreAgencia": "Agencia Arequipa Terminal"
+                          },
+                          "distanciaKm": 1010.5
+                        },
+                        "placa": "V1A-100",
+                        "modelo": "Volvo FH 460"
+                      }
+                    ]
+                    """;
+            responderJson(exchange, 200, respuesta);
+        });
+        servidorMock.start();
+
+        List<ViajeDto> viajes = cliente.listarViajes("PROGRAMADO", "SUC-LIM-01");
+
+        assertThat(viajes).hasSize(1);
+        ViajeDto v = viajes.get(0);
+        assertThat(v.idViaje()).isEqualTo("VIAJE-NEW-100");
+        assertThat(v.placaVehiculo()).isEqualTo("V1A-100");
+        assertThat(v.placa()).isEqualTo("V1A-100");
+        assertThat(v.modelo()).isEqualTo("Volvo FH 460");
+        assertThat(v.ruta()).isNotNull();
+        assertThat(v.ruta().origen().nombreAgencia()).isEqualTo("Agencia Lima Central");
+        assertThat(v.ruta().destino().nombreAgencia()).isEqualTo("Agencia Arequipa Terminal");
+    }
+
+    @Test
     @DisplayName("procesarLote: 200 OK procesa masivamente y devuelve conteos detallados")
     void testProcesarLoteExitoso() {
         servidorMock.createContext("/api/v1/almacen/lotes/escaneo", exchange -> {
