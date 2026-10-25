@@ -16,6 +16,7 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.PestanasBloqueadasOffline
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.AlmacenPort;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 import pe.marvisur.sgldqr.escritorio.infraestructura.impresion.ImpresionSimuladaAdapter;
 import pe.marvisur.sgldqr.escritorio.ui.componentes.CampoEscaneo;
@@ -607,7 +608,7 @@ public class ControladorAlmacen {
         }
 
         try {
-            Path salidaDir = Paths.get("salida");
+            Path salidaDir = RutasEscritorio.obtenerDirectorioSalida();
             if (!Files.exists(salidaDir)) {
                 Files.createDirectories(salidaDir);
             }

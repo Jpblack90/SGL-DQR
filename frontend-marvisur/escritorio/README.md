@@ -84,6 +84,47 @@ Las pruebas unitarias del cliente de escritorio no requieren entorno gráfico in
 mvn test -pl frontend-marvisur/escritorio
 ```
 
+### Empaquetado Autocontenido y Distribución Portátil (RNF-04 / Tarea O4)
+La aplicación puede empaquetarse como un paquete ejecutable autocontenido con su propio JRE mínimo embebido (Java 21 + JavaFX 21), permitiendo su uso en cualquier equipo Windows sin necesidad de tener Java ni Maven instalados.
+
+#### 1. Cómo empaquetar la aplicación
+Ejecute el script automatizado desde PowerShell:
+```powershell
+.\scripts\empaquetar-escritorio.ps1
+```
+El script realiza automáticamente:
+1. Compilación del JAR principal (`mvn package -DskipTests`) y copia de dependencias de ejecución a `target/libs`.
+2. Generación del JRE mínimo embebido con `jlink` conteniendo únicamente los módulos necesarios (`javafx.controls`, `javafx.fxml`, `javafx.graphics`, `javafx.base`, `java.desktop`, `java.net.http`, `java.sql`, `jdk.crypto.ec`, etc.).
+3. Empaquetado de la aplicación con `jpackage --type app-image` hacia `frontend-marvisur/escritorio/target/dist/SGL-DQR/`.
+4. Si **WiX Toolset** (3.11+) está instalado (`candle.exe` en `PATH`), genera adicionalmente el instalador `.msi` con acceso directo y entrada en el Menú Inicio.
+
+#### 2. Cómo configurar la URL de la API Central
+Al correr empaquetada, la aplicación resuelve la URL de la API en el siguiente orden de prioridad:
+1. **Argumento CLI:** `--api.base-url=http://servidor:8080` al invocar `SGL-DQR.exe`.
+2. **Propiedad de Sistema:** `-Dmarvisur.api.base-url=http://servidor:8080`.
+3. **Archivo de configuración externo:** Archivo `escritorio.properties` ubicado en la misma carpeta que `SGL-DQR.exe`:
+   ```properties
+   api.base-url=http://servidor-central.marvisur.pe:8080
+   http.timeout-segundos=2
+   ```
+4. **Valor por defecto embebido:** `http://localhost:8080`.
+
+#### 3. Dónde se guardan los datos al correr empaquetada
+Para garantizar que la aplicación funcione correctamente incluso si se instala en directorios de solo lectura (como `C:\Program Files\`), el almacenamiento local se redirige automáticamente al perfil del usuario:
+- **Base de datos SQLite local (`marvisur-local.db`):**
+  `%LOCALAPPDATA%\SGL-DQR\datos-locales\marvisur-local.db`
+- **Archivos de salida (tickets térmicos PNG y reportes CSV de lotes):**
+  `%LOCALAPPDATA%\SGL-DQR\salida\`
+
+*(Nota: En modo desarrollo al correr con Maven, las rutas relativas `datos-locales/` y `salida/` se mantienen en la raíz del proyecto para facilitar depuración).*
+
+#### 4. Cómo desinstalar o limpiar datos
+- **Eliminar la aplicación portátil:** Simplemente borre la carpeta `SGL-DQR` de `target/dist/` o donde la haya descomprimido.
+- **Limpiar datos locales, cola SQLite y tickets:** Elimine la carpeta de datos en `%LOCALAPPDATA%\SGL-DQR` ejecutando en PowerShell:
+  ```powershell
+  Remove-Item -Recurse -Force "$env:LOCALAPPDATA\SGL-DQR"
+  ```
+
 ---
 
 ## 3. Cuentas de Acceso para Demostración

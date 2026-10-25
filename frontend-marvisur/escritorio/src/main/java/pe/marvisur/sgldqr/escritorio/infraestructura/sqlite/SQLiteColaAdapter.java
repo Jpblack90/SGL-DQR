@@ -4,6 +4,7 @@ import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.ElementoColaDto;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.EstadoElementoCola;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.SucursalDto;
 import pe.marvisur.sgldqr.escritorio.aplicacion.puertos.ColaLocalPort;
+import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -59,21 +60,15 @@ public class SQLiteColaAdapter implements ColaLocalPort {
     }
 
     private static String obtenerRutaPorDefecto() {
-        try (InputStream is = SQLiteColaAdapter.class.getResourceAsStream("/escritorio.properties")) {
-            if (is != null) {
-                Properties prop = new Properties();
-                prop.load(is);
-                String customPath = prop.getProperty("sqlite.db-path");
-                if (customPath != null && !customPath.isBlank()) {
-                    return customPath.trim();
-                }
+        try {
+            Properties prop = RutasEscritorio.cargarPropiedadesCombinadas();
+            String customPath = prop.getProperty("sqlite.db-path");
+            if (customPath != null && !customPath.isBlank() && !customPath.equals("datos-locales/marvisur-local.db")) {
+                return customPath.trim();
             }
         } catch (Exception ignored) {
         }
-        if (Files.exists(Paths.get("frontend-marvisur/escritorio/datos-locales/marvisur-local.db"))) {
-            return "frontend-marvisur/escritorio/datos-locales/marvisur-local.db";
-        }
-        return "datos-locales/marvisur-local.db";
+        return RutasEscritorio.obtenerRutaBaseDatos();
     }
 
     private void asegurarDirectorioPadre(String ruta) {

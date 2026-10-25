@@ -32,17 +32,7 @@ public final class ConfiguracionApi {
     }
 
     private static Properties cargarPropiedades() {
-        Properties props = new Properties();
-        try (InputStream in = ConfiguracionApi.class.getResourceAsStream(ARCHIVO_CONFIG)) {
-            if (in != null) {
-                props.load(in);
-            } else {
-                LOGGER.info("No se encontró " + ARCHIVO_CONFIG + " en el classpath; usando valores por defecto.");
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error al cargar configuración desde " + ARCHIVO_CONFIG + ": " + e.getMessage(), e);
-        }
-        return props;
+        return RutasEscritorio.cargarPropiedadesCombinadas();
     }
 
     private static String normalizarUrl(String url) {

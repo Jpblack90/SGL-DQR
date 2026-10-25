@@ -90,7 +90,7 @@
 - [ ] **H1** *[Pendiente / Backlog]* Adaptador ESC/POS para ticketera física de 58 mm por puerto USB/Serie (actualmente emulado en PNG)
 - [ ] **H2** *[Pendiente / Backlog]* Adaptador de escáner óptico USB vía API nativa (actualmente soportado vía emulación de teclado con `CampoEscaneo`)
 - [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
-- [ ] **O4** *[Pendiente / Backlog]* Instalador .EXE autocontenido con `jpackage` (RNF-04; ejecutable vía Maven y JAR)
+- [x] **O4** Paquete portátil autocontenido .EXE con JRE embebido mediante jlink y jpackage (RNF-04)
 
 ---
 
