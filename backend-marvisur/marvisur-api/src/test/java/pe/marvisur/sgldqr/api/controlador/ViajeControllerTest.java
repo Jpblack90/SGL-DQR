@@ -18,17 +18,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import pe.marvisur.sgldqr.api.dto.CambiarEstadoViajeRequest;
 import pe.marvisur.sgldqr.api.dto.CrearViajeRequest;
 import pe.marvisur.sgldqr.api.persistencia.entidad.AuditoriaLogJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.entidad.ClienteJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.DespachoLoteDetalleJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EmpleadoJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EncomiendaJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.entidad.HistorialTrackingJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.entidad.ParDobleQrJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.ProgramacionViajeJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.RutaJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.SucursalJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.VehiculoJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.AuditoriaLogSpringDataRepository;
+import pe.marvisur.sgldqr.api.persistencia.repositorio.ClienteSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.DespachoLoteDetalleSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.EmpleadoSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.EncomiendaSpringDataRepository;
+import pe.marvisur.sgldqr.api.persistencia.repositorio.HistorialTrackingSpringDataRepository;
+import pe.marvisur.sgldqr.api.persistencia.repositorio.ParDobleQrSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.ProgramacionViajeSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.RutaSpringDataRepository;
 import pe.marvisur.sgldqr.api.persistencia.repositorio.SucursalSpringDataRepository;
@@ -43,6 +49,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -110,6 +117,15 @@ class ViajeControllerTest {
     @Autowired
     private AuditoriaLogSpringDataRepository auditoriaRepository;
 
+    @Autowired
+    private ClienteSpringDataRepository clienteRepository;
+
+    @Autowired
+    private ParDobleQrSpringDataRepository parDobleQrRepository;
+
+    @Autowired
+    private HistorialTrackingSpringDataRepository trackingRepository;
+
     private String tokenAdmin;
     private String tokenAlmacenero;
     private String tokenChofer1;
@@ -123,14 +139,65 @@ class ViajeControllerTest {
     @BeforeEach
     void setUp() {
         auditoriaRepository.deleteAllInBatch();
-        despachoRepository.deleteAllInBatch();
-        programacionViajeRepository.deleteAllInBatch();
-        rutaRepository.deleteAllInBatch();
-        vehiculoRepository.deleteAllInBatch();
+        // 1. Despachos (hijos de viajes y encomiendas)
+        for (DespachoLoteDetalleJpaEntity d : despachoRepository.findAll()) {
+            if (!d.getIdDespachoDetalle().startsWith("DESP-DEMO")) {
+                despachoRepository.delete(d);
+            }
+        }
+
+        // 2. Parejas Doble QR (hijos de encomiendas)
+        for (ParDobleQrJpaEntity p : parDobleQrRepository.findAll()) {
+            if (!p.getIdParejaQr().startsWith("PAR-DEMO")) {
+                parDobleQrRepository.delete(p);
+            }
+        }
+
+        // 3. Historial Tracking (hijos de encomiendas)
+        for (HistorialTrackingJpaEntity t : trackingRepository.findAll()) {
+            if (!t.getIdTracking().startsWith("TRK-DEMO")) {
+                trackingRepository.delete(t);
+            }
+        }
+
+        // 4. Encomiendas (hijos de clientes y sucursales)
+        for (EncomiendaJpaEntity e : encomiendaRepository.findAll()) {
+            if (!e.getIdEncomienda().startsWith("UUID-ENC-DEMO")) {
+                encomiendaRepository.delete(e);
+            }
+        }
+
+        // 5. Clientes de prueba (preservando datos demo CLI-DEMO-*)
+        for (ClienteJpaEntity c : clienteRepository.findAll()) {
+            if (!c.getIdCliente().startsWith("CLI-DEMO")) {
+                clienteRepository.delete(c);
+            }
+        }
+
+        // 6. Programación de viajes (preservando viajes demo VIAJE-DEMO-*)
+        for (ProgramacionViajeJpaEntity v : programacionViajeRepository.findAll()) {
+            if (!v.getIdViaje().startsWith("VIAJE-DEMO")) {
+                programacionViajeRepository.delete(v);
+            }
+        }
+
+        // 7. Rutas (preservando rutas demo RUT-*)
+        for (RutaJpaEntity r : rutaRepository.findAll()) {
+            if (!r.getIdRuta().startsWith("RUT-") && !r.getIdRuta().startsWith("RUTA-DEMO")) {
+                rutaRepository.delete(r);
+            }
+        }
+
+        // 8. Vehículos (preservando vehículos demo VEH-DEMO-*)
+        for (VehiculoJpaEntity v : vehiculoRepository.findAll()) {
+            if (!v.getIdVehiculo().startsWith("VEH-DEMO")) {
+                vehiculoRepository.delete(v);
+            }
+        }
 
         // Limpiar empleados de prueba preservando EMP-ADMIN-01
         for (EmpleadoJpaEntity emp : empleadoRepository.findAll()) {
-            if (!"EMP-ADMIN-01".equals(emp.getIdEmpleado())) {
+            if (!"EMP-ADMIN-01".equals(emp.getIdEmpleado()) && !emp.getIdEmpleado().startsWith("EMP-DEMO")) {
                 empleadoRepository.delete(emp);
             }
         }
@@ -405,6 +472,23 @@ class ViajeControllerTest {
                 ahora, ahora.plusHours(12), EstadoViaje.EN_RUTA.name()
         ));
 
+        // Clientes reales requeridos por integridad referencial (fk_encomiendas_remitente y fk_encomiendas_destinatario)
+        String idRemitente = UUID.randomUUID().toString();
+        String dniRemitente = String.format("7%07d", ThreadLocalRandom.current().nextInt(10_000_000));
+        ClienteJpaEntity remitente = new ClienteJpaEntity(
+                idRemitente, "DNI", dniRemitente,
+                "Remitente Confidencial S.A.", "987111222", "remitente.confidencial@marvisur.pe"
+        );
+        clienteRepository.save(remitente);
+
+        String idDestinatario = UUID.randomUUID().toString();
+        String dniDestinatario = String.format("4%07d", ThreadLocalRandom.current().nextInt(10_000_000));
+        ClienteJpaEntity destinatario = new ClienteJpaEntity(
+                idDestinatario, "DNI", dniDestinatario,
+                "Destinatario Secreto E.I.R.L.", "987333444", "destinatario.secreto@marvisur.pe"
+        );
+        clienteRepository.save(destinatario);
+
         String idEncomienda = UUID.randomUUID().toString();
         EncomiendaJpaEntity enc = new EncomiendaJpaEntity();
         enc.setIdEncomienda(idEncomienda);
@@ -413,8 +497,8 @@ class ViajeControllerTest {
         enc.setEstadoPago("PAGADO");
         enc.setIdSucursalOrigen("SUC-LIM-01");
         enc.setIdSucursalDestino("SUC-AQP-01");
-        enc.setIdRemitente(UUID.randomUUID().toString());
-        enc.setIdDestinatario(UUID.randomUUID().toString());
+        enc.setIdRemitente(idRemitente);
+        enc.setIdDestinatario(idDestinatario);
         enc.setPesoKg(new BigDecimal("18.50"));
         enc.setMontoTotal(new BigDecimal("51.25"));
         enc.setFechaRegistro(ahora);
@@ -424,7 +508,7 @@ class ViajeControllerTest {
                 UUID.randomUUID().toString(), idViaje, idEncomienda, ahora
         ));
 
-        mockMvc.perform(get("/api/v1/viajes/" + idViaje + "/encomiendas")
+        String respuestaJson = mockMvc.perform(get("/api/v1/viajes/" + idViaje + "/encomiendas")
                         .header("Authorization", "Bearer " + tokenChofer1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -436,7 +520,19 @@ class ViajeControllerTest {
                 .andExpect(jsonPath("$[0].remitente").doesNotExist())
                 .andExpect(jsonPath("$[0].destinatario").doesNotExist())
                 .andExpect(jsonPath("$[0].dni").doesNotExist())
-                .andExpect(jsonPath("$[0].telefono").doesNotExist());
+                .andExpect(jsonPath("$[0].telefono").doesNotExist())
+                .andExpect(jsonPath("$[0].correo").doesNotExist())
+                .andExpect(jsonPath("$[0].nombresRazonSocial").doesNotExist())
+                .andExpect(jsonPath("$[0].numeroDocumento").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+
+        // Verificación de ausencia absoluta de datos identificables de remitente y destinatario en el payload
+        assertThat(respuestaJson).doesNotContain(dniRemitente);
+        assertThat(respuestaJson).doesNotContain(dniDestinatario);
+        assertThat(respuestaJson).doesNotContain("Remitente Confidencial S.A.");
+        assertThat(respuestaJson).doesNotContain("Destinatario Secreto E.I.R.L.");
+        assertThat(respuestaJson).doesNotContain("987111222");
+        assertThat(respuestaJson).doesNotContain("987333444");
     }
 
     @Test

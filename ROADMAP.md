@@ -69,7 +69,7 @@
 - [x] **B2** Flota, rutas y ciclo de viaje en backend API; endpoints vehiculos (TN3), rutas (TN2/TN3/TN4), viajes (TN2/TN3/TN4 con RBAC chofer), programación y avance de estado con auditoría y manifiesto sin datos personales (RF-05)
 - [ ] **B3** *[Pendiente / Backlog]* Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
 - [x] **B5** Pruebas de rendimiento RNF-03 y perfil dev con Swagger / prod protegido
-- *Punto de reanudación I1:* Tarea B2 cerrada en backend API. Siguiente paso: interfaces visuales correspondientes o B3 en backlog.
+- *Punto de reanudación I1:* Tarea B2 cerrada en backend API (resuelta integridad referencial en prueba de manifiesto de viaje). Siguiente paso: interfaces visuales correspondientes o B3 en backlog.
 
 #### I2 — Escritorio JavaFX (offline-first)
 - [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
