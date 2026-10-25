@@ -177,9 +177,21 @@ class EmpleadosViewModelTest {
     }
 
     @Test
-    @DisplayName("formatearFechaHoraLocal: maneja null y formatos con éxito")
+    @DisplayName("formatearFechaHoraLocal: maneja null, zonas explícitas y formatos con éxito")
     void testFormatearFechaHoraLocal() {
         OffsetDateTime odt = OffsetDateTime.of(2026, 10, 24, 15, 30, 0, 0, ZoneOffset.ofHours(-5));
+        // Zona explícita Lima:
+        String formattedLima = EmpleadosViewModel.formatearFechaHoraLocal(odt, EmpleadosViewModel.ZONA_LIMA);
+        assertThat(formattedLima).isEqualTo("24/10/2026 15:30:00");
+
+        // Zona explícita UTC:
+        String formattedUtc = EmpleadosViewModel.formatearFechaHoraLocal(odt, ZoneOffset.UTC);
+        assertThat(formattedUtc).isEqualTo("24/10/2026 20:30:00");
+
+        // Instancia con zona Tokio:
+        EmpleadosViewModel vmTokyo = EmpleadosViewModel.conZona(java.time.ZoneId.of("Asia/Tokyo"));
+        assertThat(vmTokyo.formatearFechaHoraLocalInstancia(odt)).isEqualTo("25/10/2026 05:30:00");
+
         String formatted = EmpleadosViewModel.formatearFechaHoraLocal(odt);
         assertThat(formatted).isNotBlank();
         assertThat(formatted).doesNotContain("null");

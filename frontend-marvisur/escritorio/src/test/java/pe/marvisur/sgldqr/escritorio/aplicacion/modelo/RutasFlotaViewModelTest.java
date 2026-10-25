@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +61,7 @@ class RutasFlotaViewModelTest {
     }
 
     @Test
-    @DisplayName("fechasLima: construcción y serialización con zona horaria America/Lima (-05:00)")
+    @DisplayName("fechasLima: construcción, serialización y presentación con zonas explícitas e inyectables")
     void testFechasLima() {
         LocalDate fecha = LocalDate.of(2026, 10, 25);
         OffsetDateTime odt = RutasFlotaViewModel.construirOffsetDateTimeLima(fecha, 20, 30);
@@ -75,8 +77,23 @@ class RutasFlotaViewModelTest {
         String iso = RutasFlotaViewModel.formatearFechaHoraIso(odt);
         assertThat(iso).contains("2026-10-25T20:30:00-05:00");
 
-        String texto = RutasFlotaViewModel.formatearFechaHoraTexto(iso);
-        assertThat(texto).contains("25/10/2026");
+        // Presentación en zona explícita Lima (-05:00): 25/10/2026 20:30
+        String textoLima = RutasFlotaViewModel.formatearFechaHoraTexto(iso, RutasFlotaViewModel.ZONA_LIMA);
+        assertThat(textoLima).isEqualTo("25/10/2026 20:30");
+
+        // Presentación en zona explícita UTC (+00:00): 26/10/2026 01:30
+        String textoUtc = RutasFlotaViewModel.formatearFechaHoraTexto(iso, ZoneOffset.UTC);
+        assertThat(textoUtc).isEqualTo("26/10/2026 01:30");
+
+        // Instancia con zona explícita Tokio (+09:00): 26/10/2026 10:30
+        RutasFlotaViewModel vmTokyo = RutasFlotaViewModel.conZona(ZoneId.of("Asia/Tokyo"));
+        assertThat(vmTokyo.formatearFechaHoraTextoInstancia(iso)).isEqualTo("26/10/2026 10:30");
+
+        // Presentación por defecto del sistema (producción): debe coincidir dinámicamente con la zona de la JVM
+        String textoSistema = RutasFlotaViewModel.formatearFechaHoraTexto(iso);
+        String esperadoSistema = odt.atZoneSameInstant(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        assertThat(textoSistema).isEqualTo(esperadoSistema);
     }
 
     @Test

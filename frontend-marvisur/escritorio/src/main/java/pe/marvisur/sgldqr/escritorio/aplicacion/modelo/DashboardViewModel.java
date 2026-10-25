@@ -117,6 +117,24 @@ public class DashboardViewModel {
      * Extrae los datos para las 5 barras del gráfico de estados logísticos en orden garantizado,
      * utilizando las claves exactas de la API y asignando 0 ante claves faltantes o nulas.
      */
+    public static List<ItemGraficoEstado> extraerDatosGraficoEstados(Map<String, Long> mapaEstados) {
+        List<ItemGraficoEstado> items = new ArrayList<>(CLAVES_ESTADOS_GRAFICO.size());
+        for (String clave : CLAVES_ESTADOS_GRAFICO) {
+            long cantidad = 0L;
+            if (mapaEstados != null) {
+                if (mapaEstados.containsKey(clave) && mapaEstados.get(clave) != null) {
+                    cantidad = mapaEstados.get(clave);
+                } else if ("REGISTRADO".equals(clave) && mapaEstados.containsKey("REGISTRADA") && mapaEstados.get("REGISTRADA") != null) {
+                    cantidad = mapaEstados.get("REGISTRADA");
+                } else if ("ENTREGADO".equals(clave) && mapaEstados.containsKey("ENTREGADA") && mapaEstados.get("ENTREGADA") != null) {
+                    cantidad = mapaEstados.get("ENTREGADA");
+                }
+            }
+            items.add(new ItemGraficoEstado(clave, etiquetaEstadoLogistico(clave), cantidad));
+        }
+        return Collections.unmodifiableList(items);
+    }
+
     /**
      * Calcula el límite superior del eje Y para el gráfico de barras.
      * Garantiza números enteros enteros sin autoRanging fraccionario: max(1, valor máximo).
@@ -138,33 +156,24 @@ public class DashboardViewModel {
         return calcularLimiteSuperiorEje(extraerDatosGraficoEstados(mapaEstados));
     }
 
-    public static List<ItemGraficoEstado> extraerDatosGraficoEstados(Map<String, Long> mapaEstados) {
-        List<ItemGraficoEstado> items = new ArrayList<>(CLAVES_ESTADOS_GRAFICO.size());
-        for (String clave : CLAVES_ESTADOS_GRAFICO) {
-            long cantidad = 0L;
-            if (mapaEstados != null) {
-                if (mapaEstados.containsKey(clave) && mapaEstados.get(clave) != null) {
-                    cantidad = mapaEstados.get(clave);
-                } else if ("REGISTRADO".equals(clave) && mapaEstados.containsKey("REGISTRADA") && mapaEstados.get("REGISTRADA") != null) {
-                    cantidad = mapaEstados.get("REGISTRADA");
-                } else if ("ENTREGADO".equals(clave) && mapaEstados.containsKey("ENTREGADA") && mapaEstados.get("ENTREGADA") != null) {
-                    cantidad = mapaEstados.get("ENTREGADA");
-                }
-            }
-            items.add(new ItemGraficoEstado(clave, etiquetaEstadoLogistico(clave), cantidad));
-        }
-        return Collections.unmodifiableList(items);
+    public static String formatearHoraLocal(OffsetDateTime fechaHora) {
+        return formatearHoraLocal(fechaHora, ZoneId.systemDefault());
     }
 
-    public static String formatearHoraLocal(OffsetDateTime fechaHora) {
+    public static String formatearHoraLocal(OffsetDateTime fechaHora, ZoneId zona) {
         if (fechaHora == null) {
             return "--:--:--";
         }
-        return fechaHora.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_HORA);
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
+        return fechaHora.atZoneSameInstant(zonaEfectiva).format(FORMATO_HORA);
     }
 
     public static String formatearTextoActualizacion(OffsetDateTime generadoEn, boolean desactualizado, String error) {
-        String hora = formatearHoraLocal(generadoEn);
+        return formatearTextoActualizacion(generadoEn, desactualizado, error, ZoneId.systemDefault());
+    }
+
+    public static String formatearTextoActualizacion(OffsetDateTime generadoEn, boolean desactualizado, String error, ZoneId zona) {
+        String hora = formatearHoraLocal(generadoEn, zona);
         if (desactualizado) {
             String sufijo = (error != null && !error.isBlank()) ? " · " + error : "";
             return "Desactualizado (último: " + hora + ")" + sufijo;

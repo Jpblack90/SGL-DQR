@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -36,7 +37,30 @@ public final class RutasFlotaViewModel {
             "Finalizado"
     );
 
-    private RutasFlotaViewModel() {
+    private final ZoneId zonaPresentacion;
+
+    public RutasFlotaViewModel(ZoneId zonaPresentacion) {
+        this.zonaPresentacion = zonaPresentacion != null ? zonaPresentacion : ZoneId.systemDefault();
+    }
+
+    public static RutasFlotaViewModel porDefecto() {
+        return new RutasFlotaViewModel(ZoneId.systemDefault());
+    }
+
+    public static RutasFlotaViewModel conZona(ZoneId zona) {
+        return new RutasFlotaViewModel(zona);
+    }
+
+    public ZoneId getZonaPresentacion() {
+        return zonaPresentacion;
+    }
+
+    public String formatearFechaHoraTextoInstancia(String isoString) {
+        return formatearFechaHoraTexto(isoString, this.zonaPresentacion);
+    }
+
+    public String formatearFechaHoraCompletaInstancia(OffsetDateTime odt) {
+        return formatearFechaHoraCompleta(odt, this.zonaPresentacion);
     }
 
     // =========================================================================
@@ -130,12 +154,17 @@ public final class RutasFlotaViewModel {
     }
 
     public static String formatearFechaHoraTexto(String isoString) {
+        return formatearFechaHoraTexto(isoString, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraTexto(String isoString, ZoneId zona) {
         if (isoString == null || isoString.isBlank()) {
             return "--/--/---- --:--";
         }
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
         try {
             OffsetDateTime odt = OffsetDateTime.parse(isoString);
-            return odt.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA_CORTO);
+            return odt.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA_CORTO);
         } catch (Exception e1) {
             try {
                 java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(isoString);
@@ -147,8 +176,13 @@ public final class RutasFlotaViewModel {
     }
 
     public static String formatearFechaHoraCompleta(OffsetDateTime odt) {
+        return formatearFechaHoraCompleta(odt, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraCompleta(OffsetDateTime odt, ZoneId zona) {
         if (odt == null) return "--/--/---- --:--:--";
-        return odt.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA);
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
+        return odt.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA);
     }
 
     // =========================================================================
@@ -342,6 +376,6 @@ public final class RutasFlotaViewModel {
     public static String textoResumenManifiesto(List<ManifiestoEncomiendaDto> encomiendas) {
         int total = (encomiendas != null) ? encomiendas.size() : 0;
         BigDecimal peso = calcularPesoTotalManifiesto(encomiendas);
-        return String.format("Total encomiendas: %d | Peso total: %.2f kg", total, peso);
+        return String.format(java.util.Locale.US, "Total encomiendas: %d | Peso total: %.2f kg", total, peso);
     }
 }

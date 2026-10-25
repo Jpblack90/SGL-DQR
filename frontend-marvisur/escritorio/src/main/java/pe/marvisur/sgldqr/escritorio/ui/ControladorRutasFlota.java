@@ -21,6 +21,7 @@ import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -256,7 +257,7 @@ public class ControladorRutasFlota {
         colVehiculoCapacidad.setCellValueFactory(cell -> {
             VehiculoDto v = cell.getValue();
             if (v == null || v.capacidadCargaKg() == null) return new SimpleStringProperty("");
-            return new SimpleStringProperty(String.format("%.2f kg", v.capacidadCargaKg()));
+            return new SimpleStringProperty(String.format(Locale.US, "%.2f kg", v.capacidadCargaKg()));
         });
     }
 
@@ -456,7 +457,7 @@ public class ControladorRutasFlota {
         colPeso.setPrefWidth(120);
         colPeso.setStyle("-fx-alignment: CENTER-RIGHT;");
         colPeso.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().pesoKg() != null ? String.format("%.2f kg", c.getValue().pesoKg()) : "0.00 kg"));
+                c.getValue().pesoKg() != null ? String.format(Locale.US, "%.2f kg", c.getValue().pesoKg()) : "0.00 kg"));
 
         tabla.getColumns().addAll(colCod, colEst, colDest, colPeso);
 

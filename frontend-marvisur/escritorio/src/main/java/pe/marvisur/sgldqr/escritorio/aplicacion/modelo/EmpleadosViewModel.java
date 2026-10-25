@@ -58,6 +58,28 @@ public final class EmpleadosViewModel {
             "Todos"
     );
 
+    private final ZoneId zonaPresentacion;
+
+    public EmpleadosViewModel(ZoneId zonaPresentacion) {
+        this.zonaPresentacion = zonaPresentacion != null ? zonaPresentacion : ZoneId.systemDefault();
+    }
+
+    public static EmpleadosViewModel porDefecto() {
+        return new EmpleadosViewModel(ZoneId.systemDefault());
+    }
+
+    public static EmpleadosViewModel conZona(ZoneId zona) {
+        return new EmpleadosViewModel(zona);
+    }
+
+    public ZoneId getZonaPresentacion() {
+        return zonaPresentacion;
+    }
+
+    public String formatearFechaHoraLocalInstancia(OffsetDateTime fechaHora) {
+        return formatearFechaHoraLocal(fechaHora, this.zonaPresentacion);
+    }
+
     public static String mapearEstadoApi(String etiqueta) {
         if (etiqueta == null) return "TODOS";
         return switch (etiqueta.trim().toUpperCase()) {
@@ -104,9 +126,6 @@ public final class EmpleadosViewModel {
             return "Todos los roles";
         }
         return r.nombre() != null ? r.nombre().trim() : "";
-    }
-
-    private EmpleadosViewModel() {
     }
 
     // =========================================================================
@@ -237,10 +256,15 @@ public final class EmpleadosViewModel {
     }
 
     public static String formatearFechaHoraLocal(OffsetDateTime fechaHora) {
+        return formatearFechaHoraLocal(fechaHora, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraLocal(OffsetDateTime fechaHora, ZoneId zona) {
         if (fechaHora == null) {
             return "--/--/---- --:--:--";
         }
-        return fechaHora.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA);
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
+        return fechaHora.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA);
     }
 
     // =========================================================================
