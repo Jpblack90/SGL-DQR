@@ -110,6 +110,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Pruebas unitarias de presentación**: Ampliación de `ComprobantePdfGeneradorTest` verificando títulos, tipos referenciales, ausencia estricta de «venta» y ajuste multilínea de descripción.
 
 ### Fixed
+- [I1][I4][CONTRATOS-METRICAS] Exclusión de endpoints de prueba `/test-rbac` del contrato OpenAPI interno con `@Hidden`, aserción en `OpenApiExportTest` y preservación estricta de BOM UTF-8 en scripts PowerShell para erradicación de mojibake en el informe técnico de métricas.
 - [I2][CI-TZ] Independencia de zona horaria e idioma en formateo y pruebas del escritorio JavaFX:
   - **Inyección de zona horaria en ViewModels**: Parámetro `ZoneId` inyectable (con constructor canónico único y fábricas estáticas `porDefecto()` y `conZona(zone)`) en `RutasFlotaViewModel`, `EmpleadosViewModel` y `DashboardViewModel`, manteniendo la zona del sistema por defecto en producción para presentar la hora local del usuario.
   - **Desacoplamiento de pruebas (`RutasFlotaViewModelTest`, `EmpleadosViewModelTest`, `DashboardViewModelTest`)**: Aserciones de fecha y hora contra zonas explícitas inyectadas (`America/Lima`, `UTC`, `Asia/Tokyo`) y validación dinámica de métodos por defecto contra `ZoneId.systemDefault()`, eliminando fallos en entornos CI ejecutados en UTC o idiomas no hispanos.

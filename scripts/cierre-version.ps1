@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pipeline automatizado de verificacion y cierre de version v0.3.0 de SGL-DQR.
 .DESCRIPTION

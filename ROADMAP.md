@@ -95,7 +95,7 @@
 - [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
 - [x] **O4** Paquete portátil autocontenido .EXE con JRE embebido mediante jlink y jpackage (RNF-04)
 - [x] **CIERRE** Pipeline automatizado de cierre de versión v0.3.0 (`scripts/cierre-version.ps1`), sincronización OpenAPI y actualización de matrices
-- *Punto de reanudación I4:* Preparación del cierre de versión v0.3.0 completada. Siguiente paso: ejecución del script `scripts/cierre-version.ps1` con Docker activo para verificación general y regeneración de `docs/informe-metricas.md`.
+- *Punto de reanudación I4:* Cierre de versión v0.3.0 finalizado con contratos OpenAPI normalizados (38 operaciones sin /test-rbac), scripts con BOM UTF-8 y métricas sincronizadas (466 pruebas en verde, 40,551 LOC, 18 tablas). Siguiente paso: merge a main y etiquetado por el operador.
 
 ---
 

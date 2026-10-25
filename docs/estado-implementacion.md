@@ -8,19 +8,26 @@ Metodología: **Auditoría técnica honesta basada en código fuente real, endpo
 
 ## 1. Resumen de Pruebas Automatizadas
 
-El sistema cuenta con un total de **263 pruebas automatizadas**, todas en estado **VERDE (0 fallos, 0 errores, 0 omitidas)**:
+El sistema cuenta con un total de **466 pruebas automatizadas**, todas en estado **VERDE (0 fallos, 0 errores, 0 omitidas)**:
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Estado |
 |---|---|:---:|:---:|
-| `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **Verde** |
-| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16) / H2, Flyway | **104** | **Verde** |
-| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **76** | **Verde** |
-| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **33** | **Verde** |
-| **TOTAL** | **Multiplataforma** | **263** | **100% VERDE** |
+| `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit (45 unitarias + 5 reglas ArchUnit) | **50** | **Verde** |
+| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16) / H2, Flyway | **216** | **Verde** |
+| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **163** | **Verde** |
+| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **37** | **Verde** |
+| **TOTAL** | **Multiplataforma** | **466** | **100% VERDE** |
 
-> **Desglose de pruebas con base de datos**: De las 27 clases de prueba del módulo `marvisur-api`, 10 clases ejecutan integración contra PostgreSQL 16 real con Testcontainers (`@Testcontainers` / `@DynamicPropertySource`), 8 clases contra base de datos en memoria H2 (modo compatibilidad PostgreSQL) y 9 clases de pruebas unitarias sin base de datos.
+> **Desglose de pruebas con base de datos en `marvisur-api`**: De las 216 pruebas (distribuidas en 27 clases de prueba), **81 pruebas** (10 clases) ejecutan integración contra PostgreSQL 16 real con Testcontainers (`@Testcontainers` / `@DynamicPropertySource`), **69 pruebas** (8 clases) contra base de datos en memoria H2 (modo compatibilidad PostgreSQL) y **66 pruebas** (9 clases) son pruebas unitarias puras sin base de datos.
 >
-> *(Los conteos específicos de pruebas por clase, tiempos de ejecución y cobertura se recalculan automáticamente en `docs/informe-metricas.md` durante el pipeline de cierre).*
+> **Métricas Globales del Repositorio** (a la fecha del informe):
+> - **Operaciones REST (OpenAPI 3)**: 38 operaciones (31 internas y 7 públicas).
+> - **Migraciones Flyway Oficiales**: 8 archivos (`V1` a `V8`).
+> - **Tablas en Base de Datos**: 18 tablas del Diccionario de Datos.
+> - **Líneas de Código (LOC)**: 40,551 líneas en 425 archivos.
+> - **Total de Commits Git**: 145 commits.
+>
+> *(Para el desglose exhaustivo por clase de prueba y tiempos de ejecución, consultar [docs/informe-metricas.md](informe-metricas.md)).*
 
 ---
 

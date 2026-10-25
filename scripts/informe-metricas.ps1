@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Genera docs/informe-metricas.md con métricas reales extraídas automáticamente del repositorio.
 .DESCRIPTION
@@ -445,6 +445,11 @@ $md += @"
 
 *Informe generado automáticamente por $qScriptPs1 para auditoría técnica.*
 "@
+
+if ($md -match 'Ã' -or $md -match 'â€') {
+    Write-Error "ERROR: El informe generado contiene caracteres mojibake ('Ã' o 'â€'). Verifique la codificación de los archivos fuente."
+    exit 1
+}
 
 $rutaSalida = Join-Path $Raiz "docs/informe-metricas.md"
 [System.IO.File]::WriteAllText($rutaSalida, $md, [System.Text.UTF8Encoding]::new($false))
