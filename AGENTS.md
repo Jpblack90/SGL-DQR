@@ -33,3 +33,6 @@
    - **Nunca reescribir un FXML completo**: edita únicamente las líneas necesarias para evitar romper identificadores (`fx:id`) o anidamientos de la vista.
    - **Verificación de consistencia FXML-Controlador**: tras editar una vista FXML o un controlador JavaFX, ejecuta obligatoriamente `ConsistenciaVistasFxmlTest` para certificar la correspondencia exacta de campos `@FXML` y métodos manejadores.
    - **Reporte de verificación manual**: lo que las pruebas sin interfaz no pueden verificar (cómo se ve una pantalla y si abre) debe listarse explícitamente en el reporte como «pendiente de verificación manual del usuario».
+
+8. **Independencia de entorno en pruebas (zona horaria e idioma)**:
+   - Las pruebas no pueden depender de la zona horaria ni del idioma de la máquina; antes de dar una tarea por terminada se corre el módulo con la zona UTC y el idioma en_US.

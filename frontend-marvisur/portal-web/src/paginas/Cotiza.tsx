@@ -29,6 +29,7 @@ export const Cotiza: React.FC = () => {
   const [reintentoSegundos, setReintentoSegundos] = useState<number | null>(null);
 
   useEffect(() => {
+    document.title = 'Cotizador de Envíos · Expreso Marvisur';
     let activo = true;
     async function cargar() {
       setCargandoSucursales(true);

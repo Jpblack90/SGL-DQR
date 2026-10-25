@@ -177,9 +177,21 @@ class EmpleadosViewModelTest {
     }
 
     @Test
-    @DisplayName("formatearFechaHoraLocal: maneja null y formatos con éxito")
+    @DisplayName("formatearFechaHoraLocal: maneja null, zonas explícitas y formatos con éxito")
     void testFormatearFechaHoraLocal() {
         OffsetDateTime odt = OffsetDateTime.of(2026, 10, 24, 15, 30, 0, 0, ZoneOffset.ofHours(-5));
+        // Zona explícita Lima:
+        String formattedLima = EmpleadosViewModel.formatearFechaHoraLocal(odt, EmpleadosViewModel.ZONA_LIMA);
+        assertThat(formattedLima).isEqualTo("24/10/2026 15:30:00");
+
+        // Zona explícita UTC:
+        String formattedUtc = EmpleadosViewModel.formatearFechaHoraLocal(odt, ZoneOffset.UTC);
+        assertThat(formattedUtc).isEqualTo("24/10/2026 20:30:00");
+
+        // Instancia con zona Tokio:
+        EmpleadosViewModel vmTokyo = EmpleadosViewModel.conZona(java.time.ZoneId.of("Asia/Tokyo"));
+        assertThat(vmTokyo.formatearFechaHoraLocalInstancia(odt)).isEqualTo("25/10/2026 05:30:00");
+
         String formatted = EmpleadosViewModel.formatearFechaHoraLocal(odt);
         assertThat(formatted).isNotBlank();
         assertThat(formatted).doesNotContain("null");
@@ -294,5 +306,36 @@ class EmpleadosViewModelTest {
         assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("INACTIVOS")).isEqualTo("Inactivos");
         assertThat(EmpleadosViewModel.mapearEstadoEtiqueta("TODOS")).isEqualTo("Todos");
         assertThat(EmpleadosViewModel.mapearEstadoEtiqueta(null)).isEqualTo("Todos");
+    }
+
+    @Test
+    @DisplayName("auditoria: lista de acciones incluye todas las acciones reales del backend")
+    void testAccionesAuditoriaCompletas() {
+        List<String> acciones = EmpleadosViewModel.ACCIONES_AUDITORIA;
+        assertThat(acciones).contains(
+                "TODAS",
+                "LOGIN_EXITOSO", "LOGIN_FALLIDO",
+                "EMPLEADO_CREADO", "EMPLEADO_ACTUALIZADO", "EMPLEADO_DADO_DE_BAJA", "EMPLEADO_REACTIVADO", "EMPLEADO_PASSWORD_RESTABLECIDA",
+                "REGISTRO_ENCOMIENDA", "COBRO_CONTRA_ENTREGA", "VALIDACION_ENTREGA", "INCIDENCIA_REGISTRADA", "SYNC_ENCOMIENDAS",
+                "LOTE_RECEPCION_ORIGEN", "LOTE_DESPACHO", "LOTE_RECEPCION_DESTINO",
+                "VEHICULO_REGISTRADO", "VIAJE_CREADO", "VIAJE_INICIADO", "VIAJE_FINALIZADO"
+        );
+    }
+
+    @Test
+    @DisplayName("auditoria: mapeo amigable de etiquetas para combo y tabla")
+    void testEtiquetasAccionAuditoria() {
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("TODAS")).isEqualTo("Todas las acciones");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("LOGIN_EXITOSO")).isEqualTo("Inicio de sesión exitoso");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("EMPLEADO_CREADO")).isEqualTo("Empleado registrado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("REGISTRO_ENCOMIENDA")).isEqualTo("Registro de encomienda");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("COBRO_CONTRA_ENTREGA")).isEqualTo("Cobro contra entrega");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VALIDACION_ENTREGA")).isEqualTo("Validación física y entrega");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VEHICULO_REGISTRADO")).isEqualTo("Vehículo registrado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_CREADO")).isEqualTo("Viaje programado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_INICIADO")).isEqualTo("Viaje iniciado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("VIAJE_FINALIZADO")).isEqualTo("Viaje finalizado");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria("ACCION_DESCONOCIDA")).isEqualTo("ACCION_DESCONOCIDA");
+        assertThat(EmpleadosViewModel.etiquetaAccionAuditoria(null)).isEqualTo("Todas las acciones");
     }
 }

@@ -33,13 +33,17 @@ public final class EmpleadosViewModel {
             "EMPLEADO_REACTIVADO",
             "EMPLEADO_PASSWORD_RESTABLECIDA",
             "REGISTRO_ENCOMIENDA",
-            "ENTREGA_VALIDADA",
-            "COBRO_REGISTRADO",
+            "COBRO_CONTRA_ENTREGA",
+            "VALIDACION_ENTREGA",
             "LOTE_RECEPCION_ORIGEN",
             "LOTE_DESPACHO",
             "LOTE_RECEPCION_DESTINO",
             "INCIDENCIA_REGISTRADA",
-            "SYNC_ENCOMIENDAS"
+            "SYNC_ENCOMIENDAS",
+            "VEHICULO_REGISTRADO",
+            "VIAJE_CREADO",
+            "VIAJE_INICIADO",
+            "VIAJE_FINALIZADO"
     );
 
     public static final List<String> ESTADOS_FILTRO = List.of(
@@ -53,6 +57,28 @@ public final class EmpleadosViewModel {
             "Inactivos",
             "Todos"
     );
+
+    private final ZoneId zonaPresentacion;
+
+    public EmpleadosViewModel(ZoneId zonaPresentacion) {
+        this.zonaPresentacion = zonaPresentacion != null ? zonaPresentacion : ZoneId.systemDefault();
+    }
+
+    public static EmpleadosViewModel porDefecto() {
+        return new EmpleadosViewModel(ZoneId.systemDefault());
+    }
+
+    public static EmpleadosViewModel conZona(ZoneId zona) {
+        return new EmpleadosViewModel(zona);
+    }
+
+    public ZoneId getZonaPresentacion() {
+        return zonaPresentacion;
+    }
+
+    public String formatearFechaHoraLocalInstancia(OffsetDateTime fechaHora) {
+        return formatearFechaHoraLocal(fechaHora, this.zonaPresentacion);
+    }
 
     public static String mapearEstadoApi(String etiqueta) {
         if (etiqueta == null) return "TODOS";
@@ -100,9 +126,6 @@ public final class EmpleadosViewModel {
             return "Todos los roles";
         }
         return r.nombre() != null ? r.nombre().trim() : "";
-    }
-
-    private EmpleadosViewModel() {
     }
 
     // =========================================================================
@@ -233,10 +256,15 @@ public final class EmpleadosViewModel {
     }
 
     public static String formatearFechaHoraLocal(OffsetDateTime fechaHora) {
+        return formatearFechaHoraLocal(fechaHora, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraLocal(OffsetDateTime fechaHora, ZoneId zona) {
         if (fechaHora == null) {
             return "--/--/---- --:--:--";
         }
-        return fechaHora.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA);
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
+        return fechaHora.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA);
     }
 
     // =========================================================================
@@ -264,6 +292,34 @@ public final class EmpleadosViewModel {
 
     public static boolean puedeRestablecerPassword(EmpleadoDto seleccionado) {
         return seleccionado != null;
+    }
+
+    public static String etiquetaAccionAuditoria(String accion) {
+        if (accion == null || "TODAS".equalsIgnoreCase(accion)) {
+            return "Todas las acciones";
+        }
+        return switch (accion.trim().toUpperCase()) {
+            case "LOGIN_EXITOSO" -> "Inicio de sesión exitoso";
+            case "LOGIN_FALLIDO" -> "Inicio de sesión fallido";
+            case "EMPLEADO_CREADO" -> "Empleado registrado";
+            case "EMPLEADO_ACTUALIZADO" -> "Empleado actualizado";
+            case "EMPLEADO_DADO_DE_BAJA" -> "Empleado dado de baja";
+            case "EMPLEADO_REACTIVADO" -> "Empleado reactivado";
+            case "EMPLEADO_PASSWORD_RESTABLECIDA" -> "Contraseña restablecida";
+            case "REGISTRO_ENCOMIENDA" -> "Registro de encomienda";
+            case "COBRO_CONTRA_ENTREGA" -> "Cobro contra entrega";
+            case "VALIDACION_ENTREGA" -> "Validación física y entrega";
+            case "INCIDENCIA_REGISTRADA" -> "Incidencia reportada";
+            case "SYNC_ENCOMIENDAS" -> "Sincronización de encomiendas";
+            case "LOTE_RECEPCION_ORIGEN" -> "Lote: Recepción en origen";
+            case "LOTE_DESPACHO" -> "Lote: Despacho a viaje";
+            case "LOTE_RECEPCION_DESTINO" -> "Lote: Recepción en destino";
+            case "VEHICULO_REGISTRADO" -> "Vehículo registrado";
+            case "VIAJE_CREADO" -> "Viaje programado";
+            case "VIAJE_INICIADO" -> "Viaje iniciado";
+            case "VIAJE_FINALIZADO" -> "Viaje finalizado";
+            default -> accion.trim();
+        };
     }
 
     public static String textoPaginacion(int paginaActualCero, int totalPaginas, long totalElementos) {

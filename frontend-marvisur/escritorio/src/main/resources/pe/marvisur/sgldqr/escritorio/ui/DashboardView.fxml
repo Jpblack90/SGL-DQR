@@ -33,7 +33,7 @@
                     <Label text="Sucursal:" styleClass="label-campo"/>
                     <ComboBox fx:id="cboSucursal" prefWidth="170"/>
 
-                    <Button fx:id="btnActualizar" text="🔄 Actualizar" onAction="#manejarActualizarManual"
+                    <Button fx:id="btnActualizar" text="Actualizar" onAction="#manejarActualizarManual"
                             styleClass="btn-primario" style="-fx-padding: 6 12;"/>
 
                     <ProgressIndicator fx:id="spinnerCarga" prefWidth="18" prefHeight="18" visible="false" managed="false"/>

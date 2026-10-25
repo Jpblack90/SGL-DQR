@@ -21,6 +21,7 @@ import pe.marvisur.sgldqr.escritorio.infraestructura.api.MarvisurHttpClient;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -160,6 +161,7 @@ public class ControladorRutasFlota {
         if (tablaViajes == null) return;
 
         tablaViajes.setItems(datosViajes);
+        tablaViajes.setPlaceholder(new Label("No hay viajes para mostrar"));
 
         colViajeRuta.setCellValueFactory(cell -> {
             ViajeDto v = cell.getValue();
@@ -169,7 +171,21 @@ public class ControladorRutasFlota {
             }
             String ori = v.idSucursalOrigen() != null ? v.idSucursalOrigen() : "";
             String des = v.idSucursalDestino() != null ? v.idSucursalDestino() : "";
-            return new SimpleStringProperty(ori + " ➔ " + des);
+            return new SimpleStringProperty(ori + " → " + des);
+        });
+
+        colViajeRuta.setCellFactory(col -> new TableCell<ViajeDto, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isBlank()) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    setTooltip(new Tooltip(item));
+                }
+            }
         });
 
         colViajeVehiculo.setCellValueFactory(cell -> {
@@ -226,6 +242,7 @@ public class ControladorRutasFlota {
         if (tablaVehiculos == null) return;
 
         tablaVehiculos.setItems(datosVehiculos);
+        tablaVehiculos.setPlaceholder(new Label("No hay vehículos registrados"));
 
         colVehiculoPlaca.setCellValueFactory(cell -> {
             VehiculoDto v = cell.getValue();
@@ -240,7 +257,7 @@ public class ControladorRutasFlota {
         colVehiculoCapacidad.setCellValueFactory(cell -> {
             VehiculoDto v = cell.getValue();
             if (v == null || v.capacidadCargaKg() == null) return new SimpleStringProperty("");
-            return new SimpleStringProperty(String.format("%.2f kg", v.capacidadCargaKg()));
+            return new SimpleStringProperty(String.format(Locale.US, "%.2f kg", v.capacidadCargaKg()));
         });
     }
 
@@ -414,32 +431,33 @@ public class ControladorRutasFlota {
         Dialog<Void> dialog = new Dialog<>();
         dialog.initOwner(NavegadorUI.getStagePrincipal());
         dialog.setTitle("Manifiesto de Carga");
-        dialog.setHeaderText("Viaje: " + (viaje.placa() != null ? viaje.placa() : viaje.idViaje()) + " — Cero Datos Personales");
+        dialog.setHeaderText(RutasFlotaViewModel.formatearTituloManifiesto(viaje));
 
         VBox content = new VBox(10);
         content.setPadding(new Insets(16));
-        content.setPrefWidth(650);
+        content.setPrefWidth(720);
 
         TableView<ManifiestoEncomiendaDto> tabla = new TableView<>();
         tabla.setItems(FXCollections.observableArrayList(encomiendas));
+        tabla.setPlaceholder(new Label("No hay encomiendas asignadas a este viaje"));
 
         TableColumn<ManifiestoEncomiendaDto, String> colCod = new TableColumn<>("Comprobante");
         colCod.setPrefWidth(190);
         colCod.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().codigoComprobante()));
 
         TableColumn<ManifiestoEncomiendaDto, String> colEst = new TableColumn<>("Estado Logístico");
-        colEst.setPrefWidth(130);
-        colEst.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().estadoLogistico()));
+        colEst.setPrefWidth(140);
+        colEst.setCellValueFactory(c -> new SimpleStringProperty(RutasFlotaViewModel.etiquetaEstadoLogistico(c.getValue().estadoLogistico())));
 
         TableColumn<ManifiestoEncomiendaDto, String> colDest = new TableColumn<>("Agencia Destino");
         colDest.setPrefWidth(200);
         colDest.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().nombreAgenciaDestino()));
 
         TableColumn<ManifiestoEncomiendaDto, String> colPeso = new TableColumn<>("Peso (kg)");
-        colPeso.setPrefWidth(100);
+        colPeso.setPrefWidth(120);
         colPeso.setStyle("-fx-alignment: CENTER-RIGHT;");
         colPeso.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().pesoKg() != null ? String.format("%.2f kg", c.getValue().pesoKg()) : "0.00 kg"));
+                c.getValue().pesoKg() != null ? String.format(Locale.US, "%.2f kg", c.getValue().pesoKg()) : "0.00 kg"));
 
         tabla.getColumns().addAll(colCod, colEst, colDest, colPeso);
 

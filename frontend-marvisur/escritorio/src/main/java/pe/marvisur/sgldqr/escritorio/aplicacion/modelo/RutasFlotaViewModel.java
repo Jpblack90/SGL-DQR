@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -36,7 +37,30 @@ public final class RutasFlotaViewModel {
             "Finalizado"
     );
 
-    private RutasFlotaViewModel() {
+    private final ZoneId zonaPresentacion;
+
+    public RutasFlotaViewModel(ZoneId zonaPresentacion) {
+        this.zonaPresentacion = zonaPresentacion != null ? zonaPresentacion : ZoneId.systemDefault();
+    }
+
+    public static RutasFlotaViewModel porDefecto() {
+        return new RutasFlotaViewModel(ZoneId.systemDefault());
+    }
+
+    public static RutasFlotaViewModel conZona(ZoneId zona) {
+        return new RutasFlotaViewModel(zona);
+    }
+
+    public ZoneId getZonaPresentacion() {
+        return zonaPresentacion;
+    }
+
+    public String formatearFechaHoraTextoInstancia(String isoString) {
+        return formatearFechaHoraTexto(isoString, this.zonaPresentacion);
+    }
+
+    public String formatearFechaHoraCompletaInstancia(OffsetDateTime odt) {
+        return formatearFechaHoraCompleta(odt, this.zonaPresentacion);
     }
 
     // =========================================================================
@@ -50,6 +74,18 @@ public final class RutasFlotaViewModel {
             case "EN RUTA", "EN_RUTA" -> "EN_RUTA";
             case "FINALIZADO" -> "FINALIZADO";
             default -> "TODOS";
+        };
+    }
+
+    public static String etiquetaEstadoLogistico(String estado) {
+        if (estado == null) return "--";
+        return switch (estado.trim().toUpperCase()) {
+            case "REGISTRADO" -> "Registrado";
+            case "RECEPCIONADO_ORIGEN" -> "Recepción origen";
+            case "EN_RUTA" -> "En ruta";
+            case "EN_ALMACEN_DESTINO" -> "Almacén destino";
+            case "ENTREGADO" -> "Entregado";
+            default -> estado.trim();
         };
     }
 
@@ -118,12 +154,17 @@ public final class RutasFlotaViewModel {
     }
 
     public static String formatearFechaHoraTexto(String isoString) {
+        return formatearFechaHoraTexto(isoString, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraTexto(String isoString, ZoneId zona) {
         if (isoString == null || isoString.isBlank()) {
             return "--/--/---- --:--";
         }
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
         try {
             OffsetDateTime odt = OffsetDateTime.parse(isoString);
-            return odt.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA_CORTO);
+            return odt.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA_CORTO);
         } catch (Exception e1) {
             try {
                 java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(isoString);
@@ -135,8 +176,13 @@ public final class RutasFlotaViewModel {
     }
 
     public static String formatearFechaHoraCompleta(OffsetDateTime odt) {
+        return formatearFechaHoraCompleta(odt, ZoneId.systemDefault());
+    }
+
+    public static String formatearFechaHoraCompleta(OffsetDateTime odt, ZoneId zona) {
         if (odt == null) return "--/--/---- --:--:--";
-        return odt.atZoneSameInstant(ZoneId.systemDefault()).format(FORMATO_FECHA_HORA);
+        ZoneId zonaEfectiva = zona != null ? zona : ZoneId.systemDefault();
+        return odt.atZoneSameInstant(zonaEfectiva).format(FORMATO_FECHA_HORA);
     }
 
     // =========================================================================
@@ -310,9 +356,26 @@ public final class RutasFlotaViewModel {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    public static String formatearTituloManifiesto(ViajeDto viaje) {
+        if (viaje == null) {
+            return "Manifiesto de Carga";
+        }
+        String origen = viaje.ruta() != null && viaje.ruta().origen() != null && viaje.ruta().origen().nombreAgencia() != null
+                ? viaje.ruta().origen().nombreAgencia().trim()
+                : (viaje.idSucursalOrigen() != null ? viaje.idSucursalOrigen().trim() : "Origen");
+        String destino = viaje.ruta() != null && viaje.ruta().destino() != null && viaje.ruta().destino().nombreAgencia() != null
+                ? viaje.ruta().destino().nombreAgencia().trim()
+                : (viaje.idSucursalDestino() != null ? viaje.idSucursalDestino().trim() : "Destino");
+        String placa = viaje.placaEfectiva();
+        if ("S/P".equals(placa) && viaje.idViaje() != null) {
+            placa = viaje.idViaje();
+        }
+        return String.format("Manifiesto · %s → %s · %s", origen, destino, placa);
+    }
+
     public static String textoResumenManifiesto(List<ManifiestoEncomiendaDto> encomiendas) {
         int total = (encomiendas != null) ? encomiendas.size() : 0;
         BigDecimal peso = calcularPesoTotalManifiesto(encomiendas);
-        return String.format("Total encomiendas: %d | Peso total: %.2f kg", total, peso);
+        return String.format(java.util.Locale.US, "Total encomiendas: %d | Peso total: %.2f kg", total, peso);
     }
 }

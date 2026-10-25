@@ -46,7 +46,7 @@
                     <ComboBox fx:id="cboEstado" prefWidth="135.0" promptText="Estado"/>
                     <ComboBox fx:id="cboRol" prefWidth="170.0" promptText="Rol"/>
                     <ComboBox fx:id="cboSucursal" prefWidth="190.0" promptText="Agencia"/>
-                    <Button fx:id="btnBuscar" text="🔍 Buscar" onAction="#buscarEmpleados" styleClass="btn-primario"/>
+                    <Button fx:id="btnBuscar" text="Buscar" onAction="#buscarEmpleados" styleClass="btn-primario"/>
                     <Button fx:id="btnLimpiarFiltros" text="Limpiar" onAction="#limpiarFiltrosEmpleados" styleClass="btn-secundario"/>
                 </HBox>
 
@@ -64,16 +64,16 @@
 
                 <!-- Barra de Acciones y Paginación -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Button fx:id="btnNuevo" text="+ Nuevo Colaborador" onAction="#abrirDialogoNuevo" styleClass="btn-primario"/>
-                    <Button fx:id="btnEditar" text="✎ Editar" onAction="#abrirDialogoEditar" disable="true" styleClass="btn-secundario"/>
-                    <Button fx:id="btnCambiarEstado" text="⊘ Dar de baja" onAction="#confirmarCambioEstado" disable="true" styleClass="btn-secundario"/>
-                    <Button fx:id="btnRestablecerPassword" text="🔑 Restablecer Contraseña" onAction="#abrirDialogoRestablecerPassword" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnNuevo" text="Nuevo Colaborador" onAction="#abrirDialogoNuevo" styleClass="btn-primario"/>
+                    <Button fx:id="btnEditar" text="Editar" onAction="#abrirDialogoEditar" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnCambiarEstado" text="Dar de baja" onAction="#confirmarCambioEstado" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnRestablecerPassword" text="Restablecer Contraseña" onAction="#abrirDialogoRestablecerPassword" disable="true" styleClass="btn-secundario"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button fx:id="btnAnterior" text="◀ Anterior" onAction="#paginaAnteriorEmpleados" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnAnterior" text="Anterior" onAction="#paginaAnteriorEmpleados" disable="true" styleClass="btn-secundario"/>
                     <Label fx:id="lblPaginacion" text="Página 0 de 0 (Total: 0)" styleClass="label-campo"/>
-                    <Button fx:id="btnSiguiente" text="Siguiente ▶" onAction="#paginaSiguienteEmpleados" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnSiguiente" text="Siguiente" onAction="#paginaSiguienteEmpleados" disable="true" styleClass="btn-secundario"/>
                 </HBox>
             </VBox>
         </Tab>
@@ -84,7 +84,7 @@
                 <!-- Barra de Filtros de Auditoría -->
                 <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="tarjeta">
                     <ComboBox fx:id="cboFiltroAuditoriaEmpleado" prefWidth="250.0" promptText="Todos los colaboradores"/>
-                    <ComboBox fx:id="cboFiltroAuditoriaAccion" prefWidth="190.0" promptText="Todas las acciones"/>
+                    <ComboBox fx:id="cboFiltroAuditoriaAccion" prefWidth="230.0" promptText="Todas las acciones"/>
                     <DatePicker fx:id="dpDesde" promptText="Desde..." prefWidth="130.0"/>
                     <DatePicker fx:id="dpHasta" promptText="Hasta..." prefWidth="130.0"/>
                     <Button fx:id="btnFiltrarAuditoria" text="Filtrar" onAction="#filtrarAuditoria" styleClass="btn-primario"/>
@@ -106,9 +106,9 @@
                 <!-- Paginación de Auditoría -->
                 <HBox spacing="10.0" alignment="CENTER_RIGHT">
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="btnAuditoriaAnterior" text="◀ Anterior" onAction="#paginaAnteriorAuditoria" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnAuditoriaAnterior" text="Anterior" onAction="#paginaAnteriorAuditoria" disable="true" styleClass="btn-secundario"/>
                     <Label fx:id="lblAuditoriaPaginacion" text="Página 0 de 0 (Total: 0)" styleClass="label-campo"/>
-                    <Button fx:id="btnAuditoriaSiguiente" text="Siguiente ▶" onAction="#paginaSiguienteAuditoria" disable="true" styleClass="btn-secundario"/>
+                    <Button fx:id="btnAuditoriaSiguiente" text="Siguiente" onAction="#paginaSiguienteAuditoria" disable="true" styleClass="btn-secundario"/>
                 </HBox>
             </VBox>
         </Tab>

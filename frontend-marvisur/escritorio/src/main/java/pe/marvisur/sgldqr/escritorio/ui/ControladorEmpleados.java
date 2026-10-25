@@ -148,6 +148,9 @@ public class ControladorEmpleados {
     }
 
     private void configurarTablaEmpleados() {
+        if (tablaEmpleados != null) {
+            tablaEmpleados.setPlaceholder(new Label("Sin colaboradores para mostrar con los filtros aplicados"));
+        }
         colDni.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().dni()));
         colNombresApellidos.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().nombreCompleto()));
         colCorreo.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().correo()));
@@ -175,13 +178,16 @@ public class ControladorEmpleados {
     }
 
     private void configurarTablaAuditoria() {
+        if (tablaAuditoria != null) {
+            tablaAuditoria.setPlaceholder(new Label("No se encontraron registros de auditoría"));
+        }
         colAuditoriaFecha.setCellValueFactory(cell -> new SimpleStringProperty(EmpleadosViewModel.formatearFechaHoraLocal(cell.getValue().fechaHora())));
         colAuditoriaEmpleado.setCellValueFactory(cell -> new SimpleStringProperty(
                 cell.getValue().nombreEmpleado() != null && !cell.getValue().nombreEmpleado().isBlank()
                         ? cell.getValue().nombreEmpleado()
                         : cell.getValue().idEmpleado()
         ));
-        colAuditoriaAccion.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().accion()));
+        colAuditoriaAccion.setCellValueFactory(cell -> new SimpleStringProperty(EmpleadosViewModel.etiquetaAccionAuditoria(cell.getValue().accion())));
         colAuditoriaTabla.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().tablaAfectada()));
         colAuditoriaRegistro.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().idRegistroAfectado()));
         colAuditoriaIp.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().ipOrigen()));
@@ -196,6 +202,30 @@ public class ControladorEmpleados {
         configurarComboAuditoriaEmpleado(cboFiltroAuditoriaEmpleado);
 
         cboFiltroAuditoriaAccion.setItems(FXCollections.observableArrayList(EmpleadosViewModel.ACCIONES_AUDITORIA));
+        cboFiltroAuditoriaAccion.setConverter(new StringConverter<String>() {
+            @Override
+            public String toString(String accion) {
+                return EmpleadosViewModel.etiquetaAccionAuditoria(accion);
+            }
+            @Override
+            public String fromString(String string) {
+                return string;
+            }
+        });
+        cboFiltroAuditoriaAccion.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : EmpleadosViewModel.etiquetaAccionAuditoria(item));
+            }
+        });
+        cboFiltroAuditoriaAccion.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : EmpleadosViewModel.etiquetaAccionAuditoria(item));
+            }
+        });
         cboFiltroAuditoriaAccion.setValue("TODAS");
 
         if (tabPaneModulo != null) {

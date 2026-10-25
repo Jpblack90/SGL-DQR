@@ -86,6 +86,7 @@ export const PreRegistro: React.FC = () => {
 
   // Cargar catálogo de sucursales
   useEffect(() => {
+    document.title = 'Código Express · Expreso Marvisur';
     let activo = true;
     async function cargar() {
       setCargandoSucursales(true);

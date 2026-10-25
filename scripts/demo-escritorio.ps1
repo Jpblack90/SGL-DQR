@@ -45,7 +45,8 @@ $mvnArgs = @(
     "-pl", ":marvisur-escritorio",
     "-Dmarvisur.api.base-url=$ApiBaseUrl",
     "-Dapi.base-url=$ApiBaseUrl",
-    "-Djavafx.args=--api.base-url=$ApiBaseUrl"
+    "-Djavafx.args=--api.base-url=$ApiBaseUrl",
+    '-Dmarvisur.login.mostrar-demo="true"'
 )
 
 mvn @mvnArgs

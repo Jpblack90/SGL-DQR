@@ -132,6 +132,10 @@ class DashboardViewModelTest {
     void testFormatearTextoActualizacion() {
         OffsetDateTime fecha = OffsetDateTime.of(2026, 10, 24, 18, 30, 0, 0, ZoneOffset.ofHours(-5));
 
+        // Zona explícita Lima y UTC:
+        assertThat(DashboardViewModel.formatearHoraLocal(fecha, java.time.ZoneId.of("America/Lima"))).isEqualTo("18:30:00");
+        assertThat(DashboardViewModel.formatearHoraLocal(fecha, ZoneOffset.UTC)).isEqualTo("23:30:00");
+
         String textoActualizado = DashboardViewModel.formatearTextoActualizacion(fecha, false, null);
         assertThat(textoActualizado).startsWith("Actualizado: ");
 

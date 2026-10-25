@@ -118,6 +118,7 @@ public class ControladorColaLocal {
         });
 
         tablaColaLocal.setItems(elementosObservables);
+        tablaColaLocal.setPlaceholder(new Label("No hay encomiendas en la cola local"));
     }
 
     @FXML

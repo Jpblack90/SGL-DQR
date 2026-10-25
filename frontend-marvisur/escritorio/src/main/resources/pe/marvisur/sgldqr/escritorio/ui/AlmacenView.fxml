@@ -13,7 +13,7 @@
     <!-- =================================================================== -->
     <!-- PESTAÑA 1: VALIDACIÓN CRUZADA Y ENTREGA FÍSICA -->
     <!-- =================================================================== -->
-    <Tab fx:id="tabEntrega" text="📦 Entrega (Doble QR)">
+    <Tab fx:id="tabEntrega" text="Entrega (Doble QR)">
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
             <VBox spacing="16" style="-fx-padding: 20;">
                 <VBox spacing="2">
@@ -26,7 +26,7 @@
                 <HBox spacing="16">
                     <!-- TARJETA ESCANEO QR1 Y QR2 -->
                     <VBox spacing="12" styleClass="tarjeta" prefWidth="500">
-                        <Label text="🔍 Escaneo de Códigos" styleClass="tarjeta-titulo"/>
+                        <Label text="Escaneo de Códigos" styleClass="tarjeta-titulo"/>
 
                         <VBox spacing="4">
                             <Label text="QR1 Físico (Bulto):" styleClass="label-campo"/>
@@ -41,7 +41,7 @@
                         <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 8 0 0 0;">
                             <Button fx:id="btnLimpiarEntrega" text="Limpiar" onAction="#limpiarEntrega"
                                     styleClass="btn-secundario"/>
-                            <Button fx:id="btnValidarEntrega" text="🔒 Validar Entrega Física" onAction="#manejarValidarEntrega"
+                            <Button fx:id="btnValidarEntrega" text="Validar Entrega Física" onAction="#manejarValidarEntrega"
                                     styleClass="btn-primario"/>
                         </HBox>
                     </VBox>
@@ -71,9 +71,9 @@
                         <!-- Acciones tras bloqueo por pago pendiente -->
                         <HBox fx:id="panelAccionCobroEntrega" spacing="10" alignment="CENTER_LEFT"
                               visible="false" managed="false" style="-fx-padding: 8 0 0 0;">
-                            <Button fx:id="btnCobrarEntrega" text="💳 Registrar Cobro en Almacén" onAction="#manejarCobroContraEntrega"
+                            <Button fx:id="btnCobrarEntrega" text="Registrar Cobro en Almacén" onAction="#manejarCobroContraEntrega"
                                     styleClass="btn-exito"/>
-                            <Button fx:id="btnReintentarValidacion" text="🔄 Reintentar Validación" onAction="#manejarReintentarValidacion"
+                            <Button fx:id="btnReintentarValidacion" text="Reintentar Validación" onAction="#manejarReintentarValidacion"
                                     styleClass="btn-primario" disable="true"/>
                         </HBox>
                     </VBox>
@@ -85,7 +85,7 @@
     <!-- =================================================================== -->
     <!-- PESTAÑA 2: PROCESAMIENTO MASIVO DE LOTES -->
     <!-- =================================================================== -->
-    <Tab fx:id="tabLotes" text="📋 Lotes de Escaneo">
+    <Tab fx:id="tabLotes" text="Lotes de Escaneo">
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
             <VBox spacing="16" style="-fx-padding: 20;">
                 <VBox spacing="2">
@@ -98,7 +98,7 @@
                 <!-- PARÁMETROS DEL LOTE -->
                 <HBox spacing="16">
                     <VBox spacing="10" styleClass="tarjeta" prefWidth="480">
-                        <Label text="⚙️ Configuración del Lote" styleClass="tarjeta-titulo"/>
+                        <Label text="Configuración del Lote" styleClass="tarjeta-titulo"/>
 
                         <VBox spacing="4">
                             <Label text="Acción Operativa:" styleClass="label-campo"/>
@@ -127,13 +127,13 @@
                                     styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
                         </HBox>
 
-                        <Button fx:id="btnProcesarLote" text="🚀 Procesar Lote de Escaneo" onAction="#manejarProcesarLote"
+                        <Button fx:id="btnProcesarLote" text="Procesar Lote de Escaneo" onAction="#manejarProcesarLote"
                                 maxWidth="Infinity" styleClass="btn-primario"/>
                     </VBox>
 
                     <!-- TABLA DE ITEMS ESCANEADOS EN COLA -->
                     <VBox spacing="8" styleClass="tarjeta" HBox.hgrow="ALWAYS">
-                        <Label text="📦 Códigos QR1 en Cola de Lote" styleClass="tarjeta-titulo"/>
+                        <Label text="Códigos QR1 en Cola de Lote" styleClass="tarjeta-titulo"/>
                         <ListView fx:id="listaEscaneoLote" prefHeight="220"/>
                     </VBox>
                 </HBox>
@@ -141,7 +141,7 @@
                 <!-- RESULTADOS DEL LOTE -->
                 <VBox fx:id="panelResultadoLote" spacing="12" styleClass="tarjeta" visible="false" managed="false">
                     <HBox alignment="CENTER_LEFT" spacing="16">
-                        <Label text="📊 Resumen de Procesamiento del Lote"
+                        <Label text="Resumen de Procesamiento del Lote"
                                style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblResumenTotal" text="Total: 0" styleClass="badge-sucursal"/>
@@ -159,9 +159,9 @@
                     </TableView>
 
                     <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button fx:id="btnReintentarFallidos" text="🔄 Reintentar solo fallidos" onAction="#reintentarSoloFallidos"
+                        <Button fx:id="btnReintentarFallidos" text="Reintentar solo fallidos" onAction="#reintentarSoloFallidos"
                                 styleClass="btn-primario"/>
-                        <Button fx:id="btnExportarCsv" text="📁 Exportar a CSV" onAction="#exportarResultadoLoteCsv"
+                        <Button fx:id="btnExportarCsv" text="Exportar a CSV" onAction="#exportarResultadoLoteCsv"
                                 styleClass="btn-secundario"/>
                     </HBox>
                 </VBox>
@@ -172,7 +172,7 @@
     <!-- =================================================================== -->
     <!-- PESTAÑA 3: CONTINGENCIA, BÚSQUEDA DNI/RUC E INCIDENCIAS -->
     <!-- =================================================================== -->
-    <Tab fx:id="tabContingencia" text="⚠️ Contingencia e Incidencias">
+    <Tab fx:id="tabContingencia" text="Contingencia e Incidencias">
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
             <VBox spacing="16" style="-fx-padding: 20;">
                 <VBox spacing="2">
@@ -186,7 +186,7 @@
                 <HBox spacing="10" alignment="CENTER_LEFT" styleClass="tarjeta">
                     <Label text="Documento Remitente o Destinatario:" styleClass="label-campo"/>
                     <TextField fx:id="txtBusquedaDoc" promptText="DNI (8 dígitos) o RUC (11 dígitos)" prefWidth="240"/>
-                    <Button fx:id="btnBuscarDoc" text="🔍 Buscar Encomiendas" onAction="#manejarBuscarPorDocumento"
+                    <Button fx:id="btnBuscarDoc" text="Buscar Encomiendas" onAction="#manejarBuscarPorDocumento"
                             styleClass="btn-primario" defaultButton="true"/>
                 </HBox>
 
@@ -214,9 +214,9 @@
 
                     <!-- BARRA DE ACCIÓN PARA FILA SELECCIONADA -->
                     <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 6 0 0 0;">
-                        <Button fx:id="btnCobroContingencia" text="💳 Registrar Cobro Pendiente" onAction="#manejarCobroContingencia"
+                        <Button fx:id="btnCobroContingencia" text="Registrar Cobro Pendiente" onAction="#manejarCobroContingencia"
                                 styleClass="btn-exito" disable="true"/>
-                        <Button fx:id="btnAbrirReportarIncidencia" text="⚠️ Reportar Incidencia de Etiqueta" onAction="#abrirFormularioIncidencia"
+                        <Button fx:id="btnAbrirReportarIncidencia" text="Reportar Incidencia de Etiqueta" onAction="#abrirFormularioIncidencia"
                                 styleClass="btn-secundario" disable="true"/>
                     </HBox>
                 </VBox>
@@ -224,7 +224,7 @@
                 <!-- SECCIÓN REPORTE DE INCIDENCIA / REGENERACIÓN QR1 -->
                 <HBox fx:id="panelIncidencia" spacing="16" visible="false" managed="false">
                     <VBox spacing="10" styleClass="tarjeta" prefWidth="450">
-                        <Label text="🚨 Reportar Etiqueta Dañada o Perdida" styleClass="tarjeta-titulo"/>
+                        <Label text="Reportar Etiqueta Dañada o Perdida" styleClass="tarjeta-titulo"/>
 
                         <VBox spacing="4">
                             <Label text="Tipo de Incidencia:" styleClass="label-campo"/>
@@ -239,7 +239,7 @@
 
                         <HBox spacing="10" alignment="CENTER_RIGHT">
                             <Button text="Cancelar" onAction="#cerrarPanelIncidencia" styleClass="btn-secundario"/>
-                            <Button fx:id="btnConfirmarIncidencia" text="⚠️ Registrar y Regenerar QR1" onAction="#manejarRegistrarIncidencia"
+                            <Button fx:id="btnConfirmarIncidencia" text="Registrar y Regenerar QR1" onAction="#manejarRegistrarIncidencia"
                                     styleClass="btn-primario"/>
                         </HBox>
                     </VBox>
@@ -249,7 +249,7 @@
                           visible="false" managed="false">
                         <Label text="QR1 Operativo Regenerado" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
                         <ImageView fx:id="imgQr1Regenerado" fitWidth="140" fitHeight="140" preserveRatio="true"/>
-                        <Button fx:id="btnImprimirEtiquetaRegenerada" text="🖨️ Imprimir Etiqueta" onAction="#imprimirQr1Regenerado"
+                        <Button fx:id="btnImprimirEtiquetaRegenerada" text="Imprimir Etiqueta" onAction="#imprimirQr1Regenerado"
                                 styleClass="btn-exito" style="-fx-font-size: 11px;"/>
                     </VBox>
 

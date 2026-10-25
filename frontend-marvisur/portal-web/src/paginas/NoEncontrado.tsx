@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export const NoEncontrado: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Página no encontrada · Expreso Marvisur';
+  }, []);
   return (
     <div className="text-center py-16 sm:py-24 max-w-lg mx-auto space-y-6">
       <div className="w-20 h-20 bg-rojo-claro text-rojo font-black text-3xl rounded-3xl mx-auto flex items-center justify-center shadow-sm">

@@ -28,6 +28,7 @@ export const Agencias: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Nuestras Agencias · Expreso Marvisur';
     cargarSucursales();
   }, []);
 
