@@ -11,16 +11,21 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import pe.marvisur.sgldqr.api.controlador.AuditoriaController;
 import pe.marvisur.sgldqr.api.controlador.DashboardController;
+import pe.marvisur.sgldqr.api.controlador.EmpleadoController;
 import pe.marvisur.sgldqr.api.controlador.EncomiendaController;
 import pe.marvisur.sgldqr.api.controlador.PublicoController;
+import pe.marvisur.sgldqr.api.controlador.RolController;
+import pe.marvisur.sgldqr.api.servicio.AuditoriaServicio;
 import pe.marvisur.sgldqr.api.servicio.ComprobanteServicio;
 import pe.marvisur.sgldqr.api.servicio.DashboardServicio;
+import pe.marvisur.sgldqr.api.servicio.EmpleadoServicio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Prueba de humo (Smoke Test) para la carga y arranque íntegro del contexto de Spring Boot (RF-01, RF-11).
+ * Prueba de humo (Smoke Test) para la carga y arranque íntegro del contexto de Spring Boot (RF-01, RF-03, RF-11).
  * Verifica que todos los beans (servicios, controladores y repositorios) puedan ser instanciados
  * por el contenedor IoC sin NoSuchMethodException ni errores de resolución de constructores.
  */
@@ -64,6 +69,21 @@ class ArranqueContextoSpringTest {
     @Autowired
     private DashboardServicio dashboardServicio;
 
+    @Autowired
+    private EmpleadoController empleadoController;
+
+    @Autowired
+    private EmpleadoServicio empleadoServicio;
+
+    @Autowired
+    private AuditoriaController auditoriaController;
+
+    @Autowired
+    private AuditoriaServicio auditoriaServicio;
+
+    @Autowired
+    private RolController rolController;
+
     @Test
     @DisplayName("El contexto de Spring Boot arranca correctamente y todos los beans críticos se instancian")
     void contextLoads() {
@@ -73,9 +93,17 @@ class ArranqueContextoSpringTest {
         assertThat(publicoController).isNotNull();
         assertThat(dashboardController).isNotNull();
         assertThat(dashboardServicio).isNotNull();
+        assertThat(empleadoController).isNotNull();
+        assertThat(empleadoServicio).isNotNull();
+        assertThat(auditoriaController).isNotNull();
+        assertThat(auditoriaServicio).isNotNull();
+        assertThat(rolController).isNotNull();
 
         assertThat(applicationContext.containsBean("comprobanteServicio")).isTrue();
         assertThat(applicationContext.containsBean("encomiendaController")).isTrue();
         assertThat(applicationContext.containsBean("dashboardController")).isTrue();
+        assertThat(applicationContext.containsBean("empleadoController")).isTrue();
+        assertThat(applicationContext.containsBean("auditoriaController")).isTrue();
+        assertThat(applicationContext.containsBean("rolController")).isTrue();
     }
 }
