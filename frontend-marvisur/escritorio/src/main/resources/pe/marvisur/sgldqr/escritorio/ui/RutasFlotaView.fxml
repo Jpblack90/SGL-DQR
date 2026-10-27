@@ -51,7 +51,7 @@
                 <!-- Tabla de Viajes -->
                 <TableView fx:id="tablaViajes" VBox.vgrow="ALWAYS" style="-fx-background-radius: 6px;">
                     <columns>
-                        <TableColumn fx:id="colViajeRuta" text="Ruta (Origen → Destino)" prefWidth="300.0"/>
+                        <TableColumn fx:id="colViajeRuta" text="Ruta (Origen → Destino)" prefWidth="330.0"/>
                         <TableColumn fx:id="colViajeVehiculo" text="Vehículo / Placa" prefWidth="160.0"/>
                         <TableColumn fx:id="colViajeChofer" text="Chofer Asignado" prefWidth="180.0"/>
                         <TableColumn fx:id="colViajeSalida" text="Salida" prefWidth="140.0" style="-fx-alignment: CENTER;"/>

@@ -167,7 +167,7 @@ public class ControladorRutasFlota {
             ViajeDto v = cell.getValue();
             if (v == null) return new SimpleStringProperty("");
             if (v.ruta() != null) {
-                return new SimpleStringProperty(RutasFlotaViewModel.formatearRutaCombo(v.ruta()));
+                return new SimpleStringProperty(RutasFlotaViewModel.formatearRutaTabla(v.ruta()));
             }
             String ori = v.idSucursalOrigen() != null ? v.idSucursalOrigen() : "";
             String des = v.idSucursalDestino() != null ? v.idSucursalDestino() : "";
@@ -183,7 +183,12 @@ public class ControladorRutasFlota {
                     setTooltip(null);
                 } else {
                     setText(item);
-                    setTooltip(new Tooltip(item));
+                    ViajeDto viaje = (getTableRow() != null) ? getTableRow().getItem() : null;
+                    if (viaje != null && viaje.ruta() != null) {
+                        setTooltip(new Tooltip(RutasFlotaViewModel.formatearRutaCombo(viaje.ruta())));
+                    } else {
+                        setTooltip(new Tooltip(item));
+                    }
                 }
             }
         });
@@ -339,15 +344,51 @@ public class ControladorRutasFlota {
         ViajeDto sel = tablaViajes.getSelectionModel().getSelectedItem();
         if (sel == null || !RutasFlotaViewModel.puedeIniciarViaje(sel)) return;
 
+        if (!servicioConexion.estaEnLinea()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Sin Conexión", "Requiere conexión", "No se puede iniciar el viaje sin conexión.");
+            return;
+        }
+
+        Thread t = new Thread(() -> {
+            List<ManifiestoEncomiendaDto> encomiendas = null;
+            try {
+                encomiendas = flotaPort.obtenerManifiesto(sel.idViaje());
+            } catch (Exception ex) {
+                LOGGER.warning("No se pudo obtener el manifiesto previo al inicio del viaje: " + ex.getMessage());
+            }
+            final List<ManifiestoEncomiendaDto> listaFinal = encomiendas;
+            Platform.runLater(() -> mostrarDialogoConfirmacionInicioViaje(sel, listaFinal));
+        }, "hilo-pre-iniciar-viaje");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void mostrarDialogoConfirmacionInicioViaje(ViajeDto sel, List<ManifiestoEncomiendaDto> encomiendas) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.initOwner(NavegadorUI.getStagePrincipal());
         confirm.setTitle("Iniciar Viaje Interprovincial");
-        confirm.setHeaderText("¿Está seguro de iniciar el viaje seleccionado?");
-        confirm.setContentText("El estado pasará a EN RUTA.\nVehículo: " + (sel.placa() != null ? sel.placa() : sel.idVehiculo()));
 
-        Optional<ButtonType> respuesta = confirm.showAndWait();
-        if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {
-            ejecutarCambioEstadoViaje(sel.idViaje(), "EN_RUTA", "Viaje iniciado exitosamente.");
+        boolean sinCarga = RutasFlotaViewModel.esViajeSinCarga(encomiendas);
+        if (sinCarga) {
+            confirm.setHeaderText(null);
+            confirm.setContentText(RutasFlotaViewModel.mensajeConfirmacionInicioViaje(sel, encomiendas));
+            ButtonType btnSi = new ButtonType("Sí", ButtonBar.ButtonData.YES);
+            ButtonType btnNo = new ButtonType("No", ButtonBar.ButtonData.NO);
+            confirm.getButtonTypes().setAll(btnSi, btnNo);
+
+            Optional<ButtonType> respuesta = confirm.showAndWait();
+            if (respuesta.isPresent() && respuesta.get() == btnSi) {
+                ejecutarCambioEstadoViaje(sel.idViaje(), "EN_RUTA", "Viaje iniciado exitosamente.");
+            }
+        } else {
+            confirm.setHeaderText(RutasFlotaViewModel.encabezadoConfirmacionInicioViaje(encomiendas));
+            confirm.setContentText(RutasFlotaViewModel.mensajeConfirmacionInicioViaje(sel, encomiendas));
+            confirm.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+            Optional<ButtonType> respuesta = confirm.showAndWait();
+            if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {
+                ejecutarCambioEstadoViaje(sel.idViaje(), "EN_RUTA", "Viaje iniciado exitosamente.");
+            }
         }
     }
 

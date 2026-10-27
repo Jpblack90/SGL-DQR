@@ -24,9 +24,11 @@ public final class NavegadorUI {
     private NavegadorUI() {
     }
 
+    public static final String TITULO_BASE = "Expreso Marvisur · SGL-DQR";
+
     public static void inicializar(Stage stage) {
         stagePrincipal = stage;
-        stagePrincipal.setTitle("Expreso Marvisur · SGL-DQR Ventanilla");
+        actualizarTitulo(null);
         stagePrincipal.setMinWidth(960);
         stagePrincipal.setMinHeight(640);
 
@@ -43,6 +45,15 @@ public final class NavegadorUI {
         return stagePrincipal;
     }
 
+    public static void actualizarTitulo(String submodulo) {
+        if (stagePrincipal == null) return;
+        if (submodulo != null && !submodulo.isBlank()) {
+            stagePrincipal.setTitle(TITULO_BASE + " · " + submodulo.trim());
+        } else {
+            stagePrincipal.setTitle(TITULO_BASE);
+        }
+    }
+
     public static void mostrarLogin(String mensajeOpcional) {
         try {
             FXMLLoader loader = new FXMLLoader(NavegadorUI.class.getResource("/pe/marvisur/sgldqr/escritorio/ui/LoginView.fxml"));
@@ -56,6 +67,7 @@ public final class NavegadorUI {
             Scene scene = new Scene(root, 960, 640);
             aplicarHojasDeEstilo(scene);
 
+            actualizarTitulo(null);
             stagePrincipal.setScene(scene);
             stagePrincipal.centerOnScreen();
             stagePrincipal.show();
@@ -72,6 +84,7 @@ public final class NavegadorUI {
             Scene scene = new Scene(root, 1100, 720);
             aplicarHojasDeEstilo(scene);
 
+            actualizarTitulo("Ventanilla");
             stagePrincipal.setScene(scene);
             stagePrincipal.centerOnScreen();
             stagePrincipal.show();

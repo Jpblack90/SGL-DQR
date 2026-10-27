@@ -8,6 +8,16 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.3.0] - 2026-10-25
+
+### Added
 - [I2][D5] Módulo de rutas, flota de vehículos y viajes interprovinciales en aplicación de escritorio JavaFX (RF-05):
   - **Puertos y DTOs (`FlotaPort`, `aplicacion.modelo`)**: Puerto `FlotaPort` e implementación en `MarvisurHttpClient` para `GET /api/v1/vehiculos`, `POST /api/v1/vehiculos` (201 Created), `GET /api/v1/rutas`, `GET /api/v1/viajes`, `POST /api/v1/viajes` (201 Created), `PATCH /api/v1/viajes/{id}/estado`, y `GET /api/v1/viajes/{id}/encomiendas`. Compatibilidad defensiva con `@JsonIgnoreProperties(ignoreUnknown = true)` en `ViajeDto` extendido para el flujo de Lotes y Almacén.
   - **Navegación RBAC (`ModeloMenuRol`, `PrincipalView.fxml`, `ControladorPrincipal`)**: Habilitación del módulo `RUTAS` para Administrador (`TN3`) y Chofer (`TN4`). Apertura inicial automática para Chofer (`TN4`). Edición localizada en `PrincipalView.fxml` sin reescritura.
@@ -72,6 +82,17 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Pruebas Automatizadas**: Suite unitaria `ComprobantePdfGeneradorTest` (PDFBox, cabecera `%PDF`, validación de texto y privacidad), pruebas de integración `ComprobantePdfIntegracionTest` (MockMvc + Testcontainers) y pruebas unitarias de cliente web en `Rastreo.test.tsx` (8 tests).
 
 ### Changed
+- [I4][CIERRE] Preparación del pipeline automatizado de cierre de versión v0.3.0 (`scripts/cierre-version.ps1`), sincronización y validación de contratos OpenAPI 3, actualización de versión en menú lateral a v0.3.0, actualización de la matriz de implementación en `docs/estado-implementacion.md` y aclaración del desglose de pruebas de base de datos (PostgreSQL 16 Testcontainers vs H2) en `README.md` y `scripts/informe-metricas.ps1`.
+- [I2][PULIDO-FINAL] Ajustes finales de usabilidad y consistencia de interfaz en aplicación de escritorio JavaFX:
+  - **Mapeo descriptivo de motivos de error en lotes (`ItemResultadoLoteDto`)**: Traducción en cliente del código `ESTADO_INVALIDO` contextualizado según la acción seleccionada («Recepcionar en origen» exige envíos en estado Registrado; «Despachar a viaje» exige En almacén origen; «Recepcionar en destino» exige En ruta y coincidencia de agencia receptora). Traducción amigable de motivos tipificados de la API (`QR1_INEXISTENTE`, `SUCURSAL_NO_CORRESPONDE`, `DESTINO_NO_COINCIDE`, `YA_DESPACHADA`, `VIAJE_INEXISTENTE`).
+  - **Captura automática de código pendiente al procesar lote (`ControladorAlmacen`)**: Incorporación del código escrito en `txtQr1Lote` al lote activo y vaciado inmediato del campo de texto tras pulsar «Procesar Lote», igualando el comportamiento del pulsado de Enter.
+  - **Advertencia preventiva antes de iniciar viaje sin carga (`ControladorRutasFlota`, `RutasFlotaViewModel`)**: Consulta asíncrona previa del manifiesto (`GET /api/v1/viajes/{id}/encomiendas`). Si no cuenta con carga asignada, despliega diálogo de confirmación con opciones Sí / No («Este viaje no tiene encomiendas asignadas. ¿Iniciarlo de todos modos?»); si cuenta con carga o la consulta falla, mantiene la confirmación estándar.
+  - **Optimización de columna Ruta en tabla de viajes (`RutasFlotaView.fxml`, `ControladorRutasFlota`, `RutasFlotaViewModel`)**: Presentación simplificada en celda como «Origen → Destino» (omitiendo kilometraje en celda), ruta completa con distancia en tooltip informativo, y ensanchamiento de `colViajeRuta` a 330px para asegurar visualización íntegra de «Agencia Lima Central → Agencia Huancayo».
+  - **Mensaje de estado inicial en búsqueda de contingencia (`ControladorAlmacen`)**: Configuración de placeholder inicial como «Ingrese un DNI o RUC y pulse Buscar», mostrando «No se encontraron encomiendas para el documento ingresado» únicamente tras realizar una búsqueda sin coincidencias.
+  - **Sincronización del menú lateral con pestañas de almacén (`ControladorAlmacen`, `ControladorPrincipal`)**: Listener de selección de pestaña que resalta automáticamente `btnMenuAlmacen` al situarse en «Entrega» o «Lotes de Escaneo», y `btnMenuContingencia` al seleccionar la pestaña de «Contingencia e Incidencias».
+  - **Título dinámico de ventana principal (`NavegadorUI`, `ControladorPrincipal`)**: Sustitución del título estático por «Expreso Marvisur · SGL-DQR · <Módulo>» actualizado dinámicamente al navegar entre ventanilla, almacén, contingencia, cola local, dashboard, empleados y rutas/flota.
+  - **Texto de ejemplo limpio en login (`LoginView.fxml`)**: Modificación del promptText del campo de correo corporativo a «correo@marvisur.pe».
+  - **Pruebas unitarias headless**: Nuevas aserciones en `LoteEscaneoTest` (traducción de motivos de error por acción y adición automática de ítems) y en `RutasFlotaViewModelTest` (formato de celda de ruta sin km y decisiones de confirmación con y sin carga).
 - [I2][I3][PULIDO] Pulido de diseño, presentación visual y coherencia en interfaz de escritorio JavaFX y portal web:
   - **Erradicación de emojis rotos y glifos `\uFE0F` (JavaFX)**: Limpieza exhaustiva de selectores de variación `\uFE0F` y emojis no soportados por fuentes nativas del sistema en `AlmacenView.fxml`, `VentanillaView.fxml`, `ColaLocalView.fxml`, `DashboardView.fxml`, `EmpleadosView.fxml`, `RutasFlotaView.fxml`, `PrincipalView.fxml` y mensajes dinámicos en `ControladorAlmacen.java`, sustituyendo caracteres gráficos defectuosos por tipografía limpia y flechas estándar (`→`).
   - **Ocultamiento por defecto de credenciales demo en login**: Configuración de `LoginView.fxml` y `ControladorLogin.java` para mantener oculto el panel de credenciales rápidas de demostración en producción y distribución regular (`login.mostrar-demo=false`), activable únicamente bajo demanda en desarrollo y pruebas mediante flag `-Dmarvisur.login.mostrar-demo=true` o en `escritorio.properties`. Actualización de `scripts/demo-escritorio.ps1` y `scripts/empaquetar-escritorio.ps1`, con suite unitaria `LoginDemoFlagTest`.
@@ -89,6 +110,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - **Pruebas unitarias de presentación**: Ampliación de `ComprobantePdfGeneradorTest` verificando títulos, tipos referenciales, ausencia estricta de «venta» y ajuste multilínea de descripción.
 
 ### Fixed
+- [I1][I4][CONTRATOS-METRICAS] Exclusión de endpoints de prueba `/test-rbac` del contrato OpenAPI interno con `@Hidden`, aserción en `OpenApiExportTest` y preservación estricta de BOM UTF-8 en scripts PowerShell para erradicación de mojibake en el informe técnico de métricas.
 - [I2][CI-TZ] Independencia de zona horaria e idioma en formateo y pruebas del escritorio JavaFX:
   - **Inyección de zona horaria en ViewModels**: Parámetro `ZoneId` inyectable (con constructor canónico único y fábricas estáticas `porDefecto()` y `conZona(zone)`) en `RutasFlotaViewModel`, `EmpleadosViewModel` y `DashboardViewModel`, manteniendo la zona del sistema por defecto en producción para presentar la hora local del usuario.
   - **Desacoplamiento de pruebas (`RutasFlotaViewModelTest`, `EmpleadosViewModelTest`, `DashboardViewModelTest`)**: Aserciones de fecha y hora contra zonas explícitas inyectadas (`America/Lima`, `UTC`, `Asia/Tokyo`) y validación dinámica de métodos por defecto contra `ZoneId.systemDefault()`, eliminando fallos en entornos CI ejecutados en UTC o idiomas no hispanos.

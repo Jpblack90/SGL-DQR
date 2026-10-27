@@ -133,16 +133,85 @@ class LoteEscaneoTest {
         String textoCampo = "MARVISUR:QR1:AUTO-ADD-001";
 
         // Simula la lógica de verificación al pulsar procesar
-        if (items.isEmpty()) {
-            String codigoPendiente = textoCampo != null ? textoCampo.trim() : "";
-            if (!codigoPendiente.isEmpty()) {
-                if (!items.contains(codigoPendiente)) {
-                    items.add(codigoPendiente);
-                }
+        String codigoPendiente = textoCampo != null ? textoCampo.trim() : "";
+        if (!codigoPendiente.isEmpty()) {
+            if (!items.contains(codigoPendiente)) {
+                items.add(codigoPendiente);
             }
         }
 
         assertThat(items).hasSize(1);
         assertThat(items.get(0)).isEqualTo("MARVISUR:QR1:AUTO-ADD-001");
+    }
+
+    @Test
+    @DisplayName("lotes: auto-agregar código al pulsar procesar con lista con elementos existentes")
+    void testAutoAgregarCodigoPendienteAlProcesarConListaNoVacia() {
+        List<String> items = new ArrayList<>(List.of("MARVISUR:QR1:ITEM-EXISTENTE"));
+        String textoCampo = "MARVISUR:QR1:AUTO-ADD-002";
+
+        String codigoPendiente = textoCampo != null ? textoCampo.trim() : "";
+        if (!codigoPendiente.isEmpty()) {
+            if (!items.contains(codigoPendiente)) {
+                items.add(codigoPendiente);
+            }
+        }
+
+        assertThat(items).hasSize(2);
+        assertThat(items.get(1)).isEqualTo("MARVISUR:QR1:AUTO-ADD-002");
+    }
+
+    @Test
+    @DisplayName("lotes: traducción de motivos de error tipificados según acción de lote")
+    void testMapeoMotivosErrorLoteSegunAccion() {
+        // ESTADO_INVALIDO según la acción seleccionada
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "RECEPCIONAR_ORIGEN"))
+                .isEqualTo("«Recepcionar en origen» exige envíos en estado Registrado");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "Recepcionar en origen"))
+                .isEqualTo("«Recepcionar en origen» exige envíos en estado Registrado");
+
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "DESPACHAR_A_VIAJE"))
+                .isEqualTo("«Despachar a viaje» exige En almacén origen");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "Despachar a viaje"))
+                .isEqualTo("«Despachar a viaje» exige En almacén origen");
+
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "RECEPCIONAR_DESTINO"))
+                .isEqualTo("«Recepcionar en destino» exige En ruta (y que quien recepciona sea de la agencia de destino)");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", "Recepcionar en destino"))
+                .isEqualTo("«Recepcionar en destino» exige En ruta (y que quien recepciona sea de la agencia de destino)");
+
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ESTADO_INVALIDO", null))
+                .isEqualTo("Estado logístico no admite esta acción");
+
+        // Demás motivos tipificados de la API
+        assertThat(ItemResultadoLoteDto.traducirMotivo("QR1_INEXISTENTE", null))
+                .isEqualTo("Código QR1 no encontrado en el sistema");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("SUCURSAL_NO_CORRESPONDE", null))
+                .isEqualTo("No pertenece a esta sucursal de origen");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("DESTINO_NO_COINCIDE", null))
+                .isEqualTo("El destino del viaje no coincide con el paquete");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("YA_DESPACHADA", null))
+                .isEqualTo("La encomienda ya fue asignada a viaje");
+        assertThat(ItemResultadoLoteDto.traducirMotivo("VIAJE_INEXISTENTE", null))
+                .isEqualTo("Viaje especificado no encontrado o finalizado");
+
+        // Motivo no tipificado o personalizado se mantiene
+        assertThat(ItemResultadoLoteDto.traducirMotivo("ERROR_PERSONALIZADO", null))
+                .isEqualTo("ERROR_PERSONALIZADO");
+
+        // Ítem DTO con getMotivoLegible delegando según acción
+        ItemResultadoLoteDto errorOrigen = new ItemResultadoLoteDto("QR1-01", "ENC-01", "ERROR", "ESTADO_INVALIDO");
+        assertThat(errorOrigen.getMotivoLegible("RECEPCIONAR_ORIGEN"))
+                .isEqualTo("«Recepcionar en origen» exige envíos en estado Registrado");
+        assertThat(errorOrigen.getMotivoLegible("DESPACHAR_A_VIAJE"))
+                .isEqualTo("«Despachar a viaje» exige En almacén origen");
+        assertThat(errorOrigen.getMotivoLegible())
+                .isEqualTo("Estado logístico no admite esta acción");
+
+        ItemResultadoLoteDto okItem = new ItemResultadoLoteDto("QR1-02", "ENC-02", "OK", null);
+        assertThat(okItem.getMotivoLegible()).isEqualTo("Transición exitosa");
+
+        ItemResultadoLoteDto yaItem = new ItemResultadoLoteDto("QR1-03", "ENC-03", "YA_REGISTRADA", null);
+        assertThat(yaItem.getMotivoLegible()).isEqualTo("Ya procesado previamente");
     }
 }

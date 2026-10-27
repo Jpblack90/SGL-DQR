@@ -76,6 +76,7 @@ public class OpenApiExportTest {
         String json = new String(rawBytes, StandardCharsets.UTF_8);
         assertThat(json).contains("/api/v1/encomiendas");
         assertThat(json).doesNotContain("/api/v1/publico/rastreo");
+        assertThat(json).doesNotContain("/test-rbac");
 
         assertThat(json).doesNotContain("Ã");
         assertThat(json).doesNotContain("\u00C3");

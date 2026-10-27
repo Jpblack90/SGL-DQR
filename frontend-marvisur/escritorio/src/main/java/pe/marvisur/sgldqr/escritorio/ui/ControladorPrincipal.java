@@ -283,6 +283,7 @@ public class ControladorPrincipal {
     public void mostrarVentanilla() {
         desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuVentanilla);
+        NavegadorUI.actualizarTitulo("Ventanilla");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/VentanillaView.fxml"));
             Node vista = loader.load();
@@ -310,6 +311,7 @@ public class ControladorPrincipal {
     public void mostrarColaLocal() {
         desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuColaLocal);
+        NavegadorUI.actualizarTitulo("Cola Local");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/ColaLocalView.fxml"));
             Node vista = loader.load();
@@ -324,8 +326,22 @@ public class ControladorPrincipal {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/AlmacenView.fxml"));
             Node vista = loader.load();
             ControladorAlmacen controlador = loader.getController();
-            if (controlador != null && pestana != null) {
-                controlador.seleccionarPestana(pestana);
+            if (controlador != null) {
+                controlador.setAlCambiarPestana(tab -> {
+                    if (tab == controlador.getTabContingencia()) {
+                        marcarBotonActivo(btnMenuContingencia);
+                        NavegadorUI.actualizarTitulo("Contingencia");
+                    } else if (tab == controlador.getTabLotes()) {
+                        marcarBotonActivo(btnMenuAlmacen);
+                        NavegadorUI.actualizarTitulo("Almacén · Lotes");
+                    } else {
+                        marcarBotonActivo(btnMenuAlmacen);
+                        NavegadorUI.actualizarTitulo("Almacén");
+                    }
+                });
+                if (pestana != null) {
+                    controlador.seleccionarPestana(pestana);
+                }
             }
             contenedorContenido.getChildren().setAll(vista);
         } catch (IOException e) {
@@ -337,6 +353,7 @@ public class ControladorPrincipal {
     public void mostrarDashboard() {
         desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuDashboard);
+        NavegadorUI.actualizarTitulo("Dashboard");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/DashboardView.fxml"));
             Node vista = loader.load();
@@ -354,6 +371,7 @@ public class ControladorPrincipal {
     public void mostrarEmpleados() {
         desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuEmpleados);
+        NavegadorUI.actualizarTitulo("Empleados");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/EmpleadosView.fxml"));
             Node vista = loader.load();
@@ -367,6 +385,7 @@ public class ControladorPrincipal {
     public void mostrarRutas() {
         desactivarDashboardSiActivo();
         marcarBotonActivo(btnMenuRutas);
+        NavegadorUI.actualizarTitulo("Rutas / Flota");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pe/marvisur/sgldqr/escritorio/ui/RutasFlotaView.fxml"));
             Node vista = loader.load();

@@ -1,6 +1,6 @@
 # SGL-DQR — Sistema de Gestión Logística con Doble QR
 
-**Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.2.1 (Fase B Congelada)  
+**Expreso Marvisur** · Fase 3: Desarrollo e Implementación · Versión 0.3.0  
 Arquitectura Hexagonal · Java 21 · Spring Boot 3 · JavaFX 21 (Offline-First en Ventanilla) · React 18 · PostgreSQL 16 · SQLite · Flyway · ZXing · JWT RBAC
 
 ---
@@ -30,25 +30,34 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 ### Resumen de Limitaciones Conocidas:
 - **Hardware simulado**: La ticketera térmica de 58 mm está emulada en software generando imágenes PNG en `salida/ticket_*.png`; el escáner opera mediante emulación de teclado USB con `CampoEscaneo`. No hay drivers directos para periféricos físicos (H1 y H2 pendientes).
 - **HTTPS ausente**: El sistema opera sobre HTTP plano sin certificados SSL/TLS configurados (O3 pendiente).
-- **Sin instalador autocontenido**: La app de escritorio requiere Maven y JDK 21 instalado; no se empaquetó instalador `.EXE`/`.MSI` mediante `jpackage` (O4 pendiente).
+- **Instalador MSI pendiente**: La app de escritorio cuenta con paquete portátil autocontenido con JRE embebido (`target/dist/SGL-DQR/`); el instalador MSI depende de herramientas WiX (O4 parcial).
 - **Tarifa y comprobantes provisionales**: El cálculo tarifario por peso y la serie de comprobantes (`MV-yyyyMMdd-XXXXXXXX`) son referenciales con marcas `TODO`, pendientes de los tarifarios y numeración fiscal definitiva de Marvisur.
-- **Funcionalidades pendientes**: Dashboard administrativo con KPIs (RF-02), CRUD de empleados (RF-03) y descarga autónoma de comprobantes en PDF (RF-11) no están implementados.
-- **Fuera de alcance oficial**: Integración técnica con SUNAT (emisión electrónica XML/CDR) y aplicaciones móviles nativas.
+
+- **Fuera de alcance oficial**: Integración técnica con SUNAT (emisión electrónica XML/CDR oficial) y aplicaciones móviles nativas.
 
 ---
 
-## 3. Conteo de Pruebas Automatizadas (263 Pruebas en Verde)
+## 3. Conteo de Pruebas Automatizadas (466 Pruebas en Verde)
 
-El software cuenta con una suite integral de 263 pruebas automatizadas (100% en verde):
+El software cuenta con una suite integral de 466 pruebas automatizadas (100% en verde, 0 fallos, 0 errores, 0 omitidas):
 
 | Módulo / Proyecto | Tecnologías | Pruebas | Resultado |
 |---|---|:---:|:---:|
-| `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit | **50** | **100% Verde** |
-| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16), Flyway | **104** | **100% Verde** |
-| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **76** | **100% Verde** |
-| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **33** | **100% Verde** |
-| **TOTAL** | **Multiplataforma** | **263** | **100% VERDE** |
+| `marvisur-core` | Java 21, JUnit 5, Mockito, ArchUnit (45 unitarias + 5 reglas ArchUnit) | **50** | **100% Verde** |
+| `marvisur-api` | Spring Boot 3.3, Testcontainers (PostgreSQL 16) / H2, Flyway | **216** | **100% Verde** |
+| `marvisur-escritorio` | JavaFX 21, SQLite JDBC, HttpServer Mock | **163** | **100% Verde** |
+| `portal-web` | React 18, Vite, TypeScript, Vitest, Testing Library | **37** | **100% Verde** |
+| **TOTAL** | **Multiplataforma** | **466** | **100% VERDE** |
 
+> **Nota sobre pruebas de base de datos en `marvisur-api`**: De las 216 pruebas (en 27 clases de prueba), **81 pruebas** (10 clases) ejecutan integración contra PostgreSQL 16 real con Testcontainers (`@Testcontainers` / `@DynamicPropertySource`), **69 pruebas** (8 clases) ejecutan contra base de datos en memoria H2 (modo compatibilidad PostgreSQL) y **66 pruebas** (9 clases) son pruebas unitarias puras sin base de datos.
+>
+> **Métricas Generales del Sistema** (a la fecha del informe):
+> - **Operaciones REST (OpenAPI 3)**: 38 operaciones (31 internas y 7 públicas).
+> - **Migraciones Flyway**: 8 archivos de migración (`V1` a `V8`).
+> - **Tablas de Base de Datos**: 18 tablas oficiales del Diccionario de Datos.
+> - **Líneas de Código (LOC)**: 40,551 líneas en 425 archivos de código fuente.
+> - **Historial Git**: 145 commits registrados en el repositorio.
+>
 > Para un desglose exhaustivo de pruebas por clase, tiempos de ejecución, catálogo OpenAPI, tablas Flyway y líneas de código (LOC), consulte el [Informe Técnico de Métricas](docs/informe-metricas.md) generado automáticamente.
 
 ---

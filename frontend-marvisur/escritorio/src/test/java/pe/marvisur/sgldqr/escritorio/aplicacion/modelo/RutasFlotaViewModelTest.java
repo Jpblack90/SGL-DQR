@@ -246,4 +246,52 @@ class RutasFlotaViewModelTest {
 
         assertThat(RutasFlotaViewModel.formatearTituloManifiesto(null)).isEqualTo("Manifiesto de Carga");
     }
+
+    @Test
+    @DisplayName("formatearRutaTabla: muestra únicamente origen y destino sin kilometraje")
+    void testFormatearRutaTabla() {
+        AgenciaResumenDto ori = new AgenciaResumenDto("suc-1", "Agencia Lima Central");
+        AgenciaResumenDto des = new AgenciaResumenDto("suc-2", "Agencia Huancayo");
+        RutaDto ruta = new RutaDto("r-1", ori, des, new BigDecimal("310.00"));
+
+        String formatoTabla = RutasFlotaViewModel.formatearRutaTabla(ruta);
+        assertThat(formatoTabla).isEqualTo("Agencia Lima Central → Agencia Huancayo");
+        assertThat(formatoTabla).doesNotContain("km");
+        assertThat(formatoTabla).doesNotContain("310");
+
+        assertThat(RutasFlotaViewModel.formatearRutaTabla(null)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("iniciarViaje: decisión y textos de confirmación según tenga o no carga")
+    void testConfirmacionInicioViajeSinCarga() {
+        ViajeDto viaje = new ViajeDto("V-101", "R-1", "SUC-1", "SUC-2", 310.0, "VEH-1", "ABC-123", "CHO-1", "Carlos", "2026-10-25T10:00:00Z", "2026-10-26T10:00:00Z", "PROGRAMADO", null, "ABC-123", "Volvo");
+
+        // Caso 1: Manifiesto vacío (sin encomiendas asignadas)
+        List<ManifiestoEncomiendaDto> sinCarga = List.of();
+        assertThat(RutasFlotaViewModel.esViajeSinCarga(sinCarga)).isTrue();
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionInicioViaje(sinCarga))
+                .isEqualTo("¿Iniciar viaje sin encomiendas?");
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionInicioViaje(viaje, sinCarga))
+                .isEqualTo("Este viaje no tiene encomiendas asignadas. ¿Iniciarlo de todos modos?");
+
+        // Caso 2: Manifiesto con carga (encomiendas asignadas)
+        List<ManifiestoEncomiendaDto> conCarga = List.of(
+                new ManifiestoEncomiendaDto("MV-01", "EN_RUTA", "Huancayo", new BigDecimal("15.00"))
+        );
+        assertThat(RutasFlotaViewModel.esViajeSinCarga(conCarga)).isFalse();
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionInicioViaje(conCarga))
+                .isEqualTo("¿Está seguro de iniciar el viaje seleccionado?");
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionInicioViaje(viaje, conCarga))
+                .contains("El estado pasará a EN RUTA.")
+                .contains("ABC-123");
+
+        // Caso 3: Consulta fallida o manifiesto null (comportamiento normal por defecto)
+        assertThat(RutasFlotaViewModel.esViajeSinCarga(null)).isFalse();
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionInicioViaje(null))
+                .isEqualTo("¿Está seguro de iniciar el viaje seleccionado?");
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionInicioViaje(viaje, null))
+                .contains("El estado pasará a EN RUTA.")
+                .contains("ABC-123");
+    }
 }

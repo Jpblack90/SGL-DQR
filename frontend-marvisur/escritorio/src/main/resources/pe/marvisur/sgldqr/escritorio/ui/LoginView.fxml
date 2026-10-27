@@ -32,7 +32,7 @@
         <VBox spacing="12">
             <VBox spacing="4">
                 <Label text="Correo Corporativo" styleClass="label-campo"/>
-                <TextField fx:id="txtCorreo" promptText="ej. recepcionista.demo@marvisur.pe"/>
+                <TextField fx:id="txtCorreo" promptText="correo@marvisur.pe"/>
             </VBox>
 
             <VBox spacing="4">
