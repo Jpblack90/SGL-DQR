@@ -6,6 +6,6 @@ RUN mvn -B -q -pl backend-marvisur/marvisur-api -am package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/backend-marvisur/marvisur-api/target/marvisur-api-0.1.0-SNAPSHOT-exec.jar app.jar
-ENV SPRING_PROFILES_ACTIVE=prod JAVA_TOOL_OPTIONS="-Xmx300m -XX:+UseSerialGC"
+ENV SPRING_PROFILES_ACTIVE=prod JAVA_TOOL_OPTIONS="-Xmx300m -XX:+UseSerialGC -Duser.timezone=America/Lima"
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
