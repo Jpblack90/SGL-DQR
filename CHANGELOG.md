@@ -31,6 +31,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
+- [I4] Los scripts `demo-escritorio.ps1`, `demo-api.ps1` y `empaquetar-escritorio.ps1` ya no fallan si Maven no está instalado: usan el Maven Wrapper (`mvnw.cmd`, Maven 3.9.9) incluido en el proyecto.
 - [I4][O7] `instalar.sh`: si se indica `PORTAL_URL` en una nueva ejecución, actualiza la dirección guardada en `api.env` (antes se ignoraba); el resumen final solo menciona el reenvío 8088 -> 80 cuando se usa VirtualBox.
 - [I1] El historial de seguimiento de los lotes de Almacén registra la agencia física del paso (origen, ruta o destino) en lugar de la agencia del empleado.
 - [I2] Al cerrar la tarjeta de registro se borran también el enlace de la Billetera y el texto del QR1 de la pantalla.

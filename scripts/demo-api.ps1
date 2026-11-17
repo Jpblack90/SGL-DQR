@@ -39,6 +39,12 @@ if (-not (Get-Command "mvn" -ErrorAction SilentlyContinue)) {
     }
 }
 
+# Sin Maven instalado: usar el Maven Wrapper del proyecto (descarga Maven 3.9.9 la primera vez; requiere Java 21)
+$MvnExe = if (Get-Command "mvn" -ErrorAction SilentlyContinue) { "mvn" } else { Join-Path $Raiz "mvnw.cmd" }
+if ($MvnExe -ne "mvn") {
+    Write-Host "--> Maven no esta instalado: se usa el Maven Wrapper del proyecto (mvnw.cmd)" -ForegroundColor Yellow
+}
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " [DEMO-API] Arrancando marvisur-api en perfil dev" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -80,7 +86,7 @@ $PidFile = Join-Path $PSScriptRoot ".api.pid"
 if ($Background) {
     Write-Host "--> Iniciando API en segundo plano..." -ForegroundColor Yellow
     $mvnArgs = "spring-boot:run", "-pl", ":marvisur-api", "-Dspring-boot.run.profiles=dev", "-Dspring-boot.run.jvmArguments=-Dapp.portal.url-base=$PortalUrl"
-    $proc = Start-Process -FilePath "mvn" -ArgumentList $mvnArgs -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden
+    $proc = Start-Process -FilePath $MvnExe -ArgumentList $mvnArgs -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden
     $proc.Id | Out-File -FilePath $PidFile -Encoding ascii -Force
     Write-Host "[OK] Proceso iniciado con PID $($proc.Id). PID guardado en $PidFile" -ForegroundColor Green
     Write-Host "     Verifica disponibilidad en http://localhost:8080/actuator/health" -ForegroundColor Green
@@ -89,5 +95,5 @@ if ($Background) {
     Write-Host "--> PID del lanzador ($PID) guardado en $PidFile" -ForegroundColor Gray
     Write-Host "--> Iniciando Spring Boot en consola interactiva (Ctrl+C para detener)...`n" -ForegroundColor Yellow
 
-    mvn spring-boot:run -pl :marvisur-api "-Dspring-boot.run.profiles=dev" "-Dspring-boot.run.jvmArguments=-Dapp.portal.url-base=$PortalUrl"
+    & $MvnExe spring-boot:run -pl :marvisur-api "-Dspring-boot.run.profiles=dev" "-Dspring-boot.run.jvmArguments=-Dapp.portal.url-base=$PortalUrl"
 }

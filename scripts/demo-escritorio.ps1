@@ -35,6 +35,12 @@ if (-not (Get-Command "mvn" -ErrorAction SilentlyContinue)) {
     }
 }
 
+# Sin Maven instalado: usar el Maven Wrapper del proyecto (descarga Maven 3.9.9 la primera vez; requiere Java 21)
+$MvnExe = if (Get-Command "mvn" -ErrorAction SilentlyContinue) { "mvn" } else { Join-Path $Raiz "mvnw.cmd" }
+if ($MvnExe -ne "mvn") {
+    Write-Host "--> Maven no esta instalado: se usa el Maven Wrapper del proyecto (mvnw.cmd)" -ForegroundColor Yellow
+}
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " [DEMO-ESCRITORIO] Ejecutando Aplicacion JavaFX (SGL-DQR)" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -60,7 +66,7 @@ if ($habiaJavaToolOptions -and -not [string]::IsNullOrWhiteSpace($prevJavaToolOp
 }
 
 try {
-    mvn @mvnArgs
+    & $MvnExe @mvnArgs
 }
 finally {
     if ($habiaJavaToolOptions) {

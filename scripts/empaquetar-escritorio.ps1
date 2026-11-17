@@ -41,6 +41,8 @@ if (Get-Command "mvn.cmd" -ErrorAction SilentlyContinue) {
     $mvnCmd = "$env:MAVEN_HOME\bin\mvn.cmd"
 } elseif (Test-Path "C:\tools\apache-maven-3.9.9\bin\mvn.cmd") {
     $mvnCmd = "C:\tools\apache-maven-3.9.9\bin\mvn.cmd"
+} elseif (Test-Path (Join-Path $rootDir "mvnw.cmd")) {
+    $mvnCmd = Join-Path $rootDir "mvnw.cmd"
 } else {
     throw "No se encontró el ejecutable de Maven (mvn.cmd). Configure PATH o MAVEN_HOME."
 }
