@@ -39,6 +39,31 @@ if (-not (Get-Command "mvn" -ErrorAction SilentlyContinue)) {
     }
 }
 
+# Resolver Java 21 (JAVA_HOME) si no esta configurado
+function Test-Jdk21([string]$dir) {
+    if ([string]::IsNullOrWhiteSpace($dir) -or -not (Test-Path (Join-Path $dir "bin\java.exe"))) { return $false }
+    $rel = Join-Path $dir "release"
+    return (Test-Path $rel) -and ((Get-Content $rel -Raw) -match 'JAVA_VERSION="21')
+}
+if (-not (Test-Jdk21 $env:JAVA_HOME)) {
+    $candidatosJdk = @()
+    $cmdJava = Get-Command "java" -ErrorAction SilentlyContinue
+    if ($cmdJava) { $candidatosJdk += (Split-Path -Parent (Split-Path -Parent $cmdJava.Source)) }
+    foreach ($base in @("$env:ProgramFiles\Eclipse Adoptium", "$env:ProgramFiles\Java", "$env:ProgramFiles\Microsoft", "$env:ProgramFiles\Zulu", "$env:ProgramFiles\Amazon Corretto", "$env:USERPROFILE\.jdks")) {
+        if (Test-Path $base) { $candidatosJdk += (Get-ChildItem $base -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object FullName) }
+    }
+    $jdk = $candidatosJdk | Where-Object { Test-Jdk21 $_ } | Select-Object -First 1
+    if (-not $jdk) {
+        Write-Host "[ERROR] No se encontro Java 21 (JDK). Instalalo con:" -ForegroundColor Red
+        Write-Host "        winget install EclipseAdoptium.Temurin.21.JDK" -ForegroundColor Yellow
+        Write-Host "        y abre una ventana nueva de PowerShell antes de volver a ejecutar este script." -ForegroundColor Yellow
+        exit 1
+    }
+    $env:JAVA_HOME = $jdk
+    $env:Path = "$jdk\bin;$env:Path"
+    Write-Host "--> Java 21 encontrado en: $jdk" -ForegroundColor Green
+}
+
 # Sin Maven instalado: usar el Maven Wrapper del proyecto (descarga Maven 3.9.9 la primera vez; requiere Java 21)
 $MvnExe = if (Get-Command "mvn" -ErrorAction SilentlyContinue) { "mvn" } else { Join-Path $Raiz "mvnw.cmd" }
 if ($MvnExe -ne "mvn") {
