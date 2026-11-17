@@ -9,9 +9,11 @@
 # Uso (como usuario normal con sudo, NO como root), desde la raíz del repositorio:
 #   bash deploy/ubuntu/instalar.sh
 #
-# Variables opcionales (se guardan en deploy/ubuntu/api.env la primera vez):
-#   DB_CLAVE     Contraseña del usuario de PostgreSQL     (por defecto: marvisur_dev)
+# Variables opcionales (se guardan en deploy/ubuntu/api.env):
+#   DB_CLAVE     Contraseña del usuario de PostgreSQL     (por defecto: marvisur_dev; solo la primera vez)
 #   PORTAL_URL   Dirección con la que se abre el portal   (por defecto: http://localhost:8088)
+#                Si se indica en una nueva ejecución, actualiza la dirección guardada
+#                (útil en Hyper-V, donde la IP de la máquina puede cambiar).
 #
 # Se puede ejecutar de nuevo para actualizar: vuelve a compilar y a publicar.
 # =============================================================================
@@ -27,6 +29,7 @@ NOMBRE_PM2="sgl-dqr-api"
 DB_NOMBRE="marvisur_db"
 DB_USUARIO="marvisur"
 DB_CLAVE="${DB_CLAVE:-marvisur_dev}"
+PORTAL_URL_INDICADA="${PORTAL_URL:-}"
 PORTAL_URL="${PORTAL_URL:-http://localhost:8088}"
 
 paso() { printf '\n\033[1;32m==> %s\033[0m\n' "$1"; }
@@ -70,7 +73,12 @@ SPRING_DATASOURCE_PASSWORD=$DB_CLAVE
 APP_PORTAL_URL_BASE=$PORTAL_URL
 CORS_ORIGENES=$PORTAL_URL
 EOF
+elif [ -n "$PORTAL_URL_INDICADA" ]; then
+    sed -i -e "s|^APP_PORTAL_URL_BASE=.*|APP_PORTAL_URL_BASE=$PORTAL_URL|" \
+           -e "s|^CORS_ORIGENES=.*|CORS_ORIGENES=$PORTAL_URL|" "$ARCHIVO_ENV"
+    aviso "Ya existe $ARCHIVO_ENV; se conserva y se actualiza la dirección del portal a $PORTAL_URL."
 else
+    PORTAL_URL="$(sed -n 's/^APP_PORTAL_URL_BASE=//p' "$ARCHIVO_ENV")"
     aviso "Ya existe $ARCHIVO_ENV; se conserva sin cambios."
 fi
 chmod 600 "$ARCHIVO_ENV"
@@ -134,13 +142,16 @@ echo "30 2 * * * root bash $DIR_SCRIPT/respaldo-db.sh >> /var/log/sgl-dqr-respal
 sudo chmod 644 /etc/cron.d/sgl-dqr-respaldo
 sudo bash "$DIR_SCRIPT/respaldo-db.sh" || aviso "La primera copia falló; revisa: sudo bash $DIR_SCRIPT/respaldo-db.sh"
 
+NOTA_REENVIO=""
+case "$PORTAL_URL" in *localhost:8088*) NOTA_REENVIO="   (con reenvío 8088 -> 80 de VirtualBox)" ;; esac
+
 cat <<EOF
 
 =============================================================
  SGL-DQR desplegado
 =============================================================
  Portal (desde el servidor):  http://localhost
- Portal (desde Windows):      $PORTAL_URL   (con reenvío 8088 -> 80)
+ Portal (desde Windows):      $PORTAL_URL$NOTA_REENVIO
  Salud de la API:             curl http://localhost:8080/actuator/health
  Estado de la API:            pm2 status
  Permisos del portal:         ls -l $DIR_WEB

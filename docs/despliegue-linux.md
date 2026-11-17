@@ -1,8 +1,13 @@
 # Despliegue de SGL-DQR en Linux (Ubuntu Server)
 
-Guía para desplegar la API, la base de datos y el portal web de SGL-DQR en un servidor Ubuntu Server, por ejemplo una máquina virtual de VirtualBox. La aplicación de escritorio JavaFX no se instala en el servidor: es un cliente que corre en Windows y se conecta a la API.
+Guía para desplegar la API, la base de datos y el portal web de SGL-DQR en un servidor Ubuntu Server, en una máquina virtual de VirtualBox o de Hyper-V. La aplicación de escritorio JavaFX no se instala en el servidor: es un cliente que corre en Windows y se conecta a la API.
 
-El procedimiento se ejecutó a mano en **Ubuntu Server 26.04.1 LTS** sobre VirtualBox. El script [`deploy/ubuntu/instalar.sh`](../deploy/ubuntu/instalar.sh) automatiza esos mismos pasos; su sintaxis está validada con `bash -n` y `shellcheck`, pero falta ejecutarlo de punta a punta en una máquina limpia.
+Se ha desplegado dos veces:
+
+| Fecha | Virtualizador | Sistema | Cómo |
+|---|---|---|---|
+| 12/11/2026 | VirtualBox 7.2 | Ubuntu Server 26.04.1 LTS | Paso a paso, a mano |
+| 17/11/2026 | Hyper-V (Windows 11 Pro) | Ubuntu Server 24.04.5 LTS | Con [`deploy/ubuntu/instalar.sh`](../deploy/ubuntu/instalar.sh): los 9 pasos terminaron sin errores en una máquina limpia |
 
 ---
 
@@ -50,6 +55,36 @@ Desactivar la instalación desatendida de VirtualBox para poder definir las part
 
 Marcar **«Install OpenSSH server»** durante la instalación. Comprobar después con `lsblk` y `free -h`.
 
+### Opción Hyper-V (Windows 10/11 Pro)
+
+Usar Hyper-V cuando Windows tiene activo su hipervisor (WSL2, Docker Desktop o la seguridad basada en virtualización): en ese caso VirtualBox no puede usar VT-x, funciona en un modo lento y la máquina se congela (ver sección 7).
+
+Crear y arrancar la máquina desde **PowerShell como administrador** (ajustar la ruta del ISO):
+
+```powershell
+$vm  = "SGL-DQR-Ubuntu"
+$iso = "C:\ruta\ubuntu-24.04.5-live-server-amd64.iso"
+$dir = "$env:USERPROFILE\Hyper-V"
+New-Item -ItemType Directory -Force $dir | Out-Null
+New-VM -Name $vm -Generation 2 -MemoryStartupBytes 4GB -NewVHDPath "$dir\$vm.vhdx" -NewVHDSizeBytes 40GB -SwitchName "Default Switch" -Path $dir
+Set-VM -Name $vm -ProcessorCount 4 -StaticMemory -CheckpointType Disabled
+Set-VMFirmware -VMName $vm -SecureBootTemplate MicrosoftUEFICertificateAuthority
+Add-VMDvdDrive -VMName $vm -Path $iso
+Set-VMFirmware -VMName $vm -FirstBootDevice (Get-VMDvdDrive -VMName $vm)
+Start-VM -Name $vm
+vmconnect localhost $vm
+```
+
+| Diferencia con VirtualBox | En Hyper-V |
+|---|---|
+| Firmware | UEFI (generación 2) con la plantilla de arranque seguro «Microsoft UEFI Certificate Authority», que acepta Ubuntu |
+| Particiones | Al marcar el disco con «Use As Boot Device», el instalador agrega `/boot/efi` (1 GB, FAT32); las otras cuatro se crean igual |
+| Red | «Default Switch»: Windows llega directo a la IP de la máquina (por ejemplo `172.21.195.51`), sin reenvío de puertos |
+| Acceso | `ssh sgl@<IP>` desde PowerShell. La IP se ve en el mensaje de bienvenida o con `hostname -I` |
+| IP | Puede cambiar al reiniciar Windows; actualizarla con `bash deploy/ubuntu/actualizar-direccion.sh` (sección 6) |
+
+Trabajar por SSH y no en la ventana de la máquina: «Portapapeles → Escribir texto del Portapapeles» de Hyper-V cambia letras y símbolos con el teclado latinoamericano.
+
 ---
 
 ## 3. Instalación automática
@@ -57,7 +92,8 @@ Marcar **«Install OpenSSH server»** durante la instalación. Comprobar despué
 Desde PowerShell, entrar al servidor:
 
 ```powershell
-ssh -p 2222 usuario@localhost
+ssh -p 2222 usuario@localhost   # VirtualBox (reenvío de puertos)
+ssh usuario@<IP-de-la-máquina>  # Hyper-V
 ```
 
 Dentro del servidor:
@@ -68,8 +104,11 @@ sudo mkdir -p /opt/sgl-dqr && sudo chown $USER:$USER /opt/sgl-dqr
 cd /opt/sgl-dqr
 git clone https://github.com/Jpblack90/SGL-DQR.git
 cd SGL-DQR
-bash deploy/ubuntu/instalar.sh
+bash deploy/ubuntu/instalar.sh                                         # VirtualBox
+PORTAL_URL=http://$(hostname -I | awk '{print $1}') bash deploy/ubuntu/instalar.sh   # Hyper-V
 ```
+
+Mientras las mejoras de M1/M2 no estén fusionadas en `main`, clonar con `git clone -b feature/M1-qr-impreso ...`. En el despliegue del 17/11/2026 el script completo tardó unos 6 minutos.
 
 El script hace, en orden:
 
@@ -89,7 +128,7 @@ Para otra contraseña de base o para entrar al portal por una IP real:
 DB_CLAVE='otra-clave' PORTAL_URL='http://192.168.1.10' bash deploy/ubuntu/instalar.sh
 ```
 
-Esas variables solo se usan la primera vez; después se editan en `deploy/ubuntu/api.env` y se reinicia con `pm2 restart sgl-dqr-api`.
+`DB_CLAVE` solo se usa la primera vez. `PORTAL_URL`, si se indica de nuevo, actualiza la dirección guardada en `deploy/ubuntu/api.env`; para cambiarla sin recompilar está `deploy/ubuntu/actualizar-direccion.sh`.
 
 **Actualizar a una versión nueva:** `git pull` y volver a ejecutar `bash deploy/ubuntu/instalar.sh`. El script es repetible: conserva `api.env` y la base de datos.
 
@@ -126,8 +165,8 @@ curl -I http://localhost          # HTTP/1.1 200 OK
 | API en ejecución | `pm2 status` | `sgl-dqr-api` en `online` |
 | Salud de la API | `curl http://localhost:8080/actuator/health` | `"status":"UP"` |
 | Nginx | `systemctl status nginx --no-pager` | `active (running)` |
-| Portal desde Windows | `http://localhost:8088` | Página del portal |
-| Datos de demostración | `http://localhost:8088/rastreo`, comprobante `MV-DEMO-002`, documento `45678904` | Línea de tiempo del envío |
+| Portal desde Windows | `http://localhost:8088` (VirtualBox) o `http://<IP>` (Hyper-V) | Página del portal |
+| Datos de demostración | `/rastreo` del portal, comprobante `MV-DEMO-002`, documento `45678904` | Línea de tiempo del envío |
 | Arranque automático | `sudo reboot`, esperar 2 minutos y repetir las pruebas | Todo responde sin intervención |
 
 Escritorio JavaFX desde Windows: con la API local de Windows detenida (`.\scripts\demo-parar-api.ps1`), ejecutar `.\scripts\demo-escritorio.ps1`; apunta a `http://localhost:8080`, que VirtualBox reenvía al servidor.
@@ -144,6 +183,7 @@ Escritorio JavaFX desde Windows: con la API local de Windows detenida (`.\script
 | Recargar Nginx tras un cambio | `sudo nginx -t && sudo systemctl reload nginx` |
 | Hacer una copia de la base ahora | `sudo bash deploy/ubuntu/respaldo-db.sh` |
 | Ver las copias | `sudo ls -l /var/backups/sgl-dqr` |
+| Cambió la IP de la máquina (Hyper-V) | `bash deploy/ubuntu/actualizar-direccion.sh` |
 | Restaurar una copia (reemplaza los datos actuales) | `gunzip -c /var/backups/sgl-dqr/<archivo>.sql.gz \| sudo -u postgres psql -d marvisur_db` |
 | Apagar el servidor | `sudo shutdown now` |
 
@@ -160,6 +200,9 @@ Escritorio JavaFX desde Windows: con la API local de Windows detenida (`.\script
 | `/var/www/sgl-dqr` con dueño `root` | Se copió con `sudo` y faltó el `chown` | `sudo chown -R www-data:www-data /var/www/sgl-dqr` |
 | `ls -l /var/www/sgl-dqr` muestra `total 0` | El portal compilado no se copió | Verificar `dist/` y repetir la copia |
 | El portal abre pero cotizar da error o `502 Bad Gateway` | La API está apagada o arrancando | `pm2 restart sgl-dqr-api` y esperar un minuto |
+| VirtualBox muy lento; la consola deja de responder o se pierden teclas (`sudo` dice «incorrect password») | Windows tiene activo su hipervisor; `VBox.log` dice `VT-x is not available` y VirtualBox usa el modo NEM. `bcdedit /set hypervisorlaunchtype off` no bastó porque la seguridad basada en virtualización (VBS) seguía activa | Crear la máquina en Hyper-V (sección 2). Comprobar con `systeminfo` («Se detectó un hipervisor») y `Win32_DeviceGuard` (`VirtualizationBasedSecurityStatus` = 2) |
+| En Hyper-V, el texto pegado con «Escribir texto del Portapapeles» sale con letras cambiadas | Esa función no respeta el teclado latinoamericano | Entrar por SSH desde PowerShell y pegar ahí |
+| La Billetera o el portal usan una IP vieja | Hyper-V cambió la IP al reiniciar Windows | `bash deploy/ubuntu/actualizar-direccion.sh` |
 
 ---
 

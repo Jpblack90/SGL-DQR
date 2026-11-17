@@ -23,12 +23,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - [I1][M2] Almacén multiagencia: el Administrador (TN3) puede recepcionar en origen, despachar y recepcionar en destino en cualquier agencia; el resto de roles sigue limitado a su agencia. 1 prueba nueva en `AlmacenControllerTest`.
 - [I2][M2] Al finalizar un viaje, el escritorio consulta el manifiesto y avisa cuántos bultos siguen «En ruta» sin recepcionar en destino. 1 prueba nueva en `RutasFlotaViewModelTest`.
 - [I3][M1] Portal: `/rastreo?codigo=MV-...` deja el comprobante escrito (lo usa el QR del ticket); el documento nunca viaja en la dirección. 3 pruebas nuevas.
+- [I4][O7] Despliegue en Hyper-V: `deploy/ubuntu/actualizar-direccion.sh` cambia la dirección del portal (enlaces de la Billetera y CORS) sin recompilar, para cuando la IP de la máquina cambia; guía de Hyper-V en `docs/despliegue-linux.md` (creación por PowerShell, UEFI, `/boot/efi`, «Default Switch» y acceso por SSH).
 
 ### Changed
 - `ROADMAP.md`: estado actualizado a v0.3.0; B1, B3 y W5 marcadas como completadas, O3 como parcial y nueva tarea O5; resumen de pendientes reales (H1, H2, O3 e instalador MSI).
 - `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
+- [I4][O7] `instalar.sh`: si se indica `PORTAL_URL` en una nueva ejecución, actualiza la dirección guardada en `api.env` (antes se ignoraba); el resumen final solo menciona el reenvío 8088 -> 80 cuando se usa VirtualBox.
 - [I1] El historial de seguimiento de los lotes de Almacén registra la agencia física del paso (origen, ruta o destino) en lugar de la agencia del empleado.
 - [I2] Al cerrar la tarjeta de registro se borran también el enlace de la Billetera y el texto del QR1 de la pantalla.
 
