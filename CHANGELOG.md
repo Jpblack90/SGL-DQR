@@ -31,6 +31,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
+- [I2][O4] El paquete del escritorio ya no fija el servidor en `localhost:8080` al empaquetar (esa propiedad tenía prioridad sobre `escritorio.properties`, hallazgo 20); el instalador MSI lleva fabricante, elección de carpeta, accesos directos y un UUID de actualización fijo para reemplazar versiones anteriores.
 - [I4] Los scripts `demo-escritorio.ps1`, `demo-api.ps1` y `empaquetar-escritorio.ps1` ya no fallan si Maven no está instalado: usan el Maven Wrapper (`mvnw.cmd`, Maven 3.9.9) incluido en el proyecto.
 - [I4][O7] `instalar.sh`: si se indica `PORTAL_URL` en una nueva ejecución, actualiza la dirección guardada en `api.env` (antes se ignoraba); el resumen final solo menciona el reenvío 8088 -> 80 cuando se usa VirtualBox.
 - [I1] El historial de seguimiento de los lotes de Almacén registra la agencia física del paso (origen, ruta o destino) en lugar de la agencia del empleado.

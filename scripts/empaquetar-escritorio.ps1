@@ -191,8 +191,11 @@ $jpackageArgs = @(
     "--main-jar", $mainJarFile.Name,
     "--main-class", $mainClass,
     "--runtime-image", $runtimeDir,
-    "--java-options", "-Dmarvisur.api.base-url=http://localhost:8080",
-    "--java-options", "-Dapp.empaquetada=true"
+    # Sin -Dmarvisur.api.base-url: el servidor lo define escritorio.properties junto al .exe
+    # (una propiedad de sistema fija tendría prioridad y obligaría a reempaquetar por cliente).
+    "--java-options", "-Dapp.empaquetada=true",
+    "--vendor", "Expreso Marvisur",
+    "--description", "SGL-DQR - Ventanilla y Operaciones"
 )
 
 # Si existiese icono en el repositorio, se vincularía
@@ -236,6 +239,11 @@ Write-Host "    En la otra PC: descomprimir y abrir $appName\$appName.exe (servi
 
 # 9. Verificación de WiX para Instalador MSI
 Write-Host "`n--- Verificando disponibilidad de WiX Toolset para generar MSI ---" -ForegroundColor Yellow
+# WiX 3 no siempre se agrega al PATH al instalarse: buscarlo en su carpeta habitual
+if (-not (Get-Command "candle.exe" -ErrorAction SilentlyContinue)) {
+    $wixBin = Get-ChildItem "${env:ProgramFiles(x86)}\WiX Toolset v3*\bin\candle.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($wixBin) { $env:Path = "$($wixBin.DirectoryName);$env:Path" }
+}
 $candleCmd = Get-Command "candle.exe" -ErrorAction SilentlyContinue
 $wixCmd = Get-Command "wix.exe" -ErrorAction SilentlyContinue
 
@@ -247,9 +255,14 @@ if ($candleCmd -or $wixCmd) {
         "--app-version", $appVersion,
         "--dest", $distDir,
         "--app-image", $appImageDir,
+        "--vendor", "Expreso Marvisur",
+        "--description", "SGL-DQR - Ventanilla y Operaciones",
         "--win-shortcut",
         "--win-menu",
-        "--win-menu-group", "Expreso Marvisur"
+        "--win-menu-group", "Expreso Marvisur",
+        "--win-dir-chooser",
+        # Mismo UUID en todas las versiones: un MSI nuevo reemplaza al anterior al actualizar
+        "--win-upgrade-uuid", "6f1c2b7e-5a3d-4e8f-9b21-7d4e5f6a8b90"
     )
     if ($icoFile) {
         $msiArgs += @("--icon", $icoFile.FullName)
@@ -264,7 +277,7 @@ if ($candleCmd -or $wixCmd) {
     Write-Host "WiX Toolset (candle.exe / light.exe / wix.exe) NO está instalado en el sistema." -ForegroundColor Yellow
     Write-Host "El paquete autocontenido portátil (app-image) está completo y funcional en target/dist/SGL-DQR."
     Write-Host "Para generar instaladores .msi en Windows:"
-    Write-Host "  1. Instale WiX Toolset 3.11+: 'winget install WiX.Toolset' o descargue de https://github.com/wixtoolset/wix3/releases"
+    Write-Host "  1. Instale WiX Toolset 3.14: 'winget install WiXToolset.WiXToolset' o descargue de https://github.com/wixtoolset/wix3/releases"
     Write-Host "  2. Añada la carpeta bin de WiX a la variable PATH de entorno."
     Write-Host "  3. Vuelva a ejecutar este script."
 }
