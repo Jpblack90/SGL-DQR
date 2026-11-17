@@ -8,8 +8,14 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- [I4][O5] Despliegue en servidor Linux (Ubuntu Server) con PostgreSQL, Nginx y pm2:
+  - `deploy/ubuntu/instalar.sh`: instala las aplicaciones, crea la base de datos, compila la API (Maven) y el portal (npm), publica el portal en Nginx, inicia la API con pm2 con arranque automático y asigna permisos (`/var/www/sgl-dqr` con dueño `www-data`, carpetas 755 y archivos 644; `api.env` con 600).
+  - `deploy/ubuntu/iniciar-api.sh`, `deploy/ubuntu/nginx-sgl-dqr.conf` y `deploy/ubuntu/api.env.example`.
+  - Guía `docs/despliegue-linux.md`: máquina virtual, particiones, instalación, permisos, verificación y problemas encontrados.
 
 ### Changed
+- `ROADMAP.md`: estado actualizado a v0.3.0; B1, B3 y W5 marcadas como completadas, O3 como parcial y nueva tarea O5; resumen de pendientes reales (H1, H2, O3 e instalador MSI).
+- `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
 

@@ -29,7 +29,7 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 
 ### Resumen de Limitaciones Conocidas:
 - **Hardware simulado**: La ticketera térmica de 58 mm está emulada en software generando imágenes PNG en `salida/ticket_*.png`; el escáner opera mediante emulación de teclado USB con `CampoEscaneo`. No hay drivers directos para periféricos físicos (H1 y H2 pendientes).
-- **HTTPS ausente**: El sistema opera sobre HTTP plano sin certificados SSL/TLS configurados (O3 pendiente).
+- **HTTPS solo en la nube**: El despliegue de demostración en Render usa HTTPS provisto por la plataforma; el despliegue en servidor propio (Ubuntu Server + Nginx) opera sobre HTTP, sin certificado TLS propio (O3 parcial).
 - **Instalador MSI pendiente**: La app de escritorio cuenta con paquete portátil autocontenido con JRE embebido (`target/dist/SGL-DQR/`); el instalador MSI depende de herramientas WiX (O4 parcial).
 - **Tarifa y comprobantes provisionales**: El cálculo tarifario por peso y la serie de comprobantes (`MV-yyyyMMdd-XXXXXXXX`) son referenciales con marcas `TODO`, pendientes de los tarifarios y numeración fiscal definitiva de Marvisur.
 
@@ -108,6 +108,18 @@ Para iniciar rápidamente la demostración completa con datos semilla precargado
 
 Para consultar las credenciales de los empleados demo y los tokens precargados, revisa la guía en [docs/dev-demo.md](docs/dev-demo.md).
 
+### Despliegue en servidor Linux (Ubuntu Server)
+
+Para publicar la API, la base de datos y el portal en un servidor Ubuntu (por ejemplo, una máquina virtual de VirtualBox) con PostgreSQL, Nginx y pm2:
+
+```bash
+git clone https://github.com/Jpblack90/SGL-DQR.git
+cd SGL-DQR
+bash deploy/ubuntu/instalar.sh
+```
+
+Las particiones, el paso a paso, los permisos de carpetas y la verificación están en [docs/despliegue-linux.md](docs/despliegue-linux.md).
+
 ---
 
 ## 6. Ejecución de Pruebas del Sistema
@@ -166,8 +178,10 @@ Sistema/
 │   ├── demo-iniciar-api             # Restauración de la API para sincronización automática
 │   ├── informe-metricas             # Extracción y generación automática de métricas reales
 │   └── README.md                    # Guía de uso y guion paso a paso de demostración
+├── deploy/ubuntu/                   # Despliegue en Ubuntu Server (instalar.sh, Nginx, pm2)
 ├── docs/                            # Documentación técnica y contratos
 │   ├── estado-implementacion.md     # Matriz honesta de requerimientos RF-01..11 y RNF-01..05
+│   ├── despliegue-linux.md          # Guía de despliegue en Ubuntu Server
 │   ├── informe-metricas.md          # Métricas reales consolidadas (tests, OpenAPI, BD, LOC, git)
 │   ├── Diccionario_Datos_SGL_DQR.md # Fuente de verdad del esquema de base de datos
 │   ├── requisitos.md                # Requisitos funcionales y no funcionales oficiales

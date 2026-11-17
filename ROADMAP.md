@@ -1,7 +1,7 @@
 # ROADMAP — SGL-DQR (Fase 3: Desarrollo e Implementación)
 
 > Leyenda: [x] hecho · [~] en curso · [ ] pendiente  
-> Estado: **Fase B CONGELADA para Entrega · Versión 0.2.1**
+> Estado: **Versión 0.3.0 publicada · Despliegue en servidor Linux (Ubuntu) preparado para v0.3.1**
 
 ---
 
@@ -10,11 +10,13 @@
 - **FASE A — Backend núcleo**: CERRADA (Release v0.1.0 publicado).
 - **FASE B — Ecosistema Multiplataforma**: **CONGELADA PARA ENTREGA (Release v0.2.1)**.
   - El MVP operativo (Core, API REST, App de escritorio JavaFX con soporte offline de ventanilla y Portal Web de autoservicio con Billetera Digital y pre-registro Código Express) se encuentra respaldado por 263 pruebas automatizadas en verde.
-  - Tareas no críticas o mejoras futuras quedan explícitamente postergadas como backlog pendiente: **B1, B2, B3, D4, H1, H2, O3, O4**.
+  - En v0.3.0 se completaron las tareas que habían quedado en backlog: **B1, B2, B3, D4, D5, W5 y O4** (466 pruebas en verde).
+- **Despliegue en servidor Linux (O5)**: script `deploy/ubuntu/instalar.sh` y guía `docs/despliegue-linux.md` (Ubuntu Server con PostgreSQL, Nginx y pm2), preparado para v0.3.1.
+- **Pendiente real**: **H1, H2, O3** y el instalador MSI de O4 (ver el resumen al final).
 
 ---
 
-## Decisiones vigentes (Congeladas para v0.2.1)
+## Decisiones vigentes (v0.3.0)
 
 - **Arquitectura hexagonal**: `marvisur-core` es Java 21 puro (sin Spring, JavaFX ni JPA); ArchUnit lo verifica en cada compilación.
 - **Identificadores**: Todas las llaves primarias son UUID (VARCHAR(36)), generadas en el cliente para soporte offline total.
@@ -65,11 +67,11 @@
 
 #### I1 — Backend API
 - [x] **B4** Endpoints de sincronización idempotentes por UUID (`POST /api/v1/sync/encomiendas`, RNF-02)
-- [~] **B1** Dashboard y Personal (KPIs en tiempo real y gestión de empleados con auditoría completados en backend; resuelta integridad referencial en pruebas de auditoría) (RF-02, RF-03)
+- [x] **B1** Dashboard y Personal (KPIs en tiempo real y gestión de empleados con auditoría completados en backend; resuelta integridad referencial en pruebas de auditoría) (RF-02, RF-03)
 - [x] **B2** Flota, rutas y ciclo de viaje en backend API; endpoints vehiculos (TN3), rutas (TN2/TN3/TN4), viajes (TN2/TN3/TN4 con RBAC chofer), programación y avance de estado con auditoría y manifiesto sin datos personales (RF-05)
-- [ ] **B3** *[Pendiente / Backlog]* Comprobante PDF: comprobantes_pago y archivos_pdf_comprobante (RF-11)
+- [x] **B3** Comprobante PDF con Apache PDFBox: comprobantes_pago y archivos_pdf_comprobante, regenerado al cambiar el estado de pago (RF-11)
 - [x] **B5** Pruebas de rendimiento RNF-03 y perfil dev con Swagger / prod protegido
-- *Punto de reanudación I1:* Tarea B2 cerrada en backend API (resuelta integridad referencial en prueba de manifiesto de viaje). Siguiente paso: interfaces visuales correspondientes o B3 en backlog.
+- *Punto de reanudación I1:* Pista cerrada en v0.3.0 (B1 a B5 completas).
 
 #### I2 — Escritorio JavaFX (offline-first)
 - [x] **D1** Shell, tema de marca, login y navegación por rol (RF-01)
@@ -84,7 +86,7 @@
 - [x] **W2** Rastreo de envío (RF-08) con línea de tiempo y anonimización
 - [x] **W4** Billetera Digital con lectura segura del token en fragmento hash `#` (RF-09)
 - [x] **W3** Cotización en línea y pre-registro web «Código Express» con generación QR en cliente (RF-10)
-- [ ] **W5** *[Pendiente / Backlog]* Descarga de comprobante PDF en portal (RF-11; requiere B3)
+- [x] **W5** Descarga del comprobante PDF desde el rastreo del portal (RF-11)
 - [x] **Q1** Suite de pruebas unitarias e integración en Vitest (33 tests) y manual UAT documentada
 
 #### I4 — Hardware, Offline e Infraestructura
@@ -92,21 +94,19 @@
 - [x] **O2** Sincronizador en segundo plano SQLite <-> PostgreSQL con reintentos exponenciales (usa B4)
 - [ ] **H1** *[Pendiente / Backlog]* Adaptador ESC/POS para ticketera física de 58 mm por puerto USB/Serie (actualmente emulado en PNG)
 - [ ] **H2** *[Pendiente / Backlog]* Adaptador de escáner óptico USB vía API nativa (actualmente soportado vía emulación de teclado con `CampoEscaneo`)
-- [ ] **O3** *[Pendiente / Backlog]* Despliegue en VPS de producción con HTTPS (RNF-01)
+- [~] **O3** Despliegue con HTTPS (RNF-01): la demostración en Render (API en Docker y portal estático) usa HTTPS de la plataforma; falta un servidor propio con certificado TLS (Nginx + Let's Encrypt)
 - [x] **O4** Paquete portátil autocontenido .EXE con JRE embebido mediante jlink y jpackage (RNF-04)
+- [x] **O5** Despliegue en servidor Linux propio (Ubuntu Server con PostgreSQL, Nginx y pm2): script `deploy/ubuntu/instalar.sh`, permisos por carpeta y guía `docs/despliegue-linux.md`
 - [x] **CIERRE** Pipeline automatizado de cierre de versión v0.3.0 (`scripts/cierre-version.ps1`), sincronización OpenAPI y actualización de matrices
-- *Punto de reanudación I4:* Cierre de versión v0.3.0 finalizado con contratos OpenAPI normalizados (38 operaciones sin /test-rbac), scripts con BOM UTF-8 y métricas sincronizadas (466 pruebas en verde, 40,551 LOC, 18 tablas). Siguiente paso: merge a main y etiquetado por el operador.
+- *Punto de reanudación I4:* Cierre de versión v0.3.0 finalizado con contratos OpenAPI normalizados (38 operaciones sin /test-rbac), scripts con BOM UTF-8 y métricas sincronizadas (466 pruebas en verde, 40,551 LOC, 18 tablas). Merge a `main` y etiqueta `v0.3.0` realizados. Siguiente paso: probar `deploy/ubuntu/instalar.sh` en una máquina limpia y cerrar v0.3.1.
 
 ---
 
-## Resumen de Tareas Pendientes Post-v0.2.1
+## Resumen de tareas pendientes (después de v0.3.0)
 
-Para auditoría docente y técnica, se explicitan los 8 ítems que quedan fuera del congelamiento v0.2.0:
-1. `B1` — Dashboard analítico de KPIs y módulo visual de empleados.
-2. `B2` — Gestión dinámica de flota y actualización móvil por choferes.
-3. `B3` — Generador binario de comprobantes en PDF.
-4. `D4` — Pantallas administrativas de escritorio para TN3.
-5. `H1` — Driver directo ESC/POS para hardware ticketera térmica física.
-6. `H2` — Driver nativo USB para escáner óptico.
-7. `O3` — Infraestructura VPS en la nube y certificados SSL/TLS.
-8. `O4` — Empaquetado binario .EXE mediante `jpackage`.
+Las tareas B1, B2, B3, D4 y O4 que figuraban como backlog en v0.2.1 se completaron en v0.3.0. Queda pendiente:
+
+1. `H1` — Driver ESC/POS para la ticketera térmica física (hoy el ticket se genera como imagen PNG).
+2. `H2` — Driver nativo USB para el escáner óptico (hoy funciona por emulación de teclado).
+3. `O3` — Servidor propio con HTTPS (certificado TLS en Nginx); la demostración en Render ya usa HTTPS.
+4. `O4` (parcial) — Instalador MSI de la app de escritorio, que requiere WiX Toolset; el paquete portátil .EXE ya existe.
