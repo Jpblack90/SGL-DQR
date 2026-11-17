@@ -103,9 +103,10 @@
 #### Mejoras para la versión comercial
 - [x] **M1** QR impreso y envío al cliente: etiqueta del bulto con QR1 (al registrar y en la reimpresión de Contingencia), ticket del cliente con QR de rastreo y nombres de agencias, texto del QR1 con botón «Copiar QR1», envío de la Billetera por WhatsApp o correo, y rastreo del portal con el comprobante en la dirección (`/rastreo?codigo=`). El QR2 sigue siendo solo digital.
 - [x] **O6** Copia de seguridad diaria de PostgreSQL en el servidor Linux (`deploy/ubuntu/respaldo-db.sh`, retención de 14 días, carpeta 700).
+- [x] **O8** Despliegue en Microsoft Azure: portal en Static Web Apps, API en App Service y PostgreSQL flexible, con HTTPS, secretos fuera del código y copias automáticas (`deploy/azure/desplegar.sh`, `docs/despliegue-azure.md`).
 - [x] **O7** `instalar.sh` ejecutado de punta a punta en una máquina limpia (Ubuntu Server 24.04.5 en Hyper-V, 17/11/2026): 9 de 9 pasos, API `online` en pm2 y primera copia de la base. Guía de Hyper-V y `actualizar-direccion.sh` para el cambio de IP.
 - [x] **M2** Operación multiagencia: el Administrador (TN3) recepciona y despacha en cualquier agencia, el historial registra la agencia física del bulto y el cierre de viaje avisa cuántos bultos faltan recepcionar en destino.
-- *Punto de reanudación M:* M1, M2, O6 y O7 terminados; el sistema corre en Ubuntu Server sobre Hyper-V con `instalar.sh`. Siguiente paso: fusionar `feature/M1-qr-impreso` en `develop` y `main`, etiquetar v0.4.0 y decidir con Marvisur las tareas de la Ola 3.
+- *Punto de reanudación M:* M1, M2, O6, O7 y O8 terminados; el sistema corre en Ubuntu Server sobre Hyper-V (`instalar.sh`) y en Azure con HTTPS (`deploy/azure/desplegar.sh`). Siguiente paso: fusionar `feature/M1-qr-impreso` en `develop` y `main`, etiquetar v0.4.0 y decidir con Marvisur las tareas de la Ola 3.
 
 ---
 

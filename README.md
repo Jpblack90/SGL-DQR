@@ -29,7 +29,7 @@ Su mecanismo principal es el **Doble QR Criptográfico**:
 
 ### Resumen de Limitaciones Conocidas:
 - **Hardware simulado**: La ticketera térmica de 58 mm está emulada en software generando imágenes PNG en `salida/ticket_*.png`; el escáner opera mediante emulación de teclado USB con `CampoEscaneo`. No hay drivers directos para periféricos físicos (H1 y H2 pendientes).
-- **HTTPS solo en la nube**: El despliegue de demostración en Render usa HTTPS provisto por la plataforma; el despliegue en servidor propio (Ubuntu Server + Nginx) opera sobre HTTP, sin certificado TLS propio (O3 parcial).
+- **HTTPS solo en la nube**: Los despliegues en Azure y Render usan HTTPS provisto por la plataforma; el despliegue en servidor propio (Ubuntu Server + Nginx) opera sobre HTTP, sin certificado TLS propio (O3 parcial).
 - **Instalador MSI pendiente**: La app de escritorio cuenta con paquete portátil autocontenido con JRE embebido (`target/dist/SGL-DQR/`); el instalador MSI depende de herramientas WiX (O4 parcial).
 - **Tarifa y comprobantes provisionales**: El cálculo tarifario por peso y la serie de comprobantes (`MV-yyyyMMdd-XXXXXXXX`) son referenciales con marcas `TODO`, pendientes de los tarifarios y numeración fiscal definitiva de Marvisur.
 
@@ -120,6 +120,17 @@ bash deploy/ubuntu/instalar.sh
 
 Las particiones, el paso a paso, los permisos de carpetas y la verificación están en [docs/despliegue-linux.md](docs/despliegue-linux.md).
 
+### Despliegue en Microsoft Azure
+
+Versión en línea, con HTTPS:
+
+| Pieza | Dirección |
+|---|---|
+| Portal web | <https://gray-sky-0b9d5fb1e.5.azurestaticapps.net> |
+| API | <https://sgl-dqr-api-318404.azurewebsites.net> |
+
+Se despliega desde Azure Cloud Shell con `bash deploy/azure/desplegar.sh` (App Service, PostgreSQL flexible y Static Web Apps). Arquitectura, seguridad, costos y conexión del escritorio en [docs/despliegue-azure.md](docs/despliegue-azure.md).
+
 ---
 
 ## 6. Ejecución de Pruebas del Sistema
@@ -182,6 +193,7 @@ Sistema/
 ├── docs/                            # Documentación técnica y contratos
 │   ├── estado-implementacion.md     # Matriz honesta de requerimientos RF-01..11 y RNF-01..05
 │   ├── despliegue-linux.md          # Guía de despliegue en Ubuntu Server
+│   ├── despliegue-azure.md          # Guía de despliegue en Microsoft Azure
 │   ├── informe-metricas.md          # Métricas reales consolidadas (tests, OpenAPI, BD, LOC, git)
 │   ├── Diccionario_Datos_SGL_DQR.md # Fuente de verdad del esquema de base de datos
 │   ├── requisitos.md                # Requisitos funcionales y no funcionales oficiales

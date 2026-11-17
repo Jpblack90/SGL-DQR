@@ -23,6 +23,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - [I1][M2] Almacén multiagencia: el Administrador (TN3) puede recepcionar en origen, despachar y recepcionar en destino en cualquier agencia; el resto de roles sigue limitado a su agencia. 1 prueba nueva en `AlmacenControllerTest`.
 - [I2][M2] Al finalizar un viaje, el escritorio consulta el manifiesto y avisa cuántos bultos siguen «En ruta» sin recepcionar en destino. 1 prueba nueva en `RutasFlotaViewModelTest`.
 - [I3][M1] Portal: `/rastreo?codigo=MV-...` deja el comprobante escrito (lo usa el QR del ticket); el documento nunca viaja en la dirección. 3 pruebas nuevas.
+- [I4][O8] Despliegue en Microsoft Azure (Azure for Students): API en App Service Linux (Java 21, B1, Mexico Central, HTTPS obligatorio), PostgreSQL servidor flexible 16 (B1ms, TLS, copias automáticas de 7 días) y portal en Static Web Apps con cabeceras de seguridad. `deploy/azure/desplegar.sh` lo reproduce desde Cloud Shell; guía en `docs/despliegue-azure.md` y `deploy/azure/escritorio.properties` para conectar el escritorio.
 - [I4][O7] Despliegue en Hyper-V: `deploy/ubuntu/actualizar-direccion.sh` cambia la dirección del portal (enlaces de la Billetera y CORS) sin recompilar, para cuando la IP de la máquina cambia; guía de Hyper-V en `docs/despliegue-linux.md` (creación por PowerShell, UEFI, `/boot/efi`, «Default Switch» y acceso por SSH).
 
 ### Changed
