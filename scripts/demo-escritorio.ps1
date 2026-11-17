@@ -66,6 +66,15 @@ if ($MvnExe -ne "mvn") {
     Write-Host "--> Maven no esta instalado: se usa el Maven Wrapper del proyecto (mvnw.cmd)" -ForegroundColor Yellow
 }
 
+# El escritorio y la API dependen del nucleo (marvisur-core): instalarlo en el repositorio local de Maven
+Write-Host "--> Preparando el nucleo del sistema (marvisur-core)..." -ForegroundColor Yellow
+& $MvnExe -q -B install -N -f backend-marvisur/pom.xml
+if ($LASTEXITCODE -eq 0) { & $MvnExe -q -B install -pl :marvisur-core -am -DskipTests }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] No se pudo compilar marvisur-core (codigo $LASTEXITCODE)." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " [DEMO-ESCRITORIO] Ejecutando Aplicacion JavaFX (SGL-DQR)" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
