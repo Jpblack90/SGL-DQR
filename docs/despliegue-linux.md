@@ -81,6 +81,7 @@ El script hace, en orden:
 6. Copia el portal a `/var/www/sgl-dqr` y activa el sitio de Nginx ([`nginx-sgl-dqr.conf`](../deploy/ubuntu/nginx-sgl-dqr.conf)).
 7. Asigna dueños y permisos (sección 4).
 8. Inicia la API con pm2 y activa su arranque automático (`pm2 save` + `pm2 startup`).
+9. Programa una copia diaria de la base a las 02:30 con [`respaldo-db.sh`](../deploy/ubuntu/respaldo-db.sh) y hace la primera.
 
 Para otra contraseña de base o para entrar al portal por una IP real:
 
@@ -102,6 +103,7 @@ Esas variables solo se usan la primera vez; después se editan en `deploy/ubuntu
 | `deploy/ubuntu/*.sh` | usuario que despliega | 755 | Scripts ejecutables |
 | `deploy/ubuntu/api.env` | usuario que despliega | 600 | Contiene la contraseña de la base: solo el dueño la lee |
 | `/var/www/sgl-dqr` | `www-data` (usuario de Nginx) | carpetas 755, archivos 644 | Nginx lee el portal; nadie más lo modifica |
+| `/var/backups/sgl-dqr` | `postgres` | carpeta 700, copias 600 | Las copias tienen datos personales de clientes |
 
 r = 4, w = 2, x = 1; los tres dígitos son dueño, grupo y otros. No se usa 777, porque cualquier usuario del servidor podría modificar o borrar el sitio.
 
@@ -140,6 +142,9 @@ Escritorio JavaFX desde Windows: con la API local de Windows detenida (`.\script
 | Ver los registros de la API | `pm2 logs sgl-dqr-api --lines 80` |
 | Reiniciar la API | `pm2 restart sgl-dqr-api` |
 | Recargar Nginx tras un cambio | `sudo nginx -t && sudo systemctl reload nginx` |
+| Hacer una copia de la base ahora | `sudo bash deploy/ubuntu/respaldo-db.sh` |
+| Ver las copias | `sudo ls -l /var/backups/sgl-dqr` |
+| Restaurar una copia (reemplaza los datos actuales) | `gunzip -c /var/backups/sgl-dqr/<archivo>.sql.gz \| sudo -u postgres psql -d marvisur_db` |
 | Apagar el servidor | `sudo shutdown now` |
 
 ---
@@ -162,4 +167,4 @@ Escritorio JavaFX desde Windows: con la API local de Windows detenida (`.\script
 
 - El servidor opera sobre HTTP, sin certificado TLS propio; el despliegue de demostración en Render sí usa HTTPS, provisto por la plataforma (RNF-01, tarea O3).
 - Usa el perfil `dev` y las credenciales de desarrollo del proyecto para cargar los datos de demostración. En un servidor real se cambian la contraseña de la base y `JWT_SECRET`, y se usa el perfil `prod`.
-- Sin cortafuegos ni copias programadas de la base de datos.
+- Sin cortafuegos; las copias de la base quedan en el mismo servidor, así que conviene copiarlas también a otro equipo.

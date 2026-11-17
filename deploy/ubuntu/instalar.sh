@@ -37,7 +37,7 @@ error() { printf '\033[1;31m[error] %s\033[0m\n' "$1" >&2; exit 1; }
 [ -f "$DIR_REPO/pom.xml" ] || error "No se encontró el repositorio en $DIR_REPO."
 
 # -----------------------------------------------------------------------------
-paso "1/8 Instalando aplicaciones (git, OpenSSH, Java 21, Maven, Node.js, Nginx, PostgreSQL)"
+paso "1/9 Instalando aplicaciones (git, OpenSSH, Java 21, Maven, Node.js, Nginx, PostgreSQL)"
 sudo apt-get update
 sudo apt-get install -y git openssh-server openjdk-21-jdk maven nodejs npm nginx postgresql curl
 if ! command -v pm2 >/dev/null 2>&1; then
@@ -47,7 +47,7 @@ NODE_MAYOR="$(node -p 'process.versions.node.split(".")[0]')"
 [ "$NODE_MAYOR" -ge 18 ] || error "Se necesita Node.js 18 o superior (instalado: $(node -v))."
 
 # -----------------------------------------------------------------------------
-paso "2/8 Creando la base de datos PostgreSQL ($DB_NOMBRE)"
+paso "2/9 Creando la base de datos PostgreSQL ($DB_NOMBRE)"
 sudo systemctl enable --now postgresql
 psql_admin() { (cd /tmp && sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc "$1"); }
 if [ "$(psql_admin "SELECT 1 FROM pg_roles WHERE rolname = '$DB_USUARIO'")" != "1" ]; then
@@ -59,7 +59,7 @@ fi
 # Las tablas y los datos de demostración los crea la API al arrancar (Flyway).
 
 # -----------------------------------------------------------------------------
-paso "3/8 Configuración de la API (deploy/ubuntu/api.env)"
+paso "3/9 Configuración de la API (deploy/ubuntu/api.env)"
 if [ ! -f "$ARCHIVO_ENV" ]; then
     cat > "$ARCHIVO_ENV" <<EOF
 # Configuración de la API de SGL-DQR en este servidor. No se sube a git.
@@ -76,18 +76,18 @@ fi
 chmod 600 "$ARCHIVO_ENV"
 
 # -----------------------------------------------------------------------------
-paso "4/8 Compilando la API con Maven (la primera vez tarda de 5 a 10 minutos)"
+paso "4/9 Compilando la API con Maven (la primera vez tarda de 5 a 10 minutos)"
 (cd "$DIR_REPO" && mvn -B -q -pl backend-marvisur/marvisur-api -am package -DskipTests)
 ls "$DIR_REPO"/backend-marvisur/marvisur-api/target/marvisur-api-*-exec.jar >/dev/null \
     || error "No se generó el archivo marvisur-api-*-exec.jar."
 
 # -----------------------------------------------------------------------------
-paso "5/8 Compilando el portal web con npm"
+paso "5/9 Compilando el portal web con npm"
 (cd "$DIR_PORTAL" && npm ci && npm run build)
 [ -f "$DIR_PORTAL/dist/index.html" ] || error "No se generó la carpeta dist del portal."
 
 # -----------------------------------------------------------------------------
-paso "6/8 Publicando el portal con Nginx ($DIR_WEB)"
+paso "6/9 Publicando el portal con Nginx ($DIR_WEB)"
 sudo mkdir -p "$DIR_WEB"
 sudo find "$DIR_WEB" -mindepth 1 -delete
 sudo cp -r "$DIR_PORTAL"/dist/. "$DIR_WEB"/
@@ -99,9 +99,9 @@ sudo systemctl enable nginx
 sudo systemctl reload nginx
 
 # -----------------------------------------------------------------------------
-paso "7/8 Asignando dueños y permisos"
+paso "7/9 Asignando dueños y permisos"
 # Proyecto: dueño el usuario que despliega; carpetas 755 y scripts ejecutables.
-chmod 755 "$DIR_SCRIPT/iniciar-api.sh" "$DIR_SCRIPT/instalar.sh"
+chmod 755 "$DIR_SCRIPT/iniciar-api.sh" "$DIR_SCRIPT/instalar.sh" "$DIR_SCRIPT/respaldo-db.sh"
 # Portal publicado: dueño www-data (usuario de Nginx); carpetas 755 y archivos 644.
 sudo chown -R www-data:www-data "$DIR_WEB"
 sudo find "$DIR_WEB" -type d -exec chmod 755 {} \;
@@ -109,7 +109,7 @@ sudo find "$DIR_WEB" -type f -exec chmod 644 {} \;
 # api.env tiene la contraseña de la base: solo el dueño lo lee (600).
 
 # -----------------------------------------------------------------------------
-paso "8/8 Iniciando la API con pm2 y activando el arranque automático"
+paso "8/9 Iniciando la API con pm2 y activando el arranque automático"
 pm2 delete "$NOMBRE_PM2" >/dev/null 2>&1 || true
 pm2 start "$DIR_SCRIPT/iniciar-api.sh" --name "$NOMBRE_PM2" --interpreter bash
 pm2 save
@@ -127,6 +127,13 @@ done
 curl -fs http://localhost:8080/actuator/health >/dev/null 2>&1 \
     || aviso "La API aún no responde. Revisa: pm2 logs $NOMBRE_PM2 --lines 80"
 
+# -----------------------------------------------------------------------------
+paso "9/9 Programando la copia de seguridad diaria de la base (02:30)"
+echo "30 2 * * * root bash $DIR_SCRIPT/respaldo-db.sh >> /var/log/sgl-dqr-respaldo.log 2>&1" \
+    | sudo tee /etc/cron.d/sgl-dqr-respaldo >/dev/null
+sudo chmod 644 /etc/cron.d/sgl-dqr-respaldo
+sudo bash "$DIR_SCRIPT/respaldo-db.sh" || aviso "La primera copia falló; revisa: sudo bash $DIR_SCRIPT/respaldo-db.sh"
+
 cat <<EOF
 
 =============================================================
@@ -137,5 +144,6 @@ cat <<EOF
  Salud de la API:             curl http://localhost:8080/actuator/health
  Estado de la API:            pm2 status
  Permisos del portal:         ls -l $DIR_WEB
+ Copias de la base:           sudo ls -l /var/backups/sgl-dqr
 =============================================================
 EOF
