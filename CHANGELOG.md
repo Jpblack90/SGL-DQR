@@ -20,6 +20,8 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - Texto del QR1 visible en la tarjeta de registro, con botón «Copiar QR1» para usarlo en Almacén.
   - Botones «Enviar por WhatsApp» y «Enviar por correo»: abren el mensaje con el enlace de la Billetera y el teléfono o correo del destinatario; si no se pueden abrir, copian el enlace.
   - `ImpresionPort.imprimirTicketConQr` (método por defecto, compatible con los adaptadores existentes) y `ContenidoImpresion` con 8 pruebas; 2 pruebas nuevas del adaptador que leen el QR del ticket.
+- [I1][M2] Almacén multiagencia: el Administrador (TN3) puede recepcionar en origen, despachar y recepcionar en destino en cualquier agencia; el resto de roles sigue limitado a su agencia. 1 prueba nueva en `AlmacenControllerTest`.
+- [I2][M2] Al finalizar un viaje, el escritorio consulta el manifiesto y avisa cuántos bultos siguen «En ruta» sin recepcionar en destino. 1 prueba nueva en `RutasFlotaViewModelTest`.
 - [I3][M1] Portal: `/rastreo?codigo=MV-...` deja el comprobante escrito (lo usa el QR del ticket); el documento nunca viaja en la dirección. 3 pruebas nuevas.
 
 ### Changed
@@ -27,6 +29,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 - `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
+- [I1] El historial de seguimiento de los lotes de Almacén registra la agencia física del paso (origen, ruta o destino) en lugar de la agencia del empleado.
 - [I2] Al cerrar la tarjeta de registro se borran también el enlace de la Billetera y el texto del QR1 de la pantalla.
 
 ---

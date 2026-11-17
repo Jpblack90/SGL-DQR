@@ -397,11 +397,31 @@ public class ControladorRutasFlota {
         ViajeDto sel = tablaViajes.getSelectionModel().getSelectedItem();
         if (sel == null || !RutasFlotaViewModel.puedeFinalizarViaje(sel)) return;
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        // Se consulta el manifiesto para avisar si quedan bultos sin recepcionar en destino.
+        Thread t = new Thread(() -> {
+            List<ManifiestoEncomiendaDto> encomiendas = null;
+            if (servicioConexion.estaEnLinea()) {
+                try {
+                    encomiendas = flotaPort.obtenerManifiesto(sel.idViaje());
+                } catch (Exception ex) {
+                    LOGGER.warning("No se pudo obtener el manifiesto previo al cierre del viaje: " + ex.getMessage());
+                }
+            }
+            final List<ManifiestoEncomiendaDto> listaFinal = encomiendas;
+            Platform.runLater(() -> mostrarDialogoConfirmacionFinViaje(sel, listaFinal));
+        }, "hilo-pre-finalizar-viaje");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void mostrarDialogoConfirmacionFinViaje(ViajeDto sel, List<ManifiestoEncomiendaDto> encomiendas) {
+        boolean hayPendientes = RutasFlotaViewModel.bultosSinRecepcionar(encomiendas) > 0;
+        Alert confirm = new Alert(hayPendientes ? Alert.AlertType.WARNING : Alert.AlertType.CONFIRMATION);
         confirm.initOwner(NavegadorUI.getStagePrincipal());
         confirm.setTitle("Finalizar Viaje Interprovincial");
-        confirm.setHeaderText("¿Está seguro de finalizar el viaje seleccionado?");
-        confirm.setContentText("El estado pasará a FINALIZADO y la unidad quedará liberada.\nVehículo: " + (sel.placa() != null ? sel.placa() : sel.idVehiculo()));
+        confirm.setHeaderText(RutasFlotaViewModel.encabezadoConfirmacionFinalizarViaje(encomiendas));
+        confirm.setContentText(RutasFlotaViewModel.mensajeConfirmacionFinalizarViaje(sel, encomiendas));
+        confirm.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 
         Optional<ButtonType> respuesta = confirm.showAndWait();
         if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {

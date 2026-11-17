@@ -300,6 +300,40 @@ public final class RutasFlotaViewModel {
         return "El estado pasará a EN RUTA.\nVehículo: " + vehiculo;
     }
 
+    /** Cuenta los bultos del manifiesto que siguen «En ruta», es decir, sin recepcionar en destino. */
+    public static int bultosSinRecepcionar(List<ManifiestoEncomiendaDto> encomiendas) {
+        if (encomiendas == null) return 0;
+        return (int) encomiendas.stream()
+                .filter(e -> e != null && "EN_RUTA".equalsIgnoreCase(e.estadoLogistico()))
+                .count();
+    }
+
+    /** Encabezado del diálogo de cierre: advierte si quedan bultos sin recepcionar en destino. */
+    public static String encabezadoConfirmacionFinalizarViaje(List<ManifiestoEncomiendaDto> encomiendas) {
+        int pendientes = bultosSinRecepcionar(encomiendas);
+        if (pendientes == 1) {
+            return "Queda 1 bulto sin recepcionar en destino";
+        }
+        if (pendientes > 1) {
+            return "Quedan " + pendientes + " bultos sin recepcionar en destino";
+        }
+        return "¿Está seguro de finalizar el viaje seleccionado?";
+    }
+
+    /** Texto del diálogo de cierre de viaje. */
+    public static String mensajeConfirmacionFinalizarViaje(ViajeDto viaje, List<ManifiestoEncomiendaDto> encomiendas) {
+        String vehiculo = (viaje != null) ? (viaje.placa() != null ? viaje.placa() : viaje.idVehiculo()) : "--";
+        String base = "El estado pasará a FINALIZADO y la unidad quedará liberada.\nVehículo: " + vehiculo;
+        if (encomiendas == null) {
+            return base + "\n\nNo se pudo consultar el manifiesto: revise en Almacén que la carga se haya recepcionado.";
+        }
+        if (bultosSinRecepcionar(encomiendas) > 0) {
+            return base + "\n\nEsos bultos seguirán «En ruta» hasta que se escaneen con «Recepcionar en destino» "
+                    + "en Almacén. ¿Finalizar el viaje de todos modos?";
+        }
+        return base;
+    }
+
     public static boolean puedeFinalizarViaje(ViajeDto viaje) {
         return viaje != null && "EN_RUTA".equalsIgnoreCase(viaje.estadoViaje());
     }

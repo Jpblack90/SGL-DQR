@@ -257,7 +257,8 @@ public class AlmacenServicio {
         }
 
         // Precondición de sucursal: La sucursal de origen debe coincidir con la del empleado
-        if (!Objects.equals(encomienda.getIdSucursalOrigen(), usuario.getIdSucursal())) {
+        // (el Administrador TN3 puede operar en cualquier agencia).
+        if (!esAdministrador(usuario) && !Objects.equals(encomienda.getIdSucursalOrigen(), usuario.getIdSucursal())) {
             return ItemResultadoLoteDto.error(qr1, encomienda.getIdEncomienda(), MotivoErrorLote.SUCURSAL_NO_CORRESPONDE);
         }
 
@@ -270,7 +271,7 @@ public class AlmacenServicio {
         HistorialTrackingJpaEntity tracking = new HistorialTrackingJpaEntity(
                 UUID.randomUUID().toString(),
                 encomienda.getIdEncomienda(),
-                usuario.getIdSucursal(),
+                encomienda.getIdSucursalOrigen(),
                 evento,
                 "Recepcionado y clasificado en almacén de origen",
                 OffsetDateTime.now()
@@ -310,7 +311,8 @@ public class AlmacenServicio {
         }
 
         // Precondición de ruta de origen: La ruta debe partir de la sucursal del empleado
-        if (!Objects.equals(ruta.getIdSucursalOrigen(), usuario.getIdSucursal())) {
+        // (el Administrador TN3 puede operar en cualquier agencia).
+        if (!esAdministrador(usuario) && !Objects.equals(ruta.getIdSucursalOrigen(), usuario.getIdSucursal())) {
             return ItemResultadoLoteDto.error(qr1, encomienda.getIdEncomienda(), MotivoErrorLote.SUCURSAL_NO_CORRESPONDE);
         }
 
@@ -342,7 +344,7 @@ public class AlmacenServicio {
         HistorialTrackingJpaEntity tracking = new HistorialTrackingJpaEntity(
                 UUID.randomUUID().toString(),
                 encomienda.getIdEncomienda(),
-                usuario.getIdSucursal(),
+                ruta.getIdSucursalOrigen(),
                 evento,
                 "Despachado en lote para viaje " + idViaje,
                 OffsetDateTime.now()
@@ -367,7 +369,8 @@ public class AlmacenServicio {
         }
 
         // Precondición de sucursal: La sucursal de destino debe coincidir con la del empleado
-        if (!Objects.equals(encomienda.getIdSucursalDestino(), usuario.getIdSucursal())) {
+        // (el Administrador TN3 puede cubrir cualquier agencia de destino).
+        if (!esAdministrador(usuario) && !Objects.equals(encomienda.getIdSucursalDestino(), usuario.getIdSucursal())) {
             return ItemResultadoLoteDto.error(qr1, encomienda.getIdEncomienda(), MotivoErrorLote.SUCURSAL_NO_CORRESPONDE);
         }
 
@@ -380,7 +383,7 @@ public class AlmacenServicio {
         HistorialTrackingJpaEntity tracking = new HistorialTrackingJpaEntity(
                 UUID.randomUUID().toString(),
                 encomienda.getIdEncomienda(),
-                usuario.getIdSucursal(),
+                encomienda.getIdSucursalDestino(),
                 evento,
                 "Arribado y recepcionado en almacén de destino",
                 OffsetDateTime.now()
@@ -403,7 +406,7 @@ public class AlmacenServicio {
         }
 
         String docLimpio = documento.trim();
-        boolean esAdmin = usuario.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+        boolean esAdmin = esAdministrador(usuario);
         String idSucursalFiltro = esAdmin ? null : usuario.getIdSucursal();
 
         List<EncomiendaJpaEntity> entidades = encomiendaRepo.buscarPorDocumentoYAlcanceSucursal(docLimpio, idSucursalFiltro);
@@ -507,5 +510,10 @@ public class AlmacenServicio {
                 i.getMotivoReimpresion(),
                 FechaMapperHelper.aLocalDateTime(i.getFechaIncidencia())
         )).toList();
+    }
+
+    /** El Administrador (TN3) puede operar en cualquier agencia; el resto, solo en la suya. */
+    private static boolean esAdministrador(UsuarioAutenticado usuario) {
+        return usuario.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
     }
 }

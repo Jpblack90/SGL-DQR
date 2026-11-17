@@ -22,6 +22,7 @@ import pe.marvisur.sgldqr.api.dto.RespuestaLoteEscaneoDto;
 import pe.marvisur.sgldqr.api.persistencia.entidad.DespachoLoteDetalleJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EmpleadoJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.EncomiendaJpaEntity;
+import pe.marvisur.sgldqr.api.persistencia.entidad.HistorialTrackingJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.ParDobleQrJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.ProgramacionViajeJpaEntity;
 import pe.marvisur.sgldqr.api.persistencia.entidad.RutaJpaEntity;
@@ -380,6 +381,33 @@ class AlmacenControllerTest {
 
         EncomiendaJpaEntity encActualizada = encomiendaRepository.findById(reg.idEncomienda()).orElseThrow();
         assertThat(encActualizada.getEstadoLogistico()).isEqualTo(EstadoLogistico.EN_ALMACEN_DESTINO.name());
+    }
+
+    @Test
+    @DisplayName("Administrador (TN3) de Lima recepciona en destino Arequipa y el historial registra la agencia de destino")
+    void testAdministradorRecepcionaEnCualquierAgenciaDeDestino() throws Exception {
+        RegistrarEncomiendaResponse reg = registrarEncomienda("45556677", "75556677", SUC_LIMA, SUC_AQP);
+        EncomiendaJpaEntity enc = encomiendaRepository.findById(reg.idEncomienda()).orElseThrow();
+        enc.setEstadoLogistico(EstadoLogistico.EN_RUTA.name());
+        encomiendaRepository.save(enc);
+        ParDobleQrJpaEntity par = parDobleQrRepository.findByIdEncomienda(reg.idEncomienda()).orElseThrow();
+
+        LoteEscaneoRequest peticion = new LoteEscaneoRequest(
+                AccionLoteEscaneo.RECEPCIONAR_DESTINO, null, List.of(par.getUuidQr1Operativo())
+        );
+        mockMvc.perform(post("/api/v1/almacen/lotes/escaneo")
+                        .header("Authorization", "Bearer " + tokenAdmin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(peticion)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalExitosos", is(1)))
+                .andExpect(jsonPath("$.detalles[0].resultado", is("OK")));
+
+        assertThat(encomiendaRepository.findById(reg.idEncomienda()).orElseThrow().getEstadoLogistico())
+                .isEqualTo(EstadoLogistico.EN_ALMACEN_DESTINO.name());
+        List<HistorialTrackingJpaEntity> hitos = trackingRepository.findByIdEncomiendaOrderByFechaHoraEventoAsc(reg.idEncomienda());
+        assertThat(hitos).isNotEmpty();
+        assertThat(hitos.get(hitos.size() - 1).getIdSucursalActual()).isEqualTo(SUC_AQP);
     }
 
     @Test

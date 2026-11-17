@@ -294,4 +294,38 @@ class RutasFlotaViewModelTest {
                 .contains("El estado pasará a EN RUTA.")
                 .contains("ABC-123");
     }
+
+    @Test
+    @DisplayName("Cierre de viaje: cuenta los bultos sin recepcionar y ajusta el aviso")
+    void testAvisoBultosSinRecepcionarAlFinalizar() {
+        ViajeDto viaje = new ViajeDto("V-9", "R-1", "SUC-1", "SUC-2", 300.0, "VEH-2", "V2B-200", "CHO-1", "Jorge",
+                "2026-10-25T10:00:00Z", "2026-10-26T10:00:00Z", "EN_RUTA", null, "V2B-200", "Scania");
+        List<ManifiestoEncomiendaDto> conPendientes = List.of(
+                new ManifiestoEncomiendaDto("MV-1", "EN_RUTA", "Agencia Huancayo", new BigDecimal("2.00")),
+                new ManifiestoEncomiendaDto("MV-2", "EN_ALMACEN_DESTINO", "Agencia Huancayo", new BigDecimal("1.00")),
+                new ManifiestoEncomiendaDto("MV-3", "en_ruta", "Agencia Huancayo", new BigDecimal("3.00")));
+
+        assertThat(RutasFlotaViewModel.bultosSinRecepcionar(conPendientes)).isEqualTo(2);
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionFinalizarViaje(conPendientes))
+                .isEqualTo("Quedan 2 bultos sin recepcionar en destino");
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionFinalizarViaje(viaje, conPendientes))
+                .contains("V2B-200").contains("Recepcionar en destino").contains("de todos modos");
+
+        List<ManifiestoEncomiendaDto> uno = List.of(
+                new ManifiestoEncomiendaDto("MV-1", "EN_RUTA", "Agencia Huancayo", BigDecimal.ONE));
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionFinalizarViaje(uno))
+                .isEqualTo("Queda 1 bulto sin recepcionar en destino");
+
+        List<ManifiestoEncomiendaDto> todoRecibido = List.of(
+                new ManifiestoEncomiendaDto("MV-2", "EN_ALMACEN_DESTINO", "Agencia Huancayo", BigDecimal.ONE));
+        assertThat(RutasFlotaViewModel.bultosSinRecepcionar(todoRecibido)).isZero();
+        assertThat(RutasFlotaViewModel.encabezadoConfirmacionFinalizarViaje(todoRecibido))
+                .isEqualTo("¿Está seguro de finalizar el viaje seleccionado?");
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionFinalizarViaje(viaje, todoRecibido))
+                .doesNotContain("de todos modos");
+
+        assertThat(RutasFlotaViewModel.bultosSinRecepcionar(null)).isZero();
+        assertThat(RutasFlotaViewModel.mensajeConfirmacionFinalizarViaje(viaje, null))
+                .contains("No se pudo consultar el manifiesto");
+    }
 }
