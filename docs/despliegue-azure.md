@@ -61,7 +61,7 @@ Desde la carpeta del proyecto en Windows:
 .\scripts\demo-escritorio.ps1 -ApiBaseUrl https://sgl-dqr-api-318404.azurewebsites.net
 ```
 
-Para el paquete portátil (`scripts/empaquetar-escritorio.ps1`), copiar [`deploy/azure/escritorio.properties`](../deploy/azure/escritorio.properties) junto al ejecutable `SGL-DQR.exe`.
+Para otra PC, `.\scripts\empaquetar-escritorio.ps1` genera `frontend-marvisur\escritorio\target\dist\SGL-DQR-portable.zip`, con Java incluido y ya apuntando a Azure (parámetros `-ApiBaseUrl` y `-PortalUrl` para otro servidor). En la otra PC se descomprime y se abre `SGL-DQR\SGL-DQR.exe`; no necesita Java ni Maven. [`deploy/azure/escritorio.properties`](../deploy/azure/escritorio.properties) es la misma configuración, por si se quiere copiar a mano junto al ejecutable.
 
 ## 5. Verificación (17/11/2026)
 

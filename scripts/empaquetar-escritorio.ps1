@@ -8,7 +8,10 @@
 #>
 [CmdletBinding()]
 param(
-    [switch]$SkipMsi = $false
+    [switch]$SkipMsi = $false,
+    # Servidor central al que se conecta el paquete (por defecto, el despliegue en Azure)
+    [string]$ApiBaseUrl = "https://sgl-dqr-api-318404.azurewebsites.net",
+    [string]$PortalUrl = "https://gray-sky-0b9d5fb1e.5.azurestaticapps.net"
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,8 +57,8 @@ if (-not $javaHome -or -not (Test-Path "$javaHome\bin\jpackage.exe")) {
     $jpackageFromPath = Get-Command "jpackage.exe" -ErrorAction SilentlyContinue
     if ($jpackageFromPath) {
         $javaHome = (Resolve-Path (Join-Path (Split-Path -Parent $jpackageFromPath.Source) "..")).Path
-    } elseif (Test-Path "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jpackage.exe") {
-        $javaHome = "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot"
+    } elseif ($jdk21 = Get-ChildItem "$env:ProgramFiles\Eclipse Adoptium", "$env:ProgramFiles\Microsoft", "$env:ProgramFiles\Java" -Directory -Filter "jdk-21*" -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.FullName)\bin\jpackage.exe" } | Select-Object -First 1) {
+        $javaHome = $jdk21.FullName
     } else {
         throw "No se encontró jpackage.exe en JAVA_HOME ni en PATH."
     }
@@ -216,14 +219,20 @@ $configContent = @"
 # Modifique este archivo para apuntar a un servidor central o VPS distinto.
 # Si este archivo se omite, se utiliza por defecto: http://localhost:8080
 #
-api.base-url=http://localhost:8080
-http.timeout-segundos=2
-portal.url-base=http://localhost:5173
+api.base-url=$ApiBaseUrl
+http.timeout-segundos=4
+portal.url-base=$PortalUrl
 login.mostrar-demo=false
 "@
 Set-Content -Path $configTemplate -Value $configContent -Encoding UTF8
 
 Write-Host "`n>>> Paquete portátil generado exitosamente en: $appImageDir" -ForegroundColor Green
+
+# ZIP listo para copiar a otra PC (no necesita Java ni Maven instalados)
+$zipPath = Join-Path $distDir "$appName-portable.zip"
+Compress-Archive -Path $appImageDir -DestinationPath $zipPath -Force
+Write-Host ">>> ZIP para distribuir: $zipPath" -ForegroundColor Green
+Write-Host "    En la otra PC: descomprimir y abrir $appName\$appName.exe (servidor: $ApiBaseUrl)" -ForegroundColor Green
 
 # 9. Verificación de WiX para Instalador MSI
 Write-Host "`n--- Verificando disponibilidad de WiX Toolset para generar MSI ---" -ForegroundColor Yellow
