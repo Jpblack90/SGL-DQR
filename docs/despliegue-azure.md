@@ -78,12 +78,17 @@ Para otra PC, `.\scripts\empaquetar-escritorio.ps1` genera `frontend-marvisur\es
 
 Costo aproximado de lista: App Service B1 unos 13 USD al mes y PostgreSQL B1ms con 32 GB unos 16 USD al mes; Static Web Apps Free no cuesta. Se descuenta del crédito de Azure for Students, compartido con otros proyectos de la misma cuenta.
 
-| Tarea | Comando en Cloud Shell |
+Entre exposiciones se usa el **modo ahorro** ([`deploy/azure/ahorro.sh`](../deploy/azure/ahorro.sh)): detiene la API, baja el plan a F1 (gratis) y detiene la base, así que solo se cobra el disco de la base. Las direcciones, los datos y la configuración se conservan.
+
+| Tarea | Comando en Cloud Shell (desde la carpeta `SGL-DQR`) |
 |---|---|
-| Pausar la base cuando no se usa | `az postgres flexible-server stop -g sgl-dqr-rg -n sgl-dqr-pg-318404` |
-| Volver a encenderla | `az postgres flexible-server start -g sgl-dqr-rg -n sgl-dqr-pg-318404` |
+| Pausar todo después de una exposición | `bash deploy/azure/ahorro.sh pausar` |
+| Encender todo el día antes de exponer | `bash deploy/azure/ahorro.sh reanudar` |
+| Ver cómo está | `bash deploy/azure/ahorro.sh estado` |
 | Ver los registros de la API | `az webapp log tail -g sgl-dqr-rg -n sgl-dqr-api-318404` |
 | Borrar todo al terminar el curso | `az group delete -n sgl-dqr-rg` |
+
+Azure vuelve a encender sola una base PostgreSQL que lleva 7 días detenida. Mientras dure la pausa, conviene ejecutar `estado` una vez por semana: si avisa que la base se encendió, se vuelve a ejecutar `pausar`.
 
 ## 7. Problemas encontrados
 

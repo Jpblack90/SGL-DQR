@@ -8,6 +8,7 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- [O8] Modo ahorro en Azure (`deploy/azure/ahorro.sh pausar|reanudar|estado`): API detenida, plan F1 y PostgreSQL detenido entre exposiciones.
 - [I4][O5] Despliegue en servidor Linux (Ubuntu Server) con PostgreSQL, Nginx y pm2:
   - `deploy/ubuntu/instalar.sh`: instala las aplicaciones, crea la base de datos, compila la API (Maven) y el portal (npm), publica el portal en Nginx, inicia la API con pm2 con arranque automático y asigna permisos (`/var/www/sgl-dqr` con dueño `www-data`, carpetas 755 y archivos 644; `api.env` con 600).
   - `deploy/ubuntu/iniciar-api.sh`, `deploy/ubuntu/nginx-sgl-dqr.conf` y `deploy/ubuntu/api.env.example`.
