@@ -74,7 +74,17 @@ Para otra PC, `.\scripts\empaquetar-escritorio.ps1` genera `frontend-marvisur\es
 | Rutas del portal `/`, `/rastreo`, `/billetera`, `/cotiza` | 200 |
 | `http://` de la API | 301 a `https://` |
 
-## 6. Costos y apagado
+## 6. Demostración con datos en vivo
+
+El seed V100 trae, además del catálogo y los usuarios, 3 encomiendas de ejemplo (`MV-DEMO-001` a `003`) y 4 clientes. Para exponer solo con datos creados en el momento, antes de la exposición se ejecuta en Cloud Shell:
+
+```bash
+bash deploy/azure/limpiar-datos.sh
+```
+
+Pide escribir `BORRAR` y la contraseña de la base, y borra todas las encomiendas, clientes, Doble QR, tracking, comprobantes y pre-registros. Se conservan sucursales, rutas, flota, viajes programados y los usuarios para iniciar sesión. Los clientes se vuelven a crear al registrar la primera encomienda con su DNI o RUC. En la base local de Docker hace lo mismo `.\scripts\demo-limpiar.ps1`.
+
+## 7. Costos y apagado
 
 Costo aproximado de lista: App Service B1 unos 13 USD al mes y PostgreSQL B1ms con 32 GB unos 16 USD al mes; Static Web Apps Free no cuesta. Se descuenta del crédito de Azure for Students, compartido con otros proyectos de la misma cuenta.
 
@@ -90,7 +100,7 @@ Entre exposiciones se usa el **modo ahorro** ([`deploy/azure/ahorro.sh`](../depl
 
 Azure vuelve a encender sola una base PostgreSQL que lleva 7 días detenida. Mientras dure la pausa, conviene ejecutar `estado` una vez por semana: si avisa que la base se encendió, se vuelve a ejecutar `pausar`.
 
-## 7. Problemas encontrados
+## 8. Problemas encontrados
 
 | Problema | Causa | Solución |
 |---|---|---|
