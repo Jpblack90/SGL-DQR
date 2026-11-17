@@ -21,6 +21,7 @@ import pe.marvisur.sgldqr.escritorio.infraestructura.api.RutasEscritorio;
 import pe.marvisur.sgldqr.escritorio.infraestructura.api.SesionContexto;
 import pe.marvisur.sgldqr.escritorio.infraestructura.impresion.ImpresionSimuladaAdapter;
 import pe.marvisur.sgldqr.escritorio.ui.componentes.CampoEscaneo;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ContenidoImpresion;
 import pe.marvisur.sgldqr.puertos.ImpresionPort;
 
 import java.io.ByteArrayInputStream;
@@ -135,6 +136,9 @@ public class ControladorAlmacen {
     private Consumer<Tab> alCambiarPestana;
 
     private final AlmacenPort almacenPort;
+    /** Prefijo del contenido del QR1 operativo (ver {@code MotorQR}). */
+    private static final String PREFIJO_QR1 = "MARVISUR:QR1:";
+
     private final ImpresionPort impresionPort;
 
     public ControladorAlmacen() {
@@ -937,30 +941,35 @@ public class ControladorAlmacen {
     public void imprimirQr1Regenerado() {
         if (encomiendaSeleccionadaContingencia == null) return;
 
-        String ticket = """
-                ================================
-                      EXPRESO MARVISUR S.A.
-                   REIMPRESIÓN ETIQUETA QR1
-                ================================
-                COMPROBANTE: %s
-                FECHA:       %s
-                REMITENTE:   %s
-                DESTINATARIO:%s
-                DESTINO:     %s
-                ================================
-                  ETIQUETA OPERATIVA REGENERADA
-                ================================
-                """.formatted(
-                encomiendaSeleccionadaContingencia.codigoComprobante(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
-                encomiendaSeleccionadaContingencia.nombreRemitente(),
-                encomiendaSeleccionadaContingencia.nombreDestinatario(),
-                encomiendaSeleccionadaContingencia.idSucursalDestino()
-        );
+        EncomiendaBusquedaDto enc = encomiendaSeleccionadaContingencia;
+        String etiqueta = ContenidoImpresion.textoEtiquetaBulto(
+                enc.codigoComprobante(),
+                enc.idSucursalOrigen(),
+                enc.idSucursalDestino(),
+                enc.nombreDestinatario(),
+                enc.pesoKg() != null ? enc.pesoKg().toPlainString() : null,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                true);
 
-        impresionPort.imprimirTicket(ticket);
+        byte[] qr1 = null;
+        if (qr1RegeneradoBase64Actual != null && !qr1RegeneradoBase64Actual.isBlank()) {
+            try {
+                String base64Limpia = qr1RegeneradoBase64Actual.contains(",")
+                        ? qr1RegeneradoBase64Actual.split(",")[1]
+                        : qr1RegeneradoBase64Actual;
+                qr1 = Base64.getDecoder().decode(base64Limpia);
+            } catch (IllegalArgumentException ex) {
+                LOGGER.warning("No se pudo leer el QR1 regenerado: " + ex.getMessage());
+            }
+        }
+
+        if (qr1 != null) {
+            impresionPort.imprimirTicketConQr(etiqueta, qr1, PREFIJO_QR1 + enc.idEncomienda());
+        } else {
+            impresionPort.imprimirTicket(etiqueta);
+        }
         NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Impresión Térmica", "Etiqueta Generada",
-                "Se generó la nueva etiqueta física en salida/.");
+                "Se generó la nueva etiqueta del bulto con su QR1 en salida/.");
     }
 
     public static String etiquetaAccionLote(String codigo) {

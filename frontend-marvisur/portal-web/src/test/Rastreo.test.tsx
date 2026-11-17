@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clienteApi from '../api/cliente';
 import { ApiError, RastreoPublicoDto } from '../api/tipos';
 import { Rastreo } from '../paginas/Rastreo';
+import { leerComprobanteDeUrl } from '../paginas/rastreoUrl';
 
 describe('Página de Rastreo (Rastreo.tsx)', () => {
   beforeEach(() => {
@@ -307,5 +308,30 @@ describe('Página de Rastreo (Rastreo.tsx)', () => {
     // Formulario y resultado se mantienen visibles
     expect(screen.getByLabelText(/n° de comprobante/i)).toHaveValue('MV-DEMO-001');
     expect(screen.getByText('MV-DEMO-001')).toBeInTheDocument();
+  });
+});
+
+describe('Comprobante desde la dirección (QR del ticket)', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('lee y normaliza el parámetro codigo', () => {
+    expect(leerComprobanteDeUrl('?codigo=mv-20261029-87u4yz9g')).toBe('MV-20261029-87U4YZ9G');
+    expect(leerComprobanteDeUrl('?codigo=%20MV-DEMO-002%20')).toBe('MV-DEMO-002');
+  });
+
+  it('ignora valores vacíos o con caracteres no permitidos', () => {
+    expect(leerComprobanteDeUrl('')).toBe('');
+    expect(leerComprobanteDeUrl('?codigo=')).toBe('');
+    expect(leerComprobanteDeUrl('?codigo=<script>')).toBe('');
+    expect(leerComprobanteDeUrl('?otro=MV-DEMO-001')).toBe('');
+  });
+
+  it('deja el comprobante escrito y el documento vacío al abrir /rastreo?codigo=', () => {
+    window.history.replaceState({}, '', '/rastreo?codigo=MV-DEMO-002');
+    render(<Rastreo />);
+    expect(screen.getByLabelText(/n° de comprobante/i)).toHaveValue('MV-DEMO-002');
+    expect(screen.getByLabelText(/dni o ruc/i)).toHaveValue('');
   });
 });

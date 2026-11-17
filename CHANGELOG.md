@@ -12,12 +12,22 @@ Versiones siguiendo [Semantic Versioning](https://semver.org/lang/es/).
   - `deploy/ubuntu/instalar.sh`: instala las aplicaciones, crea la base de datos, compila la API (Maven) y el portal (npm), publica el portal en Nginx, inicia la API con pm2 con arranque automático y asigna permisos (`/var/www/sgl-dqr` con dueño `www-data`, carpetas 755 y archivos 644; `api.env` con 600).
   - `deploy/ubuntu/iniciar-api.sh`, `deploy/ubuntu/nginx-sgl-dqr.conf` y `deploy/ubuntu/api.env.example`.
   - Guía `docs/despliegue-linux.md`: máquina virtual, particiones, instalación, permisos, verificación y problemas encontrados.
+- [I4][O6] `deploy/ubuntu/respaldo-db.sh`: copia diaria de PostgreSQL a las 02:30 (`pg_dump` comprimido, carpeta 700, retención de 14 días), programada por `instalar.sh`.
+- [I2][M1] QR impreso y envío al cliente en el escritorio:
+  - Botón «Imprimir Etiqueta del Bulto»: etiqueta de 58 mm con el QR1 y su texto, destino en mayúsculas, comprobante, destinatario y peso.
+  - El ticket del cliente muestra los nombres de las agencias (antes `SUC-LIM-01`) e imprime un QR que abre el rastreo del comprobante. El QR2 nunca se imprime ni se guarda en disco.
+  - La reimpresión de etiqueta en Contingencia incluye el QR1 regenerado (antes solo texto).
+  - Texto del QR1 visible en la tarjeta de registro, con botón «Copiar QR1» para usarlo en Almacén.
+  - Botones «Enviar por WhatsApp» y «Enviar por correo»: abren el mensaje con el enlace de la Billetera y el teléfono o correo del destinatario; si no se pueden abrir, copian el enlace.
+  - `ImpresionPort.imprimirTicketConQr` (método por defecto, compatible con los adaptadores existentes) y `ContenidoImpresion` con 8 pruebas; 2 pruebas nuevas del adaptador que leen el QR del ticket.
+- [I3][M1] Portal: `/rastreo?codigo=MV-...` deja el comprobante escrito (lo usa el QR del ticket); el documento nunca viaja en la dirección. 3 pruebas nuevas.
 
 ### Changed
 - `ROADMAP.md`: estado actualizado a v0.3.0; B1, B3 y W5 marcadas como completadas, O3 como parcial y nueva tarea O5; resumen de pendientes reales (H1, H2, O3 e instalador MSI).
 - `README.md` y `docs/estado-implementacion.md`: limitación de HTTPS precisada (Render con HTTPS; servidor propio sin TLS) y enlace a la guía de despliegue en Linux.
 
 ### Fixed
+- [I2] Al cerrar la tarjeta de registro se borran también el enlace de la Billetera y el texto del QR1 de la pantalla.
 
 ---
 

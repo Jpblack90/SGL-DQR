@@ -11,6 +11,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
 import pe.marvisur.sgldqr.escritorio.aplicacion.modelo.*;
+import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ContenidoImpresion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.VentanillaOfflineServicio;
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.ServicioConexion;
 import pe.marvisur.sgldqr.escritorio.aplicacion.servicio.SincronizadorOffline;
@@ -23,7 +24,9 @@ import pe.marvisur.sgldqr.infraestructura.qr.ZXingAdapter;
 import pe.marvisur.sgldqr.puertos.ImagenQRPort;
 import pe.marvisur.sgldqr.puertos.ImpresionPort;
 
+import java.awt.Desktop;
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -81,6 +84,11 @@ public class ControladorVentanilla {
     @FXML private Label lblResultadoEstadoLogistico;
     @FXML private TextField txtEnlaceBilletera;
     @FXML private Button btnCopiarEnlace;
+    @FXML private Button btnEnviarWhatsApp;
+    @FXML private Button btnEnviarCorreo;
+    @FXML private TextField txtQr1Payload;
+    @FXML private Button btnCopiarQr1;
+    @FXML private Button btnImprimirEtiqueta;
     @FXML private ImageView imgQr1;
     @FXML private ImageView imgQr2Enlace;
     @FXML private Button btnImprimirTicket;
@@ -379,7 +387,7 @@ public class ControladorVentanilla {
     private void mostrarModalResultado(EncomiendaRegistradaResultado res) {
         lblResultadoComprobante.setText("Comprobante: " + res.codigoComprobante());
         lblResultadoMonto.setText("Monto Total: S/. " + res.montoTotal().setScale(2).toPlainString());
-        lblResultadoRuta.setText("Ruta: " + res.idSucursalOrigen() + " ➔ " + res.idSucursalDestino());
+        lblResultadoRuta.setText("Ruta: " + agencia(res.idSucursalOrigen()) + " ➔ " + agencia(res.idSucursalDestino()));
         lblResultadoEstadoLogistico.setText("Estado Logístico: " + res.estadoLogistico());
 
         boolean pagado = "PAGADO".equalsIgnoreCase(res.estadoPago());
@@ -387,6 +395,7 @@ public class ControladorVentanilla {
         lblBadgeEstadoPago.getStyleClass().setAll(pagado ? "badge-pagado" : "badge-pendiente");
 
         txtEnlaceBilletera.setText(res.enlaceBilletera() != null ? res.enlaceBilletera() : "N/D");
+        txtQr1Payload.setText(res.qr1() != null && res.qr1().payload() != null ? res.qr1().payload() : "N/D");
 
         // QR1 Físico (viene en Base64 desde el backend)
         if (res.qr1() != null && res.qr1().imagenPngBase64() != null) {
@@ -432,47 +441,177 @@ public class ControladorVentanilla {
     }
 
     @FXML
+    public void copiarQr1() {
+        copiarAlPortapapeles(txtQr1Payload.getText(), "Código QR1",
+                "El código QR1 del bulto se copió; puede pegarlo en «Escanear QR1» de Almacén.");
+    }
+
+    @FXML
     public void manejarImprimirTicket() {
         if (ultimoResultado == null) return;
 
-        String comprobante = ultimoResultado.codigoComprobante();
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-        String origen = ultimoResultado.idSucursalOrigen();
-        String destino = ultimoResultado.idSucursalDestino();
-        String remitente = ultimoComandoRegistrado != null && ultimoComandoRegistrado.remitente() != null
-                ? ultimoComandoRegistrado.remitente().nombresRazonSocial() : "REMITENTE";
-        String destinatario = ultimoComandoRegistrado != null && ultimoComandoRegistrado.destinatario() != null
-                ? ultimoComandoRegistrado.destinatario().nombresRazonSocial() : "DESTINATARIO";
-        String peso = ultimoResultado.pesoKg() != null ? ultimoResultado.pesoKg().toPlainString() : "0.00";
-        String total = ultimoResultado.montoTotal() != null ? ultimoResultado.montoTotal().toPlainString() : "0.00";
-        String pago = ultimoResultado.estadoPago();
+        String urlRastreo = ContenidoImpresion.urlRastreo(
+                ContenidoImpresion.basePortal(ultimoResultado.enlaceBilletera(), null),
+                ultimoResultado.codigoComprobante());
 
-        String ticket = """
-                ================================
-                      EXPRESO MARVISUR S.A.
-                   COMPROBANTE DE ENCOMIENDA
-                ================================
-                COMPROBANTE: %s
-                FECHA:       %s
-                ORIGEN:      %s
-                DESTINO:     %s
-                --------------------------------
-                REMITENTE:   %s
-                DESTINATARIO:%s
-                --------------------------------
-                PESO:        %s Kg
-                ESTADO PAGO: %s
-                TOTAL:       S/. %s
-                ================================
-                 Consulte su retiro escaneando
-                  el enlace de su Billetera
-                ================================
-                """.formatted(comprobante, fecha, origen, destino, remitente, destinatario, peso, pago, total);
+        String ticket = ContenidoImpresion.textoTicketCliente(
+                ultimoResultado.codigoComprobante(),
+                fecha,
+                agencia(ultimoResultado.idSucursalOrigen()),
+                agencia(ultimoResultado.idSucursalDestino()),
+                nombreRemitente(),
+                nombreDestinatario(),
+                ultimoResultado.pesoKg() != null ? ultimoResultado.pesoKg().toPlainString() : "0.00",
+                ultimoResultado.estadoPago(),
+                ultimoResultado.montoTotal() != null ? ultimoResultado.montoTotal().toPlainString() : "0.00",
+                urlRastreo != null);
 
-        impresionPort.imprimirTicket(ticket);
+        // El QR del ticket es el del rastreo público (solo el comprobante); nunca el QR2.
+        byte[] qrRastreo = generarQr(urlRastreo);
+        if (qrRastreo != null) {
+            impresionPort.imprimirTicketConQr(ticket, qrRastreo, urlRastreo);
+        } else {
+            impresionPort.imprimirTicket(ticket);
+        }
 
         NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Impresión Térmica", "Ticket Generado",
-                "Se ha generado y guardado la imagen del ticket térmico de 58 mm en la carpeta salida/.");
+                "Se generó el ticket del cliente (58 mm) con su QR de rastreo en la carpeta salida/.");
+    }
+
+    @FXML
+    public void manejarImprimirEtiqueta() {
+        if (ultimoResultado == null) return;
+
+        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String etiqueta = ContenidoImpresion.textoEtiquetaBulto(
+                ultimoResultado.codigoComprobante(),
+                agencia(ultimoResultado.idSucursalOrigen()),
+                agencia(ultimoResultado.idSucursalDestino()),
+                nombreDestinatario(),
+                ultimoResultado.pesoKg() != null ? ultimoResultado.pesoKg().toPlainString() : null,
+                fecha,
+                false);
+
+        byte[] qr1 = imagenQr1();
+        if (qr1 == null) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Etiqueta del Bulto", "QR1 no disponible",
+                    "No se pudo obtener el QR1 de esta encomienda; no se generó la etiqueta.");
+            return;
+        }
+        impresionPort.imprimirTicketConQr(etiqueta, qr1, ultimoResultado.qr1().payload());
+        NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, "Etiqueta del Bulto", "Etiqueta Generada",
+                "Se generó la etiqueta con el QR1 para pegar en el bulto, en la carpeta salida/.");
+    }
+
+    @FXML
+    public void enviarBilleteraWhatsApp() {
+        String enlace = enlaceBilleteraActual();
+        if (enlace == null) return;
+        String telefono = ultimoComandoRegistrado != null && ultimoComandoRegistrado.destinatario() != null
+                ? ultimoComandoRegistrado.destinatario().telefono() : null;
+        String mensaje = ContenidoImpresion.mensajeBilletera(
+                nombreDestinatario(), ultimoResultado.codigoComprobante(), enlace);
+        abrirEnlaceExterno(ContenidoImpresion.enlaceWhatsApp(telefono, mensaje), "WhatsApp");
+    }
+
+    @FXML
+    public void enviarBilleteraCorreo() {
+        String enlace = enlaceBilleteraActual();
+        if (enlace == null) return;
+        String correo = ultimoComandoRegistrado != null && ultimoComandoRegistrado.destinatario() != null
+                ? ultimoComandoRegistrado.destinatario().correo() : null;
+        String mensaje = ContenidoImpresion.mensajeBilletera(
+                nombreDestinatario(), ultimoResultado.codigoComprobante(), enlace);
+        abrirEnlaceExterno(ContenidoImpresion.enlaceCorreo(correo,
+                "Su encomienda " + ultimoResultado.codigoComprobante() + " - Expreso Marvisur", mensaje), "correo");
+    }
+
+    private String enlaceBilleteraActual() {
+        if (ultimoResultado == null || ultimoResultado.enlaceBilletera() == null
+                || ultimoResultado.enlaceBilletera().isBlank()) {
+            NavegadorUI.mostrarAlerta(Alert.AlertType.WARNING, "Billetera Digital", "Sin enlace",
+                    "Esta encomienda no tiene enlace de Billetera disponible.");
+            return null;
+        }
+        return ultimoResultado.enlaceBilletera();
+    }
+
+    /**
+     * Abre WhatsApp o el programa de correo con el mensaje listo. El enlace no se guarda:
+     * solo se entrega al sistema operativo. Si no se puede abrir, se copia al portapapeles.
+     */
+    private void abrirEnlaceExterno(String url, String canal) {
+        Thread hilo = new Thread(() -> {
+            try {
+                if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    throw new UnsupportedOperationException("El sistema no permite abrir enlaces.");
+                }
+                if (url.startsWith("mailto:") && Desktop.getDesktop().isSupported(Desktop.Action.MAIL)) {
+                    Desktop.getDesktop().mail(new URI(url));
+                } else {
+                    Desktop.getDesktop().browse(new URI(url));
+                }
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, "No se pudo abrir " + canal + ": " + ex.getMessage());
+                Platform.runLater(() -> {
+                    copiarAlPortapapeles(txtEnlaceBilletera.getText(), "Billetera Digital",
+                            "No se pudo abrir " + canal + " en este equipo. Se copió el enlace de la Billetera "
+                                    + "para que lo envíe manualmente.");
+                });
+            }
+        }, "hilo-envio-billetera");
+        hilo.setDaemon(true);
+        hilo.start();
+    }
+
+    private void copiarAlPortapapeles(String texto, String titulo, String mensaje) {
+        if (texto == null || texto.isBlank() || "N/D".equals(texto)) return;
+        ClipboardContent content = new ClipboardContent();
+        content.putString(texto);
+        Clipboard.getSystemClipboard().setContent(content);
+        NavegadorUI.mostrarAlerta(Alert.AlertType.INFORMATION, titulo, "Copiado", mensaje);
+    }
+
+    private byte[] imagenQr1() {
+        if (ultimoResultado == null || ultimoResultado.qr1() == null) return null;
+        Qr1Data qr1 = ultimoResultado.qr1();
+        try {
+            if (qr1.imagenPngBase64() != null && !qr1.imagenPngBase64().isBlank()) {
+                String limpio = qr1.imagenPngBase64().contains(",")
+                        ? qr1.imagenPngBase64().split(",")[1] : qr1.imagenPngBase64();
+                return Base64.getDecoder().decode(limpio);
+            }
+            return generarQr(qr1.payload());
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "No se pudo obtener la imagen del QR1: " + ex.getMessage());
+            return generarQr(qr1.payload());
+        }
+    }
+
+    private byte[] generarQr(String contenido) {
+        if (contenido == null || contenido.isBlank()) return null;
+        try {
+            return imagenQRPort.generarPNG(contenido, 240);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "No se pudo generar el QR: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private String agencia(String idSucursal) {
+        return ContenidoImpresion.nombreAgencia(idSucursal,
+                cmbSucursalDestino != null ? cmbSucursalDestino.getItems() : null);
+    }
+
+    private String nombreRemitente() {
+        return ultimoComandoRegistrado != null && ultimoComandoRegistrado.remitente() != null
+                ? ultimoComandoRegistrado.remitente().nombresRazonSocial() : "REMITENTE";
+    }
+
+    private String nombreDestinatario() {
+        return ultimoComandoRegistrado != null && ultimoComandoRegistrado.destinatario() != null
+                ? ultimoComandoRegistrado.destinatario().nombresRazonSocial() : "DESTINATARIO";
     }
 
     @FXML
@@ -480,6 +619,8 @@ public class ControladorVentanilla {
         // REGLA DE SEGURIDAD: Limpiar en memoria el token QR2 tras cerrar el diálogo
         this.ultimoResultado = null;
         this.ultimoComandoRegistrado = null;
+        txtEnlaceBilletera.clear();
+        txtQr1Payload.clear();
         imgQr1.setImage(null);
         imgQr2Enlace.setImage(null);
         panelResultado.setVisible(false);

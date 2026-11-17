@@ -188,13 +188,27 @@
                         <Button fx:id="btnCopiarEnlace" text="Copiar Enlace" onAction="#copiarEnlaceBilletera"
                                 styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
                     </HBox>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button fx:id="btnEnviarWhatsApp" text="Enviar por WhatsApp" onAction="#enviarBilleteraWhatsApp"
+                                styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
+                        <Button fx:id="btnEnviarCorreo" text="Enviar por correo" onAction="#enviarBilleteraCorreo"
+                                styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
+                    </HBox>
+
+                    <Label text="Código QR1 del bulto (para escanear en Almacén):" styleClass="label-campo"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <TextField fx:id="txtQr1Payload" editable="false" HBox.hgrow="ALWAYS"
+                                   style="-fx-font-size: 11px;"/>
+                        <Button fx:id="btnCopiarQr1" text="Copiar QR1" onAction="#copiarQr1"
+                                styleClass="btn-secundario" style="-fx-font-size: 11px;"/>
+                    </HBox>
                 </VBox>
 
                 <!-- Vista Previa QR1 Físico -->
                 <VBox alignment="CENTER" spacing="4" styleClass="tarjeta" prefWidth="170">
                     <Label text="QR1 Físico (Bulto)" style="-fx-font-size: 11px; -fx-font-weight: bold;"/>
                     <ImageView fx:id="imgQr1" fitWidth="120" fitHeight="120" preserveRatio="true"/>
-                    <Label text="Impreso en etiqueta" style="-fx-font-size: 9px; -fx-text-fill: #64748B;"/>
+                    <Label text="Va en la etiqueta del bulto" style="-fx-font-size: 9px; -fx-text-fill: #64748B;"/>
                 </VBox>
 
                 <!-- Vista Previa QR2 Digital (Generado con ZXingAdapter) -->
@@ -209,6 +223,8 @@
 
             <!-- Botones de Acción Final -->
             <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="btnImprimirEtiqueta" text="Imprimir Etiqueta del Bulto" onAction="#manejarImprimirEtiqueta"
+                        styleClass="btn-secundario"/>
                 <Button fx:id="btnImprimirTicket" text="Imprimir Ticket Térmico" onAction="#manejarImprimirTicket"
                         styleClass="btn-exito"/>
                 <Button fx:id="btnCerrarResultado" text="Cerrar y Nuevo Registro" onAction="#cerrarModalResultado"

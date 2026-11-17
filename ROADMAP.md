@@ -100,6 +100,12 @@
 - [x] **CIERRE** Pipeline automatizado de cierre de versión v0.3.0 (`scripts/cierre-version.ps1`), sincronización OpenAPI y actualización de matrices
 - *Punto de reanudación I4:* Cierre de versión v0.3.0 finalizado con contratos OpenAPI normalizados (38 operaciones sin /test-rbac), scripts con BOM UTF-8 y métricas sincronizadas (466 pruebas en verde, 40,551 LOC, 18 tablas). Merge a `main` y etiqueta `v0.3.0` realizados. Siguiente paso: probar `deploy/ubuntu/instalar.sh` en una máquina limpia y cerrar v0.3.1.
 
+#### Mejoras para la versión comercial
+- [x] **M1** QR impreso y envío al cliente: etiqueta del bulto con QR1 (al registrar y en la reimpresión de Contingencia), ticket del cliente con QR de rastreo y nombres de agencias, texto del QR1 con botón «Copiar QR1», envío de la Billetera por WhatsApp o correo, y rastreo del portal con el comprobante en la dirección (`/rastreo?codigo=`). El QR2 sigue siendo solo digital.
+- [x] **O6** Copia de seguridad diaria de PostgreSQL en el servidor Linux (`deploy/ubuntu/respaldo-db.sh`, retención de 14 días, carpeta 700).
+- [ ] **M2** Operación multiagencia: el administrador recibe en cualquier agencia de destino y el cierre de viaje avisa los bultos sin recepcionar.
+- *Punto de reanudación M:* M1 y O6 terminados con pruebas (núcleo 50, escritorio 173, portal 40). Siguiente paso: M2.
+
 ---
 
 ## Resumen de tareas pendientes (después de v0.3.0)

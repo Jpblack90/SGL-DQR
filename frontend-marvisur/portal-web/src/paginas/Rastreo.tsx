@@ -4,12 +4,13 @@ import { ApiError, RastreoPublicoDto, obtenerEtiquetaEstado } from '../api/tipos
 import { Alerta } from '../componentes/Alerta';
 import { Cargando } from '../componentes/Cargando';
 import { LineaTiempo } from '../componentes/LineaTiempo';
+import { leerComprobanteDeUrl } from './rastreoUrl';
 
 export const Rastreo: React.FC = () => {
   useEffect(() => {
     document.title = 'Rastrea tu envío · Expreso Marvisur';
   }, []);
-  const [comprobante, setComprobante] = useState('');
+  const [comprobante, setComprobante] = useState(() => leerComprobanteDeUrl(window.location.search));
   const [documento, setDocumento] = useState('');
   const [erroresValidacion, setErroresValidacion] = useState<{ comprobante?: string; documento?: string }>({});
 

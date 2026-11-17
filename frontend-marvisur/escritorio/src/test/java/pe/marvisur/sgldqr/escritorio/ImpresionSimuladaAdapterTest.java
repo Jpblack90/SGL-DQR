@@ -3,6 +3,7 @@ package pe.marvisur.sgldqr.escritorio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pe.marvisur.sgldqr.escritorio.infraestructura.impresion.ImpresionSimuladaAdapter;
+import pe.marvisur.sgldqr.infraestructura.qr.ZXingAdapter;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -50,5 +51,45 @@ class ImpresionSimuladaAdapterTest {
         assertThat(imagen).isNotNull();
         assertThat(imagen.getWidth()).isEqualTo(384);
         assertThat(imagen.getHeight()).isGreaterThan(100);
+    }
+
+    @Test
+    @DisplayName("imprimirTicketConQr: agrega el QR debajo del texto y el ticket queda más alto")
+    void testGenerarTicketConQr() throws IOException {
+        ImpresionSimuladaAdapter adapter = new ImpresionSimuladaAdapter();
+        String texto = "ETIQUETA DE BULTO\nCOMPROBANTE: MV-TEST-QR\n";
+
+        adapter.imprimirTicket(texto);
+        BufferedImage soloTexto = ImageIO.read(adapter.getUltimoTicketGenerado().toFile());
+
+        byte[] qr = new ZXingAdapter().generarPNG("MARVISUR:QR1:UUID-PRUEBA", 200);
+        adapter.imprimirTicketConQr(texto, qr, "MARVISUR:QR1:UUID-PRUEBA");
+        Path archivo = adapter.getUltimoTicketGenerado();
+        BufferedImage conQr = ImageIO.read(archivo.toFile());
+
+        assertThat(conQr.getWidth()).isEqualTo(384);
+        assertThat(conQr.getHeight()).isGreaterThan(soloTexto.getHeight() + 200);
+        // El centro del área del QR tiene módulos negros (no es una franja en blanco).
+        boolean hayNegro = false;
+        int yInicioQr = soloTexto.getHeight() - 40;
+        for (int y = yInicioQr; y < yInicioQr + 232 && !hayNegro; y++) {
+            for (int x = 76; x < 308; x++) {
+                if ((conQr.getRGB(x, y) & 0xFFFFFF) == 0x000000) {
+                    hayNegro = true;
+                    break;
+                }
+            }
+        }
+        assertThat(hayNegro).isTrue();
+    }
+
+    @Test
+    @DisplayName("imprimirTicketConQr: con una imagen inválida imprime solo el texto sin fallar")
+    void testQrInvalidoImprimeTexto() throws IOException {
+        ImpresionSimuladaAdapter adapter = new ImpresionSimuladaAdapter();
+        adapter.imprimirTicketConQr("TEXTO\n", new byte[]{1, 2, 3}, null);
+        BufferedImage imagen = ImageIO.read(adapter.getUltimoTicketGenerado().toFile());
+        assertThat(imagen.getWidth()).isEqualTo(384);
+        assertThat(imagen.getHeight()).isLessThan(200);
     }
 }
